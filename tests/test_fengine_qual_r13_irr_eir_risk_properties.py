@@ -12,6 +12,8 @@ from datetime import date, timedelta
 from decimal import Decimal, ROUND_CEILING, localcontext
 from pathlib import Path
 
+from qualification_r13_precision import independent_decimal_precision
+
 from fengine_hc.reference import ReferenceEngine, CalculationError
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -72,6 +74,7 @@ class QualR13RootRiskPropertyTests(unittest.TestCase):
             model,variant,inputs,config,reference_mode=True,
         ).output
 
+    @independent_decimal_precision
     def test_160_independent_single_periodic_irr_roots(self):
         count=0
         for index,rate,flows in simple_cases():
@@ -91,6 +94,7 @@ class QualR13RootRiskPropertyTests(unittest.TestCase):
                     count+=1
         self.assertEqual(count,IRR_SIMPLE_CASES*2)
 
+    @independent_decimal_precision
     def test_56_two_root_irr_algebraic_goldens_and_single_refusal(self):
         count=0
         for index,r1,r2,flows in multiple_cases():
@@ -113,6 +117,7 @@ class QualR13RootRiskPropertyTests(unittest.TestCase):
                 count+=1
         self.assertEqual(count,IRR_MULTIPLE_CASES)
 
+    @independent_decimal_precision
     def test_16_tangent_irr_roots_are_not_double_counted(self):
         randoms=random.Random(SEED_ROOT ^ 0x54414E47)
         count=0
@@ -132,6 +137,7 @@ class QualR13RootRiskPropertyTests(unittest.TestCase):
                 count+=1
         self.assertEqual(count,IRR_TANGENT_CASES)
 
+    @independent_decimal_precision
     def test_80_irregular_calendar_eir_reproduces_closed_form_annual_rate(self):
         randoms=random.Random(SEED_ROOT ^ 0x454952)
         origin=date(2026,1,1)
@@ -160,6 +166,7 @@ class QualR13RootRiskPropertyTests(unittest.TestCase):
                 count+=1
         self.assertEqual(count,EIR_CASES)
 
+    @independent_decimal_precision
     def test_160_empirical_var_es_match_independent_sample_oracles(self):
         rng=random.Random(SEED_RISK)
         count=0
@@ -212,6 +219,7 @@ class QualR13RootRiskPropertyTests(unittest.TestCase):
                 count+=2
         self.assertEqual(count,2*RISK_CASES)
 
+    @independent_decimal_precision
     def test_closed_nonconventional_eir_and_no_irr_roots(self):
         with self.assertRaises(CalculationError) as exc:
             self.calc(
