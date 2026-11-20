@@ -91,7 +91,7 @@ Customer-pack data is declarative. No untrusted user Python, dynamic SQL, code e
 metricCode; productNamespace; semanticRevision; displayName/translations;
 quantityKind=FLOW|STOCK|EVENT|UNIT_VALUE|RATE|DERIVED_RATIO|
              TIME_WEIGHTED_STOCK|COHORT|DISTRIBUTION|NON_ADDITIVE;
-logicalType=MONEY|DECIMAL|INTEGER|RATE|RATIO|QUANTITY|BOOLEAN|STRUCT;
+logicalType=MONEY|DECIMAL|INTEGER|RATE|RATIO|QUANTITY|BOOLEAN|REFERENCE|STRUCT;
 unitCode; currencyCode?; signPolicy; accountingBasis; reportingMethod?;
 timeKind=EVENT_AT|AS_OF|INTERVAL_FLOW|COVERAGE_INTERVAL|RATE_FIXING;
 sourceGrain; fiscalCalendarRef; validFrom/validTo; observationAsOf;
@@ -123,7 +123,7 @@ dimensionKeys[]; effectiveDatedHierarchyRef?; sourceRevisionRef.
 
 ### 2.3. Operator registry
 
-The initial **53 candidate reusable operators** are documented in catalog/tase_operator_candidates_r0.tsv. Families BASIC, AVERAGE, DISTRIBUTION, DISPERSION, FORECAST_ERROR, STRUCTURE, TEMPORAL, DEPENDENCE; each operator has supported semantic class, algebra/partial merge strategy, mandatory policy fields, output type and reason when blocking. Product packs select only compatible allowlisted operator IDs.
+The initial **53 candidate reusable operators** are documented in catalog/tase_operator_candidates_r0.tsv. The 21 recognized composite input-predicate candidates and their required conditions are defined in catalog/tase_input_predicates_r0.tsv. Operator inputTypePredicates are *typed predicates* checked against MetricSemanticDescriptor (quantity kind + logical type + time kind), not free-form strings or interchangeable semantic kinds; the final formal IDL and operator-predicate evaluator must be accepted before contract freeze. Families BASIC, AVERAGE, DISTRIBUTION, DISPERSION, FORECAST_ERROR, STRUCTURE, TEMPORAL, DEPENDENCE; each operator has supported semantic class, algebra/partial merge strategy, mandatory policy fields, output type and reason when blocking. Product packs select only compatible allowlisted operator IDs.
 
 **R0.1 exit criteria:** all six example product profiles schema-linted; negative tests reject unsigned pack, duplicate metric ID, inherited privilege, illegal SUM(STOCK), AVG(DERIVED_RATIO) as qualified margin, mixed currency/basis, unknown unit, missing numerator/denominator and unqualified event duplication. Exit requires typed schemas and semantic golden candidates; no operational PASS claimed.
 
