@@ -218,9 +218,9 @@ def evm(inputs: Mapping[str, Any], variant: str, config: Mapping[str, Any]) -> d
                 raise CalculationError("EVM_VARIANT_FORMULA_MISMATCH")
             eac = bac / cpi
         elif variant == "EVM_EAC_FORECAST":
-            if config["eacFormula"] != "AC_PLUS_ETC_CPI":
+            if config["eacFormula"] != "AC_PLUS_REMAINING_AT_BUDGET":
                 raise CalculationError("EVM_VARIANT_FORMULA_MISMATCH")
-            eac = ac + (bac - ev) / cpi
+            eac = ac + (bac - ev)
         else:
             raise CalculationError("VARIANT_NOT_IMPLEMENTED", variant)
         return {
