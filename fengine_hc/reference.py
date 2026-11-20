@@ -192,10 +192,10 @@ def depreciation(cost: Any, salvage: Any, periods: int, method: str,
                 raise CalculationError("TRUE_UP_POLICY_REQUIRED")
         elif method in ("STRAIGHT_LINE", "DOUBLE_DECLINING", "SUM_OF_YEARS_DIGITS"):
             _keys(params, {"residualValue", "usefulLifePeriods"})
-        if method != "UNITS_OF_PRODUCTION" and production is not None:
-            raise CalculationError("UNCONSUMED_INPUT", "production")
         else:
             raise CalculationError("VARIANT_NOT_IMPLEMENTED", method)
+        if method != "UNITS_OF_PRODUCTION" and production is not None:
+            raise CalculationError("UNCONSUMED_INPUT", "production")
         for index in range(1, n + 1):
             if method == "STRAIGHT_LINE":
                 charge = (c - s) / n
