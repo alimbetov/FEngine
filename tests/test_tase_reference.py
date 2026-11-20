@@ -203,13 +203,10 @@ class TaseReferenceTests(unittest.TestCase):
         self.assertCode("PARTIAL_BUCKET_UNSUPPORTED",
                         lambda: compile_plan(self.cat, req(start=date(2026, 1, 15))))
 
-    def test_unsupported_fiscal_445_does_not_fallback(self):
-        self.assertCode("CALENDAR_GRAIN_NOT_IMPLEMENTED",
-                        lambda: compile_plan(self.cat, req(grain="FISCAL_PERIOD",
-                                                         fiscal_start_month=1,
-                                                         start=date(2026, 1, 1),
-                                                         end=date(2026, 2, 1))))
-        # FISCAL_PERIOD currently equals fiscal Gregorian month; 4-4-5 requires explicit future profile.
+    def test_fiscal_period_is_gregorian_month_not_445(self):
+        plan = compile_plan(self.cat, req(grain="FISCAL_PERIOD", start=JAN, end=FEB))
+        self.assertEqual(plan.request.grain, "FISCAL_PERIOD")
+        # 4-4-5 and 53rd-week fiscal profiles are NOT implemented by this reference.
 
     def test_quantile_nearest_rank_and_bounds(self):
         rows = [
