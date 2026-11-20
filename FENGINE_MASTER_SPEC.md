@@ -1,6 +1,6 @@
 # FEngine — единая спецификация финансово-экономического аналитического ядра
 
-Версия документа: 0.7 (83 model contracts + OPT-R0 universal planning + GEO-OPT-R0 weighted spatial graphs)
+Версия документа: 0.8 (83 baseline contracts + 12 W4 candidates; R83 review, OPT-R0 and GEO-OPT-R0 preserved)
 Дата: 2026-11-20
 Репозиторий: https://github.com/alimbetov/FEngine
 Статус: DRAFT / синхронизация знаний с FIN на 2026-11-20; архитектурное задание; не является свидетельством реализованных расчётов.
@@ -1964,3 +1964,37 @@ Open ADR: GEO-ADR-01 hierarchy tree versus DAG contract; -02 coordinate/altitude
 **ML boundary:** допускаются только versioned predictive assistance, scenario inputs, классификация и anomaly proposals с backtesting/out-of-time/censorship/calibration/governance; ML не заменяет deterministic accounting, legal GESV/EIR recognition, period/currency and fixed source lineage. Все финансовые результаты сохраняют оригинальные SHA и financial S2 gates.
 
 **Дальнейший этап:** согласовать 83 параметрические добавления, проверить FIN input source binding, построить независимый банка boundary/negative/golden, после этого публиковать immutable reviewed Input/Method/Output schema revisions. До отдельного явного разрешения не реализовывать все финансовые Python calculation models или Rust engine.
+
+---
+
+## 22. FENGINE-MODEL-EXT-R1 — Wave 4: 12 новых расчётных моделей (REQUIREMENTS ONLY)
+
+**Дата:** 2026-11-20. **Статус:** REQUIREMENTS_DRAFT / MODEL_CANDIDATE / NOT_IMPLEMENTED / FINANCIAL_S2_HOLD.
+
+Цель: расширить универсальный Financial Calculation Engine **поверх неизменённых 83 кандидатов W1–W3**, без дублирования NPV/EIR/ECL/FIFO/DSCR, без переименования старых TaskCode и без изменения ранее утверждённых immutable SHA. Эти двенадцать **дополнительных** моделей зарегистрированы как W4. **Итог каталога кандидатов: 95 моделей и 93 семейства типизированных входных данных (D01–D93).** Это *не* число реализованных или финансово допущенных калькуляторов. Само расширение каталога не подтверждает готовность Python Hub и не меняет S2.
+
+Канонические приложения:
+- `docs/FENGINE-MODEL-EXT-R1-WAVE4-12-CONTRACTS-TZ.md` — полное ТЗ: список моделей, TaskCode, входы D82–D93, точные параметры, экономические границы, синтетические контрольные примеры и негативная приёмка.
+- `catalog/model_extensions_r1.tsv` — машинно читаемый реестр **только** двенадцати новых моделей. Базовый реестр §18 (83 кода) остаётся без изменения.
+- `docs/FENGINE-R83-CONTRACT-HARDENING-MATRIX-2026-11-20.tsv` — независимая ранее подготовленная матрица ревью существующих 83; её findings и статусы нельзя заменять зелёными статусами W4.
+
+| W4 код | Краткая функция | Очерёдность |
+|---|---|---|
+| HC.CAP.01 | CAPM и стоимость собственного капитала | EXT-P0 |
+| HC.CAP.02 | WACC и структура финансирования | EXT-P0 |
+| HC.CREDIT.01 | Risk-based loan pricing / минимальная целевая ставка | EXT-P0 |
+| HC.CREDIT.02 | RAROC / доходность на экономический капитал | EXT-P0 |
+| HC.CUST.01 | Дисконтированная клиентская CLV | EXT-P0 |
+| HC.CUST.02 | CAC payback по когортам | EXT-P0 |
+| HC.PF.01 | LLCR и PLCR с точной договорной базой CFADS | EXT-P1 |
+| HC.PF.02 | Contractual cash waterfall и DSRA | EXT-P1 |
+| HC.ALM.01 | Repricing GAP и сценарная ΔNII | EXT-P1 |
+| HC.ALM.02 | Сценарная ΔEVE | EXT-P1 |
+| HC.FTP.01 | Internal Funds Transfer Pricing | EXT-P1 |
+| HC.PRICE.01 | Оптимизация цены с эластичностью и ограничениями | EXT-P1 |
+
+**Dependency direction:** market observations → CAPM → WACC → DCF; loan cashflows + FTP + approved ECL → credit pricing → RAROC. FTP **не зависит** от credit pricing. Customer CLV → CAC payback only when the approved reusable outputs are appropriate. Project CFADS → LLCR/PLCR → contractual waterfall. Repricing observations → ALM NII; qualified term cashflows → EVE. Проверка реального CalcPlan должна отклонять любой цикл или скрытую зависимость.
+
+**No automatic production admission:** все W4 договоры остаются неизменяемыми *после будущей методологической квалификации*, а до неё являются только кандидатами. Сначала ревью текущих 83 и W4, проверка численных golden vectors, параметров, диапазонов, учётной/регуляторной применимости, SHA/versions и отрицательных сценариев; только затем заморозка точных Python/Java API контрактов и поэтапное программирование.
+
+**Deferred independent packages:** LCR/NSFR (пруденциальные нормы), IFRS17 страхование, оптимизация инвестиционного портфеля, недвижимость NOI/cap rate, энергетика LCOE, специализированная юрисдикционная ALM-квалификация. Эти темы не получают W4 коды и не входят в 95 без отдельного решения.
