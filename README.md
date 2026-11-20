@@ -19,6 +19,17 @@ FEngine is a specification-first, evidence-driven financial and economic calcula
 
 Prior 83-model review: 83/83 external synthetic arithmetic and 34/34 external boundary examples (historical). New R95 CI: 34/34 unittest methods on Python 3.11 and 3.13, including 95 specification-level subtests plus independent Decimal invariants. None of these tests import executable financial HC model code, and do not constitute financial S2, regulatory qualification, or functional finance engine acceptance.
 
+## Method hardening R1 (2026-11-20)
+
+**P0 draft corrections committed for review; no immutable financial freeze.** 17 method specification sections in W1–W4 now link to precise ECL, dated-rate/EIR, DCF/IRR, VaR/ES, true three-factor Price-Volume-Mix, and integer optimization requirements. No existing qualified contract is overwritten.
+
+- [R1 P0 methodology corrections and independently reproducible controls](docs/FENGINE-METHOD-HARDENING-R1-P0-ADDENDUM.md)
+- [310 draft typed parameter proposals for all 95 model candidates](catalog/method_parameter_candidates_r1.tsv)
+- [R1 independent Decimal and parameter tests](tests/test_fengine_method_hardening_r1.py)
+- [CI workflow for R95 + R1 banks](.github/workflows/fengine-r95-model-bank.yml)
+
+Independent control tests do not invoke any financial HC calculation implementation. Financial review, FIN source binding, production S2 and immutable per-method contract freeze remain blocked.
+
 ## Current audit decision
 
 **CONTRACT_FREEZE_BLOCKED** pending methodology and applicability review, pre-freeze typed parameter additions, source-to-field mappings, independent golden examples and full mathematical edge cases (ECL, EIR/GESV, DCF/IRR, VaR/ES, PVM and optimization).
