@@ -140,7 +140,7 @@ class HCReferenceTests(unittest.TestCase):
         self.fails("FINANCIAL_S2_REQUIRED", lambda:
                    self.e.calculate("HC.DCF.01", "PERIOD_END_NPV", {}, {}))
         self.fails("MODEL_NOT_IMPLEMENTED", lambda:
-                   self.run_model("HC.ECL.03", "DISCOUNTED_LIFETIME_ECL", {}, {}))
+                   self.run_model("HC.ECL.03", "LIFETIME_TERM_PD", {}, {}))
         self.fails("VARIANT_NOT_IMPLEMENTED", lambda:
                    self.run_model("HC.ASSET.01", "SINKING_FUND_MGMT",
                                   {"cost": "1000"}, {"residualValue": "0", "usefulLifePeriods": 2}))
