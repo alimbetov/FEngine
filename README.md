@@ -46,7 +46,7 @@ Independent control tests do not invoke any financial HC calculation implementat
 
 ## TASE-R0: Product-Extensible Temporal Aggregation & Statistics
 
-**Design only; no Python TASE runtime or functional tests implemented.** A single TASE core can serve FIN, BANK, INSURANCE, LOGISTICS, INDUSTRY and CUSTOM Product Packs with shared versioned temporal, grouping, statistics and comparison operators.
+**In-process Python TASE reference implemented and tested; NO durable financial Hub or production admission.** A single TASE core can serve FIN, BANK, INSURANCE, LOGISTICS, INDUSTRY and CUSTOM Product Packs with shared versioned temporal, grouping, statistics and comparison operators.
 
 - [Full TASE-R0.1–R0.6 technical specification](docs/FENGINE-TASE-R0-UNIVERSAL-TEMPORAL-STATISTICS-TZ.md)
 - [53 typed operator candidates](catalog/tase_operator_candidates_r0.tsv)
@@ -54,8 +54,15 @@ Independent control tests do not invoke any financial HC calculation implementat
 - [26 typed sample metric semantics](catalog/tase_metric_semantics_candidates_r0.tsv)
 - [21 typed input predicate candidates](catalog/tase_input_predicates_r0.tsv)
 - [42 TASE golden/negative acceptance seed cases](catalog/tase_golden_and_negative_candidates_r0.tsv)
+- [Real Python TASE reference module](tase/reference.py)
+- [TASE reference unit tests](tests/test_tase_reference.py)
+- [Product extensibility/parameter audit tests](tests/test_tase_product_extensions.py)
+- [116-model/417-parameter candidate inventory](catalog/model_parameter_inventory_116_r0.tsv)
+- [32 TASE core config parameter candidates](catalog/tase_core_parameter_candidates_r0.tsv)
+- [Current implementation audit and Python→Rust gates](docs/FENGINE-TASE-PY-R01-IMPLEMENTATION-AUDIT.md)
+- [Python 3.11/3.13 reference CI run (129/129 each)](https://github.com/alimbetov/FEngine/actions/runs/44720599167)
 
-Semantics: FLOW SUM, STOCK LAST_AS_OF, qualified time-weighted stocks, RATIO_OF_SUMS with exact numerator/denominator, unit/currency dimensional analysis, fiscal calendars, gaps/overlaps and scope-based dedup. Planned 250 test cases across semantics, products, calendars, stats, comparison, recovery and load are **not PASS** until written and executed in CI. TASE is a platform capability and does not change the 116 candidate HC model count.
+Semantics: FLOW SUM, STOCK LAST_AS_OF and RATIO_OF_SUMS are implemented in the strict reference; qualified time-weighted stock, custom fiscal 4-4-5, full Session/DAG and other complex operations remain future work. Missing interval authority or watermark blocks strict completeness. The 250-case TASE R0.6 suite is **not PASS**; the current confirmed 129 Python reference unittests include 32 TASE-focused test methods and preexisting tests, not all future acceptance scenarios. TASE is a platform capability and does not change the 116 candidate HC model count.
 
 ## Current audit decision
 
