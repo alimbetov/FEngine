@@ -2093,3 +2093,28 @@ Open ADR: GEO-ADR-01 hierarchy tree versus DAG contract; -02 coordinate/altitude
 
 **План перехода:** Python Decimal mathematical reference → full independent goldens + 250-case QA and operational load → profile full path → Rust hot-kernel candidates with exact state/unit/rounding parity → controlled shadow/cutover only after measured benefit. Полное ТЗ и матрица: docs/FENGINE-TASE-PY-R01-IMPLEMENTATION-AUDIT.md.
 
+
+
+---
+
+## 28. FENGINE-FLEX-R3-MAIN-CONSOLIDATION — единственная рабочая ветка и методы-варианты
+
+**Дата:** 2026-11-20 · **Ветка:** main ONLY · **PR:** https://github.com/alimbetov/FEngine/pull/7 (merged; прежняя feature-ветка retired/deleted).
+
+**Нормативная для проекта текущая кандидатная база:**
+- **116** бизнес-моделей HC.* W1–W5; 95 W1–W4 + 21 HEDGE/INS Wave-5.
+- **116** файловых профилей вариантов: catalog/model_variant_profiles_116_r3.tsv.
+- **222** индивидуальных вариантов методов: catalog/method_variant_definitions_116_r3.tsv.
+- **732** уникальных кандидата параметров: catalog/method_parameter_candidates_116_r3.tsv, включая сохранённые 625 R95 parameter candidates и 107 Wave-5 candidates.
+- catalog/model_parameter_inventory_116_r0.tsv с 417 записями — исторический prior review, ни одна его запись не потеряна, но **для текущей разработки ссылаться следует на 732-кандидатный R3 реестр**.
+
+**История и соответствие:** docs/FENGINE-FLEX-METHOD-R1-METHOD-VARIANTS-TZ.md, docs/FENGINE-R95-DEEP-PARAMETERIZATION-AUDIT-2026-11-20.md и catalog/*_r1.tsv/*_r2.tsv сохраняются как неизменяемые источники черновых решений; они описывают исторический срез 95 моделей и не должны выдавать неполное покрытие за актуальную спецификацию 116. Слияние 11 файлов feature-ветки выполнено add-only через PR #7, без перезаписи действующего TASE Python/reference и W5-контрактов.
+
+**Тестовая квалификация:** tests/test_fengine_consolidated_r3.py проверяет уникальность, ссылки моделей/вариантов на параметры, сохранение старых записей и отсутствие ложного финансового S2. Подтверждённые CI:
+- https://github.com/alimbetov/FEngine/actions/runs/44722823796 — 169/169 Python/GEO/TASE unittest PASS на Python 3.11 и Python 3.13;
+- https://github.com/alimbetov/FEngine/actions/runs/44722823831 — 97/97 model-contract-bank PASS на Python 3.11 и Python 3.13.
+
+**Дисциплина версий:** изменение значения ставки/горизонта/порогов при том же алгоритме — новая ConfigRevision; изменение экономической трактовки (FCFF/WACC → FCFE/Ke, depreciation method, quantile definition) — отдельная MethodVariant/MethodRevision с точным ParameterContract/OutputSchema/AlgorithmSha. 222 вариантов являются черновиками, а не 222 исполненными калькуляторами; 732 кандидата требуют согласования типов/допустимых значений/requiredWhen/валидации. Production FINANCIAL_S2_HOLD сохраняется.
+
+**Политика разработки:** новые изменения вести напрямую в единственной интеграционной ветке main, с автоматическими проверками для каждого коммита. Новые долгоживущие feature-ветки не являются авторитетным источником контрактов и не должны создаваться для параллельной реализации этого проекта.
+
