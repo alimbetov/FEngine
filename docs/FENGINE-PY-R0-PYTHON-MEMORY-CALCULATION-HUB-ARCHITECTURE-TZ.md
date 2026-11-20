@@ -1,10 +1,10 @@
 # FEngine PY-R0 — Python-first Memory Calculation Hub: архитектура и требования
 
-**Документ:** FENGINE-PY-R0-ARCH-TZ-V1  
+**Документ:** FENGINE-PY-R0-ARCH-TZ-V1.1  
 **Дата:** 2026-11-20  
 **Статус:** DESIGN / REQUIREMENTS_COLLECTION / NOT_IMPLEMENTED  
 **Проект:** alimbetov/FEngine, main  
-**Основание:** FENGINE_MASTER_SPEC.md v0.4 и docs/FENGINE-HPC-WAVE1-14-CALCULATION-CONTRACTS-TZ.md v1.1.  
+**Основание:** FENGINE_MASTER_SPEC.md v0.5 и W1/P0, W2/P1, W3/P2 подробные model/DTO спецификации.  
 **Внешний FIN source context:** alimbetov/fin-analyzer, feat/fin-form-library-standalone, snapshot для сверки 2026-11-20; наследовать FIN production-qualification и финансовый S2 нельзя.  
 **Ограничение:** этот файл — только проектирование. Не создавать Python-файлы, миграции, контейнеры, сервисы, данные и не заявлять о запуске тестов без отдельного решения.
 
@@ -282,3 +282,25 @@ start with one synthetic, fully pinned F02 or SET.01 case, not the entire 14 mod
 - W1 14 models, input/output DTO and Memory Hub design: https://github.com/alimbetov/FEngine/blob/main/docs/FENGINE-HPC-WAVE1-14-CALCULATION-CONTRACTS-TZ.md
 
 **Финальное ограничение документа:** DESIGN-ONLY. Никаких исходников Python/Rust, зависимостей, SQL-миграций, контейнеров, фактически выполненных тестов или production admission. Следующий переход только после явного разрешения пользователя.
+
+
+---
+
+## 14. PY-R0 v1.1 extension: one Python hub for 83 models / 81 dataset schemas
+
+**Status:** REQUIREMENTS_ONLY / architecture expanded 2026-11-20, no Python code exists.
+
+All 83 model specs use a single calculation orchestration mechanism, registry, input/output transport and Calculation Session abstraction. Detailed method contracts:
+- W1/P0 14: docs/FENGINE-HPC-WAVE1-14-CALCULATION-CONTRACTS-TZ.md
+- W2/P1 42: docs/FENGINE-HPC-WAVE2-P1-42-METHOD-DTO-RESULT-TZ.md
+- W3/P2 27: docs/FENGINE-HPC-WAVE3-P2-27-STATISTICAL-METHOD-DTO-TZ.md
+
+**Total:** D01–D81 typed dataset schema candidate families; 83 unique TaskCode model slots, *not* 83 processes, microservices or independently shipped engines.
+
+Future Python modular calculation domain families (not source files): set, ecl_credit_risk, loans, cashflow, dcf, accounting_consolidation, inventory, fixed_assets, costing, planning_optimization, statistical_risk. Implement pure functions behind one common EvalContract and versioned task dispatcher. Separate EIR and KZ_GESV regulatory eligibility, 12m vs lifetime ECL, VaR vs ES, FIFO vs WAC, direct vs indirect CFO.
+
+Result shape v2 allowlist adds SCENARIO_MATRIX, DISTRIBUTION and OPTIMIZATION_PLAN to existing six; use versioned OutputSchemaRevision and capability negotiation, not a breaking change to existing Wave-1 ResultSet layout. DISTRIBUTION requires sample/weight evidence, quantile/CI methodology; OPTIMIZATION_PLAN requires decision vector, constraints and feasibility/optimality gap. MONEY_PER_UNIT, VECTOR, MATRIX, POINT_SERIES are **composite typed DTO families** based on versioned Decimal/currency/quantity and immutable shape/ordering, not loose untyped JSON primitives.
+
+**Session reuse:** one sealed immutable input Session can feed multiple TaskCodes with separate scoped idempotencyKeys. DAG edges pin upstream committed result SHA, never speculative cache entry. Cache backend local/Redis/Rust does not change finance result or metadata state.
+
+**Financial/statistical hard-stop:** candidate documents provide synthetic worked examples only. Production requires verified source bindings, independent arithmetic goldens, finance S2 where relevant, calibrated risk assumptions and cross-language parity. No code generation, no tests, no data ingestion into FIN and no server deployment at this phase.
