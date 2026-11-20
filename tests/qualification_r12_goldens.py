@@ -224,9 +224,9 @@ def build_goldens() -> dict[tuple[str, str], Golden]:
     coverage={"cfads":["100","100","100"],"outstandingDebt":"100",
               "discountRate":"0","loanPeriods":2}
     add("HC.PF.01","LLCR_DEBT_LIFE",coverage,{},
-        {"coverageRatio":"2"},"2*100/100")
+        {"coverageRatio":"2"},"Debt-life 2 periods: (100+100)/100 = 2")
     add("HC.PF.01","PLCR_PROJECT_LIFE",coverage,{},
-        {"coverageRatio":"3"},"3*100/100")
+        {"coverageRatio":"3"},"Project-life 3 periods: (100+100+100)/100 = 3")
     losses=["1","2","3","4","5"]
     add("HC.RISK.02","EMPIRICAL_LEFT_QUANTILE",{"losses":losses},
         {"alpha":"0.8","lossSignPolicy":"POSITIVE_LOSS",
