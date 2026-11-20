@@ -1,0 +1,168 @@
+{
+  "schema": "FENGINE_HC_R02_GOLDENS_V1",
+  "status": "MATHEMATICAL_REFERENCE_ONLY_NOT_FINANCE_S2",
+  "numericPolicy": "DECIMAL40_GENERAL_DECIMAL55_ROOT_ACT365F_R02",
+  "vectors": [
+    {
+      "id": "IRR_TWO_ROOTS",
+      "model": "HC.DCF.03",
+      "variant": "ALL_REAL_IRR_ROOTS",
+      "inputs": {
+        "cashflows": [
+          "-100",
+          "230",
+          "-132"
+        ]
+      },
+      "config": {
+        "rootDomain": {
+          "minRate": "-0.9",
+          "maxRate": "5"
+        },
+        "rootCompletenessPolicy": "CERTIFIED_ALL"
+      },
+      "expected": {
+        "roots": [
+          "0.1",
+          "0.2"
+        ]
+      },
+      "tolerance": "1e-20"
+    },
+    {
+      "id": "EIR_ONE_YEAR",
+      "model": "HC.LOAN.03",
+      "variant": "EIR_ORIGINAL",
+      "inputs": {
+        "cashflows": [
+          {
+            "date": "2026-01-01",
+            "amount": "-100"
+          },
+          {
+            "date": "2027-01-01",
+            "amount": "110"
+          }
+        ]
+      },
+      "config": {
+        "discountOrigin": "2026-01-01",
+        "rootCompletenessPolicy": "CERTIFIED_ALL"
+      },
+      "expected": {
+        "effectiveRate": "0.1"
+      },
+      "tolerance": "1e-20"
+    },
+    {
+      "id": "VAR_NEAREST_RANK",
+      "model": "HC.RISK.02",
+      "variant": "EMPIRICAL_LEFT_QUANTILE",
+      "inputs": {
+        "losses": [
+          "1",
+          "2",
+          "3",
+          "4",
+          "5"
+        ]
+      },
+      "config": {
+        "alpha": "0.8",
+        "lossSignPolicy": "POSITIVE_LOSS",
+        "quantileDefinition": "NEAREST_RANK"
+      },
+      "expected": {
+        "valueAtRisk": "4"
+      },
+      "tolerance": "0"
+    },
+    {
+      "id": "ES_FRACTIONAL_TAIL",
+      "model": "HC.RISK.03",
+      "variant": "QUANTILE_INTEGRAL_ES",
+      "inputs": {
+        "losses": [
+          "1",
+          "2",
+          "3",
+          "4",
+          "5"
+        ]
+      },
+      "config": {
+        "confidenceAlpha": "0.7",
+        "esTailMassRule": "QUANTILE_INTEGRAL_FRACTIONAL_ATOM"
+      },
+      "expected": {
+        "expectedShortfall": "4.666666666666666666666666666666666666666666666"
+      },
+      "tolerance": "1e-30"
+    },
+    {
+      "id": "ECL_12M_DEFAULT_WINDOW",
+      "model": "HC.ECL.02",
+      "variant": "FIRST_12_MONTH_DEFAULT_EVENTS",
+      "inputs": {
+        "asOf": "2026-01-01",
+        "annualEir": "0",
+        "events": [
+          {
+            "defaultDate": "2026-06-01",
+            "lossDate": "2028-01-01",
+            "pd": "0.1",
+            "lgd": "0.5",
+            "exposure": "100"
+          },
+          {
+            "defaultDate": "2026-12-01",
+            "lossDate": "2028-12-01",
+            "pd": "0.2",
+            "lgd": "0.5",
+            "exposure": "100"
+          }
+        ]
+      },
+      "config": {
+        "defaultEventWindow": "FIRST_12_MONTHS"
+      },
+      "expected": {
+        "expectedCreditLoss": "15"
+      },
+      "tolerance": "0"
+    },
+    {
+      "id": "ECL_LIFETIME_SURVIVAL",
+      "model": "HC.ECL.03",
+      "variant": "LIFETIME_TERM_PD",
+      "inputs": {
+        "asOf": "2026-01-01",
+        "annualEir": "0",
+        "events": [
+          {
+            "defaultDate": "2027-01-01",
+            "lossDate": "2027-01-01",
+            "pd": "0.1",
+            "lgd": "0.5",
+            "exposure": "100"
+          },
+          {
+            "defaultDate": "2028-01-01",
+            "lossDate": "2028-01-01",
+            "pd": "0.2",
+            "lgd": "0.5",
+            "exposure": "100"
+          }
+        ]
+      },
+      "config": {
+        "hazardConditionality": "CONDITIONAL_PD"
+      },
+      "expected": {
+        "expectedCreditLoss": "14",
+        "survivalProbability": "0.72"
+      },
+      "tolerance": "0"
+    }
+  ]
+}
