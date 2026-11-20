@@ -113,7 +113,7 @@ def _classifications(rules: Any) -> tuple[dict[str, str], list[dict[str, str]]]:
         row = _schema(item, {"code", "cashflowClass"}, "DIRECT_CFO_CLASSIFICATION_SCHEMA")
         code = _code(row["code"], "DIRECT_CFO_CLASSIFICATION_CODE")
         category = row["cashflowClass"]
-        if category not in _CLASSES:
+        if not isinstance(category, str) or category not in _CLASSES:
             raise CalculationError("DIRECT_CFO_CLASS_UNKNOWN")
         if code in table:
             raise CalculationError("DIRECT_CFO_DUPLICATE_CLASS_CODE")
