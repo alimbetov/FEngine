@@ -265,6 +265,7 @@ class Dataset:
     rows: tuple[Observation, ...]
     complete_event_stream: bool = False
     watermark: date | None = None
+    interval_coverage_attested: bool = False
 
     def __post_init__(self) -> None:
         if not self.scope or not self.content_sha:
@@ -451,6 +452,11 @@ def _check_rows(rows: list[Observation], metric: Metric, begin: date, end: date,
         return
     if metric.time_kind not in {"INTERVAL_FLOW", "COVERAGE_INTERVAL"}:
         return
+    # The source must attest completeness for the interval and watermark.
+    # Continuity of supplied rows alone does not prove no undisclosed rows.
+    if (not dataset.interval_coverage_attested or dataset.watermark is None
+            or dataset.watermark < end):
+        raise TaseError("COVERAGE_UNKNOWN")
     # Completeness/overlap is checked PER leaf identity, never across branches,
     # which can legitimately have overlapping dates for separate measurements.
     per_leaf: dict[tuple[tuple[str, str], ...], list[Observation]] = {}
@@ -598,9 +604,13 @@ def calculate(catalog: Catalog, req: PeriodRequest, dataset: Dataset) -> TaseRes
                 if req.operation in {"VAR_POP", "VAR_SAMPLE"}:
                     unit += "^2"
                 count = len(selected)
-            results.append(ResultRow(group, begin, end, _text(value), unit, count))
+            results.append(ResultRow(
+                group, begin, end, _text(value), unit, count,
+                coverage="FULL" if req.require_full_coverage else "UNKNOWN",
+                status="COMPLETE" if req.require_full_coverage else "PARTIAL"))
     digest = _fingerprint({"plan": plan.plan_sha, "dataset": dataset.content_sha,
                            "rows": [{"group": list(r.group), "period": [r.start.isoformat(), r.end.isoformat()],
                                      "value": r.value, "unit": r.unit, "count": r.observation_count}
                                     for r in results]})
-    return TaseResult(plan.plan_sha, dataset.content_sha, tuple(results), digest)
+    return TaseResult(plan.plan_sha, dataset.content_sha, tuple(results), digest,
+                      status="COMPLETE" if req.require_full_coverage else "PARTIAL")
