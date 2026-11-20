@@ -234,6 +234,24 @@ class TemporalV12Tests(unittest.TestCase):
                             Decimal("0.11"))
         self.assertEqual(result.result.total_rows[0].unit,"fraction")
 
+    def test_capm_exposure_weighting_keeps_business_dimension_groups_separate(self):
+        a=(("branch","A"),)
+        b=(("branch","B"),)
+        rows=[
+            capm(date(2026,1,15),"1","100",group=a),
+            capm(date(2026,2,15),"2","300",group=a),
+            capm(date(2026,3,15),"1.5","100",group=a),
+            capm(date(2026,1,15),"0.5","50",group=b),
+            capm(date(2026,2,15),"0.5","50",group=b),
+            capm(date(2026,3,15),"0.5","50",group=b),
+        ]
+        req=request("HC.CAP.01","CAPM_BASE","costOfEquity",
+                    group_by=("branch",))
+        result=self.calc(req,rows).result
+        self.assertEqual([row.group for row in result.total_rows],[a,b])
+        self.assertEqual([Decimal(row.value) for row in result.total_rows],
+                         [Decimal("0.122"),Decimal("0.05")])
+
     def test_capm_weights_zero_and_basis_change_fail(self):
         req=request("HC.CAP.01","CAPM_BASE","costOfEquity")
         rows=[
