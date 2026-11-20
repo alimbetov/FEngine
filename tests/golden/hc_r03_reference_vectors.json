@@ -1,0 +1,230 @@
+{
+  "schema": "FENGINE_HC_R03_GOLDENS_V1",
+  "status": "MATHEMATICAL_REFERENCE_ONLY_NOT_FINANCE_S2",
+  "retentionPolicy": "NO_PERSISTENCE_REFERENCE; REDIS_ONLY_FOR_FUTURE_SESSION_RUNTIME; 10800_S_MAX; DELETE_AFTER_ACK",
+  "vectors": [
+    {
+      "id": "CASH_DETERMINISTIC_RUNWAY",
+      "model": "HC.CASH.03",
+      "variant": "DETERMINISTIC_RUNWAY",
+      "inputs": {
+        "asOf": "2026-01-01",
+        "openingCash": "100",
+        "currency": "KZT",
+        "cashflows": [
+          {
+            "date": "2026-01-03",
+            "netCashflow": "-30"
+          },
+          {
+            "date": "2026-01-10",
+            "netCashflow": "-50"
+          },
+          {
+            "date": "2026-01-11",
+            "netCashflow": "-1"
+          }
+        ]
+      },
+      "config": {
+        "floorValue": "20",
+        "firstPassageRule": "STRICT_BELOW_FLOOR"
+      },
+      "expectedDecimal": {
+        "closingCash": "19",
+        "cashAtFirstBreach": "19"
+      },
+      "expectedExact": {
+        "status": "BREACHED",
+        "firstBreachDate": "2026-01-11",
+        "elapsedDays": 10,
+        "currency": "KZT"
+      },
+      "tolerance": "0"
+    },
+    {
+      "id": "CASH_SCENARIO_RUNWAY",
+      "model": "HC.CASH.03",
+      "variant": "SCENARIO_RUNWAY",
+      "inputs": {
+        "asOf": "2026-01-01",
+        "openingCash": "100",
+        "currency": "KZT",
+        "scenarios": [
+          {
+            "scenarioId": "BASE",
+            "cashflows": [
+              {
+                "date": "2026-01-05",
+                "netCashflow": "10"
+              }
+            ]
+          },
+          {
+            "scenarioId": "STRESS",
+            "cashflows": [
+              {
+                "date": "2026-01-05",
+                "netCashflow": "-95"
+              }
+            ]
+          }
+        ]
+      },
+      "config": {
+        "floorValue": "20",
+        "firstPassageRule": "STRICT_BELOW_FLOOR"
+      },
+      "expectedDecimal": {
+        "floor": "20"
+      },
+      "expectedExact": {
+        "classification": "DETERMINISTIC_PATHS_NO_PROBABILITIES",
+        "currency": "KZT"
+      },
+      "tolerance": "0"
+    },
+    {
+      "id": "COST_SINGLE_BREAK_EVEN",
+      "model": "HC.COST.04",
+      "variant": "SINGLE_PRODUCT_BREAKEVEN",
+      "inputs": {
+        "fixedCost": "1000",
+        "unitPrice": "100",
+        "unitVariableCost": "60",
+        "currency": "KZT",
+        "quantityUnit": "PCS"
+      },
+      "config": {
+        "minimumLotRule": "WHOLE_UNITS"
+      },
+      "expectedDecimal": {
+        "unitContribution": "40",
+        "breakEvenUnitsExact": "25",
+        "revenueAtMinimumUnits": "2500"
+      },
+      "expectedExact": {
+        "minimumWholeUnits": 25,
+        "currency": "KZT"
+      },
+      "tolerance": "0"
+    },
+    {
+      "id": "COST_MIX_BREAK_EVEN",
+      "model": "HC.COST.04",
+      "variant": "PRODUCT_MIX_BREAKEVEN",
+      "inputs": {
+        "fixedCost": "1000",
+        "currency": "KZT",
+        "products": [
+          {
+            "sku": "A",
+            "unitsPerBundle": 2,
+            "unitPrice": "100",
+            "unitVariableCost": "60"
+          },
+          {
+            "sku": "B",
+            "unitsPerBundle": 1,
+            "unitPrice": "70",
+            "unitVariableCost": "40"
+          }
+        ]
+      },
+      "config": {
+        "minimumLotRule": "WHOLE_BUNDLES",
+        "mixtureBundleIntegrality": true
+      },
+      "expectedDecimal": {
+        "bundleContribution": "110",
+        "bundleRevenue": "270",
+        "revenueAtMinimumBundles": "2700"
+      },
+      "expectedExact": {
+        "minimumWholeBundles": 10,
+        "currency": "KZT"
+      },
+      "tolerance": "0"
+    },
+    {
+      "id": "COST_EVM_BAC_CPI",
+      "model": "HC.COST.07",
+      "variant": "EVM_BAC_CPI",
+      "inputs": {
+        "asOf": "2026-06-30",
+        "baselineRevision": "BASELINE-SHA-A",
+        "plannedValue": "80",
+        "earnedValue": "60",
+        "actualCost": "75",
+        "budgetAtCompletion": "120",
+        "currency": "KZT"
+      },
+      "config": {
+        "earnedValueRule": "EXTERNALLY_SUPPLIED_EV",
+        "eacFormula": "BAC_DIV_CPI"
+      },
+      "expectedDecimal": {
+        "costPerformanceIndex": "0.8",
+        "costVariance": "-15",
+        "scheduleVariance": "-20",
+        "estimateAtCompletion": "150",
+        "varianceAtCompletion": "-30"
+      },
+      "expectedExact": {
+        "formula": "BAC_DIV_CPI"
+      },
+      "tolerance": "0"
+    },
+    {
+      "id": "COST_EVM_EAC_BUDGET_REMAINING",
+      "model": "HC.COST.07",
+      "variant": "EVM_EAC_FORECAST",
+      "inputs": {
+        "asOf": "2026-06-30",
+        "baselineRevision": "BASELINE-SHA-A",
+        "plannedValue": "80",
+        "earnedValue": "60",
+        "actualCost": "75",
+        "budgetAtCompletion": "120",
+        "currency": "KZT"
+      },
+      "config": {
+        "earnedValueRule": "EXTERNALLY_SUPPLIED_EV",
+        "eacFormula": "AC_PLUS_REMAINING_AT_BUDGET"
+      },
+      "expectedDecimal": {
+        "costPerformanceIndex": "0.8",
+        "estimateAtCompletion": "135",
+        "varianceAtCompletion": "-15"
+      },
+      "expectedExact": {
+        "formula": "AC_PLUS_REMAINING_AT_BUDGET"
+      },
+      "tolerance": "0"
+    },
+    {
+      "id": "DCF_GORDON_FCFF_TERMINAL",
+      "model": "HC.DCF.07",
+      "variant": "GORDON_FCFF_TERMINAL",
+      "inputs": {
+        "finalForecastFCFF": "100",
+        "wacc": "0.10",
+        "forecastPeriods": 1,
+        "currency": "KZT"
+      },
+      "config": {
+        "terminalMethod": "GORDON_FCFF",
+        "terminalGrowth": "0.02"
+      },
+      "expectedDecimal": {
+        "nextPeriodFCFF": "102",
+        "terminalAtForecastHorizon": "1275",
+        "presentValueOfTerminal": "1159.09090909090909090909090909090909"
+      },
+      "expectedExact": {
+        "classification": "GORDON_FCFF_REFERENCE_NOT_FINANCIAL_S2"
+      },
+      "tolerance": "1e-30"
+    }
+  ]
+}
