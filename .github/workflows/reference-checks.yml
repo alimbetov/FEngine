@@ -9,7 +9,7 @@ permissions:
   contents: read
 jobs:
   geo-opt-reference:
-    name: GEO-OPT unittest (Python ${{ matrix.python-version }})
+    name: GEO-OPT + TASE unittest (Python ${{ matrix.python-version }})
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
@@ -21,6 +21,6 @@ jobs:
         with:
           python-version: ${{ matrix.python-version }}
       - name: Compile Python sources
-        run: python -m compileall -q geo_opt tests
-      - name: Execute GEO-OPT reference suite
+        run: python -m compileall -q geo_opt tase tests
+      - name: Execute GEO-OPT and TASE reference suites
         run: python -m unittest discover -s tests -v
