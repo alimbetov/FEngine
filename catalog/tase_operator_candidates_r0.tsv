@@ -1,4 +1,4 @@
-operatorCode	family	allowedSemanticKinds	mergeStrategy	mandatoryPolicyFields	outputType	blockReasonCandidate	status
+operatorCode	family	inputTypePredicates	mergeStrategy	mandatoryPolicyFields	outputType	blockReasonCandidate	status
 SUM	BASIC	FLOW,EVENT,QUANTITY	additive	currency,basis,sign,unit,nonoverlap	MONEY,DECIMAL,QUANTITY	MISSING_PARTIAL	DRAFT_NOT_IMPLEMENTED
 COUNT_ROWS	BASIC	EVENT,SERIES	additive	duplicateIdentity,coverage	INTEGER	MISSING_EVENT_SOURCE	DRAFT_NOT_IMPLEMENTED
 COUNT_PRESENT	BASIC	SERIES	additive	valueState,coverage	INTEGER	MISSING_POLICY	DRAFT_NOT_IMPLEMENTED
