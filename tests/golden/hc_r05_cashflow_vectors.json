@@ -1,0 +1,239 @@
+{
+  "schema": "FENGINE_HC_R05_CASHFLOW_GOLDENS_V1",
+  "status": "PYTHON_MATH_REFERENCE_NOT_FINANCIAL_S2",
+  "provenance": "SYNTHETIC_POSTED_LEDGER_EXAMPLE_NO_CUSTOMER_DATA",
+  "classificationContract": "HC_CASH_04_CLASSIFICATION_V1",
+  "reconciliationPolicySha256": "774463e3405cac1d05de8816a046bf19baa57756dc072023decd8b67f8fe05d9",
+  "sourceBindingSha256": "56074c5a63714e513e06c384cda13b4153150366c74141e62cc4023869843d87",
+  "vectors": [
+    {
+      "id": "POSTED_DIRECT_CFO",
+      "model": "HC.CASH.04",
+      "variant": "DIRECT_POSTED_CFO",
+      "inputs": {
+        "periodStart": "2026-12-01",
+        "periodEnd": "2026-12-31",
+        "currency": "KZT",
+        "openingCash": "1000",
+        "closingCash": "1140",
+        "postings": [
+          {
+            "postingId": "P1",
+            "postingDate": "2026-12-20",
+            "amount": "200",
+            "direction": "IN",
+            "classificationCode": "CLIENT_RECEIPT",
+            "transferId": null
+          },
+          {
+            "postingId": "P2",
+            "postingDate": "2026-12-20",
+            "amount": "80",
+            "direction": "OUT",
+            "classificationCode": "SUPPLIER_PAYMENT",
+            "transferId": null
+          },
+          {
+            "postingId": "P3",
+            "postingDate": "2026-12-20",
+            "amount": "30",
+            "direction": "OUT",
+            "classificationCode": "CAPEX_PAYMENT",
+            "transferId": null
+          },
+          {
+            "postingId": "P4",
+            "postingDate": "2026-12-20",
+            "amount": "50",
+            "direction": "IN",
+            "classificationCode": "LOAN_DRAW",
+            "transferId": null
+          },
+          {
+            "postingId": "P5",
+            "postingDate": "2026-12-20",
+            "amount": "40",
+            "direction": "OUT",
+            "classificationCode": "TRANSFER_INTERNAL",
+            "transferId": "TRANSFER-X"
+          },
+          {
+            "postingId": "P6",
+            "postingDate": "2026-12-20",
+            "amount": "40",
+            "direction": "IN",
+            "classificationCode": "TRANSFER_INTERNAL",
+            "transferId": "TRANSFER-X"
+          }
+        ],
+        "classificationRules": [
+          {
+            "code": "CLIENT_RECEIPT",
+            "cashflowClass": "OPERATING"
+          },
+          {
+            "code": "SUPPLIER_PAYMENT",
+            "cashflowClass": "OPERATING"
+          },
+          {
+            "code": "CAPEX_PAYMENT",
+            "cashflowClass": "INVESTING"
+          },
+          {
+            "code": "LOAN_DRAW",
+            "cashflowClass": "FINANCING"
+          },
+          {
+            "code": "TRANSFER_INTERNAL",
+            "cashflowClass": "INTERNAL_TRANSFER"
+          }
+        ],
+        "sourceRevisionSha256": "56074c5a63714e513e06c384cda13b4153150366c74141e62cc4023869843d87"
+      },
+      "config": {
+        "cashClassification": "7137fe7f4e63947b1608acc3d7da69d48727ceddca9af672820c41f0bbdafbff",
+        "reconciliationRule": "774463e3405cac1d05de8816a046bf19baa57756dc072023decd8b67f8fe05d9",
+        "periodCutoff": "2026-12-31",
+        "transferExclusionRule": "BALANCED_INTERNAL_TRANSFER_PAIRS",
+        "valueDateVsPostingDate": "POSTING_DATE_ONLY"
+      },
+      "expectedDecimal": {
+        "operatingReceipts": "200",
+        "netFinancingCashFlow": "50",
+        "netAllCashFlow": "140",
+        "openingCash": "1000",
+        "closingCash": "1140",
+        "internalTransferNet": "0",
+        "operatingPayments": "80",
+        "netInvestingCashFlow": "-30",
+        "cashFlowFromOperations": "120"
+      },
+      "expectedExact": {
+        "postingCount": 6,
+        "operatingPostingCount": 2,
+        "excludedTransferPostingCount": 2,
+        "reclassifiedPostingCount": 0,
+        "classification": "POSTED_LEDGER_RECONCILED_REFERENCE_NOT_ACCOUNTING_S2"
+      },
+      "tolerance": "0"
+    },
+    {
+      "id": "POSTED_SOURCE_BOUND_RECLASSIFICATION",
+      "model": "HC.CASH.04",
+      "variant": "DIRECT_RECLASSIFIED_CFO",
+      "inputs": {
+        "periodStart": "2026-12-01",
+        "periodEnd": "2026-12-31",
+        "currency": "KZT",
+        "openingCash": "1000",
+        "closingCash": "1140",
+        "postings": [
+          {
+            "postingId": "P1",
+            "postingDate": "2026-12-20",
+            "amount": "200",
+            "direction": "IN",
+            "classificationCode": "CLIENT_RECEIPT",
+            "transferId": null
+          },
+          {
+            "postingId": "P2",
+            "postingDate": "2026-12-20",
+            "amount": "80",
+            "direction": "OUT",
+            "classificationCode": "SUPPLIER_PAYMENT",
+            "transferId": null
+          },
+          {
+            "postingId": "P3",
+            "postingDate": "2026-12-20",
+            "amount": "30",
+            "direction": "OUT",
+            "classificationCode": "CAPEX_PAYMENT",
+            "transferId": null
+          },
+          {
+            "postingId": "P4",
+            "postingDate": "2026-12-20",
+            "amount": "50",
+            "direction": "IN",
+            "classificationCode": "LOAN_DRAW",
+            "transferId": null
+          },
+          {
+            "postingId": "P5",
+            "postingDate": "2026-12-20",
+            "amount": "40",
+            "direction": "OUT",
+            "classificationCode": "TRANSFER_INTERNAL",
+            "transferId": "TRANSFER-X"
+          },
+          {
+            "postingId": "P6",
+            "postingDate": "2026-12-20",
+            "amount": "40",
+            "direction": "IN",
+            "classificationCode": "TRANSFER_INTERNAL",
+            "transferId": "TRANSFER-X"
+          }
+        ],
+        "classificationRules": [
+          {
+            "code": "CLIENT_RECEIPT",
+            "cashflowClass": "OPERATING"
+          },
+          {
+            "code": "SUPPLIER_PAYMENT",
+            "cashflowClass": "OPERATING"
+          },
+          {
+            "code": "CAPEX_PAYMENT",
+            "cashflowClass": "INVESTING"
+          },
+          {
+            "code": "LOAN_DRAW",
+            "cashflowClass": "FINANCING"
+          },
+          {
+            "code": "TRANSFER_INTERNAL",
+            "cashflowClass": "INTERNAL_TRANSFER"
+          }
+        ],
+        "sourceRevisionSha256": "56074c5a63714e513e06c384cda13b4153150366c74141e62cc4023869843d87",
+        "reclassificationOverrides": [
+          {
+            "postingId": "P3",
+            "newClassificationCode": "SUPPLIER_PAYMENT",
+            "reasonCode": "DOCUMENTED_RECLASSIFICATION"
+          }
+        ],
+        "reclassificationRevisionSha256": "0cf8a36d7e10a8a841e1bd552c52b6d489b2f9de47ab827690ecc32faa9ab6d9"
+      },
+      "config": {
+        "cashClassification": "7137fe7f4e63947b1608acc3d7da69d48727ceddca9af672820c41f0bbdafbff",
+        "reconciliationRule": "774463e3405cac1d05de8816a046bf19baa57756dc072023decd8b67f8fe05d9",
+        "periodCutoff": "2026-12-31",
+        "transferExclusionRule": "BALANCED_INTERNAL_TRANSFER_PAIRS",
+        "valueDateVsPostingDate": "POSTING_DATE_ONLY"
+      },
+      "expectedDecimal": {
+        "operatingReceipts": "200",
+        "netFinancingCashFlow": "50",
+        "netAllCashFlow": "140",
+        "openingCash": "1000",
+        "closingCash": "1140",
+        "internalTransferNet": "0",
+        "operatingPayments": "110",
+        "netInvestingCashFlow": "0",
+        "cashFlowFromOperations": "90"
+      },
+      "expectedExact": {
+        "postingCount": 6,
+        "operatingPostingCount": 3,
+        "excludedTransferPostingCount": 2,
+        "reclassifiedPostingCount": 1
+      },
+      "tolerance": "0"
+    }
+  ]
+}
