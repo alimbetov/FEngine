@@ -207,7 +207,7 @@ class IndependentMathematicsBank(unittest.TestCase):
     def test_gordon_growth_requires_wacc_above_g(self):
         wacc, g = D(".09"), D(".03")
         self.assertGreater(wacc, g)
-        self.assertEqual((D("106")/(wacc-g))*(wacc-g), D("106").quantize(D("0.0000000000000000000000000000001")))
+        self.assertAlmostEqual((D("106")/(wacc-g))*(wacc-g), D("106"), places=33)
         self.assertFalse(D(".03")>D(".03"))
 
     def test_capm(self):
