@@ -2,7 +2,7 @@
 from __future__ import annotations
 
 import unittest
-from decimal import Decimal
+from decimal import Decimal, localcontext
 from pathlib import Path
 
 from fengine_hc.reference import CalculationError, ReferenceEngine
@@ -68,8 +68,10 @@ class R06FcfeTests(unittest.TestCase):
         self.assertEqual(Decimal(out["capitalExpenditureCashEffect"]), -50)
         self.assertEqual(Decimal(out["netBorrowing"]), 25)
         self.assertEqual(Decimal(out["freeCashFlowToEquity"]), 85)
-        self.assertLess(abs(Decimal(out["presentValueOfFcfe"]) - Decimal(85) / Decimal("1.1")),
-                        Decimal("1e-32"))
+        with localcontext() as ctx:
+            ctx.prec = 50
+            self.assertLess(abs(Decimal(out["presentValueOfFcfe"]) - Decimal(85) / Decimal("1.1")),
+                            Decimal("1e-32"))
         self.assertEqual(out["discountPolicy"], "NOMINAL_ANNUAL_PERIOD_END_AT_KE_NOT_WACC")
 
     def test_normalized_independent_income_bridge_matches_levered(self):
