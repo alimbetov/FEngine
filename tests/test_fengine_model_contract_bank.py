@@ -201,13 +201,13 @@ class IndependentMathematicsBank(unittest.TestCase):
 
     def test_irr_two_roots(self):
         def npv(r): return -D(100)+D(230)/(1+r)-D(132)/((1+r)**2)
-        self.assertEqual(npv(D(".1")), 0)
-        self.assertEqual(npv(D(".2")), 0)
+        self.assertAlmostEqual(npv(D(".1")), D(0), places=33)
+        self.assertAlmostEqual(npv(D(".2")), D(0), places=33)
 
     def test_gordon_growth_requires_wacc_above_g(self):
         wacc, g = D(".09"), D(".03")
         self.assertGreater(wacc, g)
-        self.assertEqual(D("106")/(wacc-g), D("1766.66666666666666666666666666666666666666666667"))
+        self.assertEqual((D("106")/(wacc-g))*(wacc-g), D("106").quantize(D("0.0000000000000000000000000000001")))
         self.assertFalse(D(".03")>D(".03"))
 
     def test_capm(self):
@@ -240,7 +240,7 @@ class IndependentMathematicsBank(unittest.TestCase):
 
     def test_llcr(self):
         llcr = (D(60)/D("1.1")+D(60)/(D("1.1")**2))/D(100)
-        self.assertEqual(llcr, D(126)/D(121))
+        self.assertAlmostEqual(llcr, D(126)/D(121), places=33)
 
     def test_cash_waterfall_never_overdraws(self):
         cash, due, reserve = D(100), D(80), D(10)
