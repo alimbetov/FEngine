@@ -95,6 +95,8 @@ Each synthetic golden vector below is an *independent arithmetic fixture candida
 - **Hard negative tests:** Zero D+E, inconsistent market vs book weights, negative unreviewed capital, non-deductible interest treated as deductible, currency mismatch.
 - **Business boundary:** Discount-rate provider; do not replace HC.DCF.07 or HC.DCF.08.
 
+**METHOD-HARDENING-R1 pre-freeze:** `fcffCompatibilityPolicyRef`, capital weights basis, tax shield eligibility, valuation currency and observed/target debt/equity are mandatory. WACC is for matched FCFF; no automatic FCFE discounting. Addendum §4.
+
 ### 03. HC.CREDIT.01 — Risk-based loan pricing: минимальная допустимая ставка
 
 - **TaskCode:** `W4.CREDIT.01.V1`; **priority:** EXT-P0; **complexity:** N; **status:** METHOD_CANDIDATE / NOT_IMPLEMENTED / FINANCIAL_S2_HOLD.
@@ -105,6 +107,8 @@ Each synthetic golden vector below is an *independent arithmetic fixture candida
 - **Independent-control arithmetic candidate:** One-year principal=100, funding=4, operations=1, expected loss=2, capital charge=3, eligible fees=0, target=0 ⇒ rate=0.10.
 - **Hard negative tests:** ECL charged twice, fees counted twice, zero/negative principal, price root absent, disallowed rate cap breached, inconsistent horizon and borrower/lender sign.
 - **Business boundary:** Management pricing candidate, not a legally approved credit offer or regulatory GESV.
+
+**METHOD-HARDENING-R1 pre-freeze:** `lossAndFundingNoDoubleCountPolicyRef` and fee-funding-ECL alignment mandatory. The quoted lender rate is management pricing; it is NOT automatically IFRS EIR or Kazakhstan GESV and must not be reused as statutory rate. Addendum §3.
 
 ### 04. HC.CREDIT.02 — RAROC: риск-скорректированная доходность капитала
 
@@ -171,6 +175,8 @@ Each synthetic golden vector below is an *independent arithmetic fixture candida
 - **Independent-control arithmetic candidate:** Eligible assets=100, eligible liabilities=60, each resets immediately for full one-year horizon; +100bp shock ⇒ GAP=40 and ΔNII=0.4.
 - **Hard negative tests:** Deposit behavior absent, currency aggregation without FX, off-balance position omitted, repricing after horizon treated as instantaneous, sign reversal.
 - **Business boundary:** Management IRRBB prototype; Basel supervisory IRRBB method requires separate jurisdiction/date- and scenario-specific qualification.
+
+**METHOD-HARDENING-R1 pre-freeze:** time-specific curve shock, actual repricing vs maturity and approved non-maturity deposit behavior must be pinned. Gap×shock is only a simplified illustration and not qualified Basel ΔNII. Addendum §1/§6.
 
 ### 10. HC.ALM.02 — ΔEVE: изменение экономической стоимости капитала
 
@@ -241,3 +247,6 @@ References for future method review (not model admission):
 - **W4.B:** CUST.01/.02, PF.01/.02 (cohorts and contractual cash waterfalls).
 - **W4.C:** ALM.01/.02, FTP.01, PRICE.01 (asset/liability risk, internal term funding, constrained optimization).
 - Freeze candidate input/output/parameter contract revisions after independent methodology review, *before* Python reference implementation. No automatic production approval.
+
+**METHOD-HARDENING-R1 pre-freeze:** causal demand elasticity version, stockout censoring, price ticks and integer solver decision domain must be explicit; solver outputs `OPTIMAL_PROVEN` only with eligible bound/tolerance evidence, otherwise `FEASIBLE_NOT_PROVEN`. No automatic external repricing. Addendum §6.
+

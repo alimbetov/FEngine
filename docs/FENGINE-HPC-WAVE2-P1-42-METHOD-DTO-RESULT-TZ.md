@@ -310,6 +310,7 @@ Each task spec below enumerates logical source, typed dataset arrays, necessary 
 | Dependency DAG / Session reuse | D19–D22; W1 LOAN.EIR; source financial S2 |
 | Numeric acceptance | Exact Decimal money and unit arithmetic; solver root residual by pinned tolerance; matching dimensions, currency, period, stable ordering |
 
+**METHOD-HARDENING-R1 pre-freeze:** replace ambiguous `defaultWindow` with explicit `defaultEventWindow=FIRST_12_MONTHS` (or remaining expected life, if shorter) **AND** independent `cashShortfallRecoveryHorizon`. A default within first year may produce cash shortfalls in later years; do not truncate recoveries at month 12. Pin original EIR/POCI basis, stage/SICR and hazard type. Independent synthetic control: first-year default probability .10, lifetime cash shortfall 50 at year2 discounted 10% ⇒ ECL 50×.10/1.1² = 4.1322314, nonzero. Addendum §2 applies.
 
 ### 06. HC.ECL.03 — Lifetime ECL по term structure
 
@@ -326,6 +327,7 @@ Each task spec below enumerates logical source, typed dataset arrays, necessary 
 | Dependency DAG / Session reuse | HC.ECL.02; D19–D22; method S2 |
 | Numeric acceptance | Exact Decimal money and unit arithmetic; solver root residual by pinned tolerance; matching dimensions, currency, period, stable ordering |
 
+**METHOD-HARDENING-R1 pre-freeze:** the survival law `S[t]=S[t-1]*(1-q[t])` and `marginalPD[t]=S[t-1]*q[t]` must be explicit in the parameter/output contract. Pin hazardInputBasis, expectedLifeHorizon, scenario weights, recovery dates, discount origin and EAD effective dates; avoid applying survival twice if loss already probability-weighted. Addendum §2 applies.
 
 ### 07. HC.LOAN.04 — Амортизированная стоимость по EIR
 
@@ -502,6 +504,7 @@ Each task spec below enumerates logical source, typed dataset arrays, necessary 
 | Dependency DAG / Session reuse | HC.DCF.03; D13 exact dates |
 | Numeric acceptance | Exact Decimal money and unit arithmetic; solver root residual by pinned tolerance; matching dimensions, currency, period, stable ordering |
 
+**METHOD-HARDENING-R1 pre-freeze:** XIRR for irregular dated cashflows requires `valuationDate`, `dayCount`, `domainMinRate>-1`, `rootIsolationAlgorithmRevision`, `rootCompletenessPolicy` and `multipleRootsPolicy`; never inherit `CERTIFIED_ALL` from equal-period polynomial IRR without an appropriate proof. Addendum §4.
 
 ### 18. HC.DCF.05 — FCFF: свободный денежный поток фирмы
 
@@ -550,6 +553,7 @@ Each task spec below enumerates logical source, typed dataset arrays, necessary 
 | Dependency DAG / Session reuse | HC.DCF.05; HC.DCF.02; D31 |
 | Numeric acceptance | Exact Decimal money and unit arithmetic; solver root residual by pinned tolerance; matching dimensions, currency, period, stable ordering |
 
+**METHOD-HARDENING-R1 pre-freeze:** require FCFF cashflow with compatible approved WACC, nominal/real and currency/FX basis; Gordon terminal `WACC>g`, terminal growth evidence; must BLOCK FCFE discounted at WACC. W4 CAPM/WACC are upstream providers, not DCF result dependencies. Addendum §4.
 
 ### 21. HC.DCF.08 — Стоимость собственного капитала и мост EV→Equity
 
@@ -806,6 +810,7 @@ Each task spec below enumerates logical source, typed dataset arrays, necessary 
 | Dependency DAG / Session reuse | D46; W1 Cash not required |
 | Numeric acceptance | Exact Decimal money and unit arithmetic; solver root residual by pinned tolerance; matching dimensions, currency, period, stable ordering |
 
+**METHOD-HARDENING-R1 pre-freeze — documented correction (known P0 semantic defect):** existing two-factor `PRICE_THEN_VOLUME` uses `sum((q1-q0)*p0)` and is **QUANTITY_PLUS_MIX**, not pure total volume. Propose **new** `PVM_THREE_FACTOR_SEQUENTIAL_V2` under **new** `W2.COST.03.V2` candidate (not issued or frozen), with `priceEffect=sum(q1*(p1-p0))`, `totalVolumeEffect=(Q1-Q0)*sum((q0/Q0)*p0)`, `mixEffect=Q1*sum((q1/Q1-q0/Q0)*p0)`, and exact `delta=price+totalVolume+mix`. Q0,Q1>0, same currency/unit and stable SKU mapping; undefined base price or new SKU requires separate bridge/policy. Add MIX_EFFECT and TOTAL_VOLUME_EFFECT only through revised output schema; **do not silently repurpose** existing V1 VOLUME_EFFECT. Golden p=[20,10], q0=[5,5], q1=[8,2] ⇒ price=0, totalVolume=0, mix=30, delta=30. Read R1 addendum §7.
 
 ### 37. HC.COST.06 — BoQ сметная стоимость строительных работ
 

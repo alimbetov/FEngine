@@ -229,6 +229,7 @@ movementKey(REFERENCE R), itemKey(REFERENCE R), warehouseRef(REFERENCE R), lotKe
 | Ошибки и блокировки | Overlapping rate intervals; missing index reset; principal event boundary omitted; date convention unknown; mixing loan/fee/EIR interest. |
 | Проверяемый invariant | Each accrual day segment covered exactly once, no overlapping interest on same principal balance. |
 
+**METHOD-HARDENING-R1 pre-freeze:** require explicit `dayCountConvention`, `accrualBoundaryPolicy`, reset/index fixing revision, floating-rate cap/floor source and rounding stage. 31-day ACT/365F and ACT/360 must NOT produce identical amounts; refer to `docs/FENGINE-METHOD-HARDENING-R1-P0-ADDENDUM.md` §3. Preserve original `W1.LOAN.INTEREST.V1` as draft only.
 
 ### 06. HC.LOAN.02 — Аннуитетный/дифференцированный график основного долга
 
@@ -259,6 +260,7 @@ movementKey(REFERENCE R), itemKey(REFERENCE R), warehouseRef(REFERENCE R), lotKe
 | Ошибки и блокировки | No initial carrying evidence; unreviewed fee; no/multiple root; wrong signed cash direction; missing dated payment; nonconvergence beyond tolerance. |
 | Проверяемый invariant | EIR root residual within preapproved money tolerance, no automatic IFRS financial S2 or regulatory GESV claim. |
 
+**METHOD-HARDENING-R1 pre-freeze:** IFRS effective interest must preserve original-vs-revised carrying cashflow assumptions, fee inclusion evidence and root completeness/status; separate contractual nominal interest and local GESV. The dated solution must pin `rootCompletenessPolicy`, `rootDomainMin/Max`, residual and rate tolerances, cash direction, original EIR eligibility, without inferring regulatory admission. Refer to §3 in the R1 addendum.
 
 ### 08. HC.CASH.01 — 13-недельный прогноз ликвидности
 
@@ -334,6 +336,7 @@ movementKey(REFERENCE R), itemKey(REFERENCE R), warehouseRef(REFERENCE R), lotKe
 | Ошибки и блокировки | No roots; double root without sign change; root outside domain; multiple roots with forced single policy; unstable numeric solver. |
 | Проверяемый invariant | Every returned root has verified residual; distinct roots sorted and deduplicated only by approved rate tolerance. |
 
+**METHOD-HARDENING-R1 pre-freeze:** future candidate root-set contract must explicitly test tangent double root `[-100,+200,-100]` at `r=0` AND distinct roots `[-100,+230,-132]` at `r=.1,.2`. `rootCompletenessPolicy` and `rootIsolationAlgorithmRevision` must be pinned. Uncertified search cannot advertise `CERTIFIED_ALL`; new root policy requires new `MethodRevision` and, when outputs change, `OutputSchemaRevision` (R1 addendum §4).
 
 ### 13. HC.STOCK.01 — FIFO оценка списаний по партиям
 
