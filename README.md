@@ -10,10 +10,10 @@ FEngine is a specification-first, evidence-driven financial and economic calcula
 
 | Scope | Verified status |
 |---|---|
-| Financial/economic HC catalogue | **95 candidate model contracts** — W1 14 + W2 42 + W3 27 + W4 12; financial HC not implemented |
-| Input datasets | D01–D93 logical typed DTO candidates, not verified FIN source bindings |
+| Financial/economic HC catalogue | **116 candidate model contracts** — W1 14 + W2 42 + W3 27 + W4 12 + W5 21; financial HC still not implemented |
+| Input datasets | D01–D114 logical typed DTO candidates, not verified FIN source bindings |
 | Fact catalogue | 235 unique DRAFT source fact definitions |
-| Financial 95-model Python Calculation Hub | **Not implemented**; mathematical, numerical and financial admission gates remain closed |
+| Financial 116-model Python Calculation Hub | **Not implemented**; mathematical, numerical and financial admission gates remain closed |
 | GEO-OPT Python reference | Typed directed graph compiler, Dijkstra, A*, Yen K-shortest paths; **38/38 unittest tests** on Python 3.11 and 3.13 in GitHub Actions |
 | Functional finance E2E / PostgreSQL / Inbox-Outbox | Not implemented, not tested |
 
@@ -30,6 +30,19 @@ Prior 83-model review: 83/83 external synthetic arithmetic and 34/34 external bo
 
 Independent control tests do not invoke any financial HC calculation implementation. Financial review, FIN source binding, production S2 and immutable per-method contract freeze remain blocked.
 
+
+## Wave 5: Risk, HEDGE and Insurance formula candidates
+
+- 7 existing RISK methods retain their original task identities; their formula definitions are expanded without duplicate model codes.
+- 7 new HEDGE + 14 new INS methods add 21 **candidate-only** model contracts; new input DTOs D94–D114.
+- 28 formula expressions, 28 standalone synthetic math examples, typed candidate parameters and failure conditions are loaded in a separate registry, **not** a production-ready Python calculation engine.
+- [28 formula candidates](catalog/risk_hedge_insurance_formula_candidates_r2.tsv)
+- [21 Wave-5 model candidate registry](catalog/model_extensions_r2.tsv)
+- [28 synthetic golden candidate fixtures](catalog/risk_hedge_insurance_golden_candidates_r2.tsv)
+- [Wave-5 hedge/insurance mathematical methodology, inputs and guardrails](docs/FENGINE-RISK-HEDGE-INSURANCE-W5-28-FORMULAS-TZ.md)
+
+**Insurance methodology warning:** earned premiums/combined ratio, Chain Ladder/Bornhuetter–Ferguson, IFRS 17 FCF/RA/CSM and Kazakhstan solvency are distinct regulatory/actuarial scopes. No source-to-field qualification or financial S2 exists for these new candidates. Mortality/life insurance actuarial math remains a separate future wave.
+
 ## Current audit decision
 
 **CONTRACT_FREEZE_BLOCKED** pending methodology and applicability review, pre-freeze typed parameter additions, source-to-field mappings, independent golden examples and full mathematical edge cases (ECL, EIR/GESV, DCF/IRR, VaR/ES, PVM and optimization).
@@ -40,7 +53,7 @@ Independent control tests do not invoke any financial HC calculation implementat
 - [R95 independent contract and arithmetic bank — Python 3.11/3.13, 34/34 CI PASS](https://github.com/alimbetov/FEngine/actions/runs/44703835282)
 - [83-model original audit](docs/FENGINE-R83-METHODOLOGICAL-AUDIT-2026-11-20.md)
 - [83-model pre-freeze parameter and negative-test matrix](docs/FENGINE-R83-CONTRACT-HARDENING-MATRIX-2026-11-20.tsv)
-- [All 95 candidate models and architecture](FENGINE_MASTER_SPEC.md)
+- [All 116 candidate models and architecture](FENGINE_MASTER_SPEC.md)
 - [P0 Wave-1: 14 detailed model contracts](docs/FENGINE-HPC-WAVE1-14-CALCULATION-CONTRACTS-TZ.md)
 - [P1 Wave-2: 42 detailed model contracts](docs/FENGINE-HPC-WAVE2-P1-42-METHOD-DTO-RESULT-TZ.md)
 - [P2 Wave-3: 27 statistical/regulatory model contracts](docs/FENGINE-HPC-WAVE3-P2-27-STATISTICAL-METHOD-DTO-TZ.md)
@@ -58,4 +71,4 @@ Independent control tests do not invoke any financial HC calculation implementat
 - Outbox and archive receipt: durable immutable committed results before temporary payload deletion.
 - Finance S2: independent financial approval distinct from mathematical unit tests and Python/Rust parity.
 
-**Do not call any of the 95 financial model implementations production-ready until implemented and independently qualified.**
+**Do not call any of the 116 financial model implementations production-ready until implemented and independently qualified.**
