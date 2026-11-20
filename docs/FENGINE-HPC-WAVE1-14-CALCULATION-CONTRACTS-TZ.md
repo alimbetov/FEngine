@@ -1,6 +1,6 @@
 # FEngine HPC-W1 — Техническое задание: 14 моделей, входные массивы DTO и единый массив результатов
 
-**ID:** FENGINE-HPC-W1-TZ-V1  
+**ID:** FENGINE-HPC-W1-TZ-V1.1  
 **Дата:** 2026-11-20  
 **Репозиторий:** alimbetov/FEngine, main  
 **Статус:** REQUIREMENTS_DRAFT / NOT_IMPLEMENTED / FINANCIAL_S2_HOLD  
@@ -524,3 +524,154 @@ JSON выше иллюстрирует структуру arrays; в нем на
 - FIN architecture documents: docs/FIN-CALC-APPS-R0-SIX-APPLICATION-CONTRACTS-AND-ROADMAP.md; docs/FIN-CALC-A05-R1-LOAN-CONTRACT-PAYMENT-SCHEDULE-STUDIO-TZ.md; docs/FIN-CALC154-C01-C02-EDITORIAL-POLICIES-V2-2026-11-20.md; docs/FIN-DATA-CALC-R2-CROSS-FORM-OUTPUT-MATRIX.tsv; docs/FIN-MG-R01-METRIC-GRAPH-RUNTIME-FOUNDATION.md (all in FIN branch).
 
 **Release decision:** DOCUMENTATION ONLY. Самостоятельное ТЗ включает 14 model contracts, 15 dataset DTO, полный словарь types/units/params, единый InputBatchDTO и Output results[]/rows[] контракт. Никакого исходного кода до отдельного согласования.
+
+
+
+---
+
+## 11. FEngine Memory Calculation Hub — Redis-like оперативный вычислительный компонент (требования)
+
+**ID:** FENGINE-MEMHUB-R0 / добавление к FENGINE-HPC-W1-TZ-V1.1.  
+**Статус:** DESIGN_CANDIDATE / REQUIREMENTS_ONLY / NOT_IMPLEMENTED.  
+**Дата:** 2026-11-20.  
+**Решение:** специализировать memory-oriented слой на приёме типизированных входных контрактов, хранении активных массивов и быстром доступе к execution-ready data для Python/Rust. Функции Redis (ключи, TTL, быстрые lookup, опционально stream processing) служат архитектурной аналогией, а не требованием повторить весь протокол Redis.
+
+### 11.1. Что значит «как Redis»
+
+Рассмотреть два независимых implementation choices с **одинаковыми внешними DTO и семантикой**:
+
+**A. Redis-backed Calculation Hub:** готовый Redis для горячих метаданных, сигналов о готовности и небольших/средних immutable input/result payload; Python/Rust workers обрабатывают данные в отдельных процессах. Большие массивы допускается держать вне Redis в typed binary immutable object storage или worker memory с bounded caching. PostgreSQL остается authoritative inbox/job/outbox/result manifest.
+
+**B. Native Rust Memory Hub:** собственный специализированный RAM-пул с typed columnar buffers, ключами, статусовыми lookup, memory quotas, zero-copy-oriented worker access и lifecycle management. Python обращается к тому же immutable memory contract посредством межпроцессного интерфейса или адаптера; Rust может использовать прямую ссылку на worker-local pinned buffer там, где корректно. **Не разрабатывать совместимый с Redis сервер общего назначения**, не реализовывать Redis persistence/cluster protocol, key command interpreter и arbitrary scripts без доказанного технического обоснования.
+
+На этапе требований сохранить обе альтернативы; стартовый инженерный выбор — A как более простой путь с готовой инфраструктурой, B — только по результатам benchmark и после оценки стоимости эксплуатации. Никакого заявления об ускорении из названия Redis/Rust.
+
+### 11.2. Логические подсистемы
+
+| Компонент | Ответственность | Где хранится truth |
+|---|---|---|
+| Contract Admission | Проверить schema revision, taskCode allowlist, typed units, source/plan/policy SHA и tenant scope | Версионируемый реестр + PG authority |
+| Durable Inbox | Единожды зафиксировать idempotencyKey + immutable input manifest | PostgreSQL |
+| Hot Input Registry | Быстро вернуть по scope/key inputHandle, inputSha, state, locations и pinned buffers | Memory cache, восстанавливается из durable source |
+| Columnar Input Store | Держать в памяти typed arrays, valueStates, rowKeys, deterministic order, source hashes | Volatile / bounded, оригинал в durable staging |
+| Dispatch Queue | Выдать работу исполнителю по admitted plan и resource budget | Durable job/lease/fencing в PG; Redis Streams только опционально |
+| Python Reference Worker | Исследовательский/тестовый Decimal вычислитель, contract conformance | No authoritative write |
+| Rust Batch Worker | Исполнение qualified DAG/operators на immutable batch, поздняя optimization | No independent financial admission |
+| Hot Result Store | Быстрая выдача массива результатов и chunk handles после commit | Cache; PG Result/Outbox authoritative |
+| Archive Relay | Outbox event, delivery, verified external archive receipt | PostgreSQL + consumer database |
+| Retention Manager | Освобождение unpinned hot buffers, eligible temporary blobs, tombstone | PG lifecycle state controlling memory cleanup |
+
+Компонент **не** становится финансовым master data writer, не заменяет FIN fin_intake / fin_fact и не выдает финансовый S2. Реальные методы и legal/financial policies разрешаются до CPU-исполнения.
+
+### 11.3. Внешний протокол без изменения контракта Wave-1
+
+Не менять двухфазный API:
+- PUT /v1/jobs/{key}/input → durable acceptance / inputSha; после успешного commit memory warming асинхронно или синхронно по выбранному SLA. Ответ PREPARED означает, что вход восстановим после сбоя, **не** просто помещен в RAM.
+- POST /v1/jobs/{key}/execute → same immutable key + taskCode/plan/policy revision, 202 QUEUED; хаб может подгрузить input из durable staging при cache miss.
+- GET /v1/jobs/{key} → authoritative state, optional hot copy; never trust stale cache terminal state without fencing / result receipt.
+- GET /v1/jobs/{key}/result → fast hot result if SHA matches committed immutable manifest; cache miss fetches authoritative result storage; no recomputation for successful result.
+- POST /v1/jobs/{key}/archive-ack → verified durable downstream archive, no mutation of financial result.
+- Cleanup → time/state/receipt dependent; Redis EXPIRE alone **cannot** decide archive safety.
+
+Дополнительные *внутренние* операции Hub (не публичные свободные команды Redis):
+ResolveInputHandle(scope,key,inputSha), PinBatch(jobId,fencingToken,batchManifestSha), AcquireWorkerBudget, ExecutePinnedPlan, PublishCommittedResult, ReleasePinnedBuffers, GetCacheMetrics. Все вызовы проверяют service identity; пользователь не может выполнять Lua/Python/Rust/SQL arbitrary code внутри узла.
+
+### 11.4. Память, форматы и ограничения
+
+**Предполагаемые ключи (логические, не Redis-DB schema):**
+- inputCacheKey = HASH(tenantScope, namespace, inputSha, schemaRevision, contentEncodingVersion)
+- jobStateCacheKey = HASH(tenantScope, key, jobId, fencingToken)
+- resultCacheKey = HASH(tenantScope, committedResultSha, resultSchemaRevision, numericPolicySha)
+- planCacheKey = HASH(methodRevision, policySha, algorithmCapabilitySha, tenant admission class)
+Требование: не класть PII, tenant secrets или бизнес-данные в читаемые строковые имена ключей. Ключ физического cache не заменяет scoped client idempotencyKey в PG и не подменяет authz.
+
+**Размеры/лимиты:** глобальный memory cap, per-tenant quota, per-task input bytes/rows/columns, max hot result bytes, maximum simultaneous pinned jobs, max worker threads, wall-time, CPU-time, max iterations/solver roots. Окончательные числа — OPEN_DECISION после измерения целевой машины и workload.
+
+**Представление:** versioned typed buffers для DECIMAL / MONEY / RATE / QUANTITY / INTEGER / LOCAL_DATE / CODE, immutable value-state arrays, ordered row keys, source and units metadata. Для Rust допускается chunked columnar batch; для Python только точная Decimal-паритетная интерпретация. Arrow Decimal128/Decimal256 может служить переносным форматом после проверки overflow/operator behavior. No f64 for canonical financial money. Сжатие, декодирование и copy cost включать в end-to-end benchmark.
+
+**Политика admission memory:**
+- RAM не гарантирована: если batch не помещается, вернуть RESOURCE_EXHAUSTED/WAITING_FOR_CAPACITY либо перейти на согласованный chunked/streaming execution; никаких silent partial / dropped rows.
+- LRU/LFU eviction разрешен только для **unpinned, reproducible cache entries**; active input/result with job pin cannot be evicted silently.
+- Graceful degraded mode: при Redis restart/eviction или Native Hub crash job state остается в PG; worker восстанавливает input snapshot и repeats with new fencing token.
+- Cache warming, deduplication, placement/tenant affinity, sharding — только optimization layers, не финансовое правило.
+- Ограничить visibility, encryption, secure deletion claims, TLS, mTLS service auth, tenant isolation; no full payload logs.
+
+### 11.5. Внутренние состояния одного hot batch
+
+| State | Что означает | Разрешённый переход |
+|---|---|---|
+| ABSENT | RAM entry нет, в durable store может существовать | FETCHING |
+| FETCHING | Проверенная загрузка immutable snapshot в память | READY или LOAD_FAILED |
+| READY | Typed columns + inputSha validated, доступен worker pin | PINNED или EVICTED |
+| PINNED | Активная задача удерживает read-only buffers | READY после Release |
+| EVICTED | Cache entry удалён без изменения durable job/source | FETCHING on demand |
+| LOAD_FAILED | Невозможно проверить/загрузить, без подмены data | Retry с тем же sourceSha |
+| PURGED | Retention/authorization gate закрыл доступ к payload | Не возрождать из недопустимого источника |
+
+Hot state отдельна от durable job state PREPARED/QUEUED/RUNNING/SUCCEEDED; EVICTED не означает FAILED. Повторная загрузка обязана перепроверять canonical SHA, source authorization и version.
+
+### 11.6. Что считать ускорением, а что нет
+
+Не считать ускорением:
+- запись значения в Redis без полного времени сериализации,
+- in-process Rust benchmark без внешнего roundtrip,
+- Python NumPy float вместо exact Decimal,
+- предварительно закешированный результат по сравнению с полным вычислением Java/SQL без указания режима,
+- lookup P50 без включения cache misses и архивной записи.
+
+Сравнить на одних данных: (1) Java/SQL direct, (2) Python pure/reference, (3) Python + Redis Hub, (4) Rust core, (5) Rust + Redis Hub, (6) Native Rust Hub. Отдельно latency: admission, durable input write, transfer/hot-load, deserialization/Decimal conversion, queue wait, compute, result serialization, durable commit/outbox, GET result. Параметры: 1, 10, 1k, 10k, 100k, 1m rows; rates 1/8/32/64 concurrent jobs; warm/cold cache hit ratios; p50/p95/p99, throughput, peak RSS, CPU, tail cost, crash recovery. **Оптимизация принимается только при exact financial parity и доказанном выигрыше full-path.**
+
+### 11.7. 3 часа и данные после расчёта
+
+Трёхчасовой retention разделить:
+- **Hot cache TTL** — значение можно эвиктить ранее 3h из RAM, если оно восстановимо и не pinned; это optimization TTL.
+- **PREPARED staging TTL** — 3 часа от регистрации, если EXECUTE не был вызван; после истечения нет нового запуска без нового ключа.
+- **Completed temporary payload retention** — как минимум 3 часа с terminal result; уничтожить sole copy можно только после durable archive ACK и необходимых outbox gates.
+- **Durable idempotency tombstone** — не удалять через 3 часа; период больше заявленного максимального client retry horizon, предварительное требование минимум 7 суток.
+- **FIN audit / regulatory retention** — отдельные нормативные правила, никогда не зависят от memory cache и трех часов.
+
+Точность запуска: 3 часа — срок допустимости purge payload после завершения и подтверждённого архива, не гарантированный deadline удаления; если архив недоступен, payload сохраняется и выставляется alert. Не обещать безусловной сохранности в оперативном кеше после перезапуска.
+
+### 11.8. Стрессовые и отрицательные сценарии для требований
+
+MEM-01: один batch 10k строк прошел contract validation → SHA в PG, затем memory hit без мутации.
+MEM-02: Cold-cache загрузка возвращает идентичные input rows/Decimal states.
+MEM-03: inputSha mismatch в RAM → не выполнять, reload/check authoritative input.
+MEM-04: Same key same input повторно → один job; different input/task → 409.
+MEM-05: Redis restart / Native Hub crash → job восстановлен после lease fencing.
+MEM-06: all memory pinned, budget exhausted → bounded backpressure, no OOM.
+MEM-07: unpinned LRU evicted before 3h → job survives and source can reload.
+MEM-08: active PINNED input cache eviction attempted → reject/reschedule, no partial computation.
+MEM-09: stale worker tries to commit after lease reacquisition → rejected by fencing token.
+MEM-10: computed hot Result not yet committed → GET must not publish uncommitted data.
+MEM-11: committed result cache miss → authoritative fetch; no duplicate job.
+MEM-12: external DB archive not acknowledged after 3h → no loss of sole durable payload.
+MEM-13: archived/acked result after 3h → hot input/output free; PG receipt and tombstone preserved.
+MEM-14: cross-tenant cache-key collision/access attempt → denied and no data leakage.
+MEM-15: Python and Rust process same canonical typed batch → exact Decimal/status parity for approved golden results; solver residual tolerance separately approved.
+MEM-16: loss/duplicate of optional Redis Stream queue notice → PG durable Inbox scan/recovery still executes exactly one committed job.
+MEM-17: 1m-row cold and warm workloads → metrics include full copy/decode/serialization cost; no unsupported 2× speed promise.
+
+### 11.9. Архитектурные решения к обсуждению
+
+| Код | Вопрос | Предварительная рекомендация |
+|---|---|---|
+| MEM-ADR-01 | Реальный Redis или in-house Native Rust memory node? | Redis-backed baseline, native only by benchmark |
+| MEM-ADR-02 | Где размещать Python worker? | Separate process or isolated service, not inside Redis interpreter |
+| MEM-ADR-03 | Где размещать Rust worker? | Separate process initially; direct native shared buffers only if safe |
+| MEM-ADR-04 | Размер hot buffers и memory/tenant limits? | Отложить до измерения target hardware |
+| MEM-ADR-05 | Нужен ли Redis Streams как durable queue? | PG truth first; Streams optional acceleration, not sole store |
+| MEM-ADR-06 | Допустим ли content-addressed input sharing across tasks? | Only same tenant, same source authorization and exact SHA |
+| MEM-ADR-07 | Что дает Result cache при 3h retention? | Fast reads only, not source of financial archive truth |
+| MEM-ADR-08 | Arrow IPC или Protobuf/JSON для массивов? | Benchmark after typed contract freeze |
+| MEM-ADR-09 | Нужно ли 3h гарантированное удаление RAM и blob? | Не обещать при active leases / missing archive receipt |
+| MEM-ADR-10 | Где принятие S2 / result publication? | Trusted Java/financial coordinator, not memory worker |
+
+### 11.10. Подтверждающие технические источники (база проектирования)
+
+- Redis key eviction и maxmemory policies: https://redis.io/docs/latest/develop/reference/eviction/
+- Redis Streams consumer groups / PEL / XACK: https://redis.io/docs/latest/develop/data-types/streams/
+- Redis key expiration semantics: https://redis.io/docs/latest/commands/expire/
+- PostgreSQL transactional Inbox/Outbox, leases, fencing — архитектурная спецификация FEngine §2, не готовый код.
+
+**Принятие:** добавить компонент Memory Calculation Hub к требованиям Wave-1, сохраняя Python-first, future Rust, current 14 input/output contracts, durability, idempotency, финансовый S2 gate и 3h lifecycle. Никакой код не писать.
