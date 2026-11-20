@@ -12,7 +12,7 @@ HC.HEDGE.03	HEDGE.03-SYN01	FUTURES_SHORT_PNL	MONEY	KZT	500	Independent standalon
 HC.HEDGE.04	HEDGE.04-SYN01	PROTECTIVE_PUT_NET_PAYOFF	MONEY	KZT	150	Independent standalone JS arithmetic identity, not HC engine runtime	DRAFT_NOT_FINANCE_S2	Option premium paid upfront nominal, no discount
 HC.HEDGE.05	HEDGE.05-SYN01	MIN_VARIANCE_HEDGE_RATIO	RATIO	dimensionless	0.75	Independent standalone JS arithmetic identity, not HC engine runtime	DRAFT_NOT_FINANCE_S2	Cov spot and future 12 / variance futures 16
 HC.HEDGE.06	HEDGE.06-SYN01	ECONOMIC_VARIANCE_REDUCTION	RATIO	dimensionless	0.75	Independent standalone JS arithmetic identity, not HC engine runtime	DRAFT_NOT_FINANCE_S2	Not IFRS9 hedge accounting qualification
-HC.HEDGE.07	HEDGE.07-SYN01	BEST_CANDIDATE_OBJECTIVE	MONEY	KZT	40	Independent standalone JS arithmetic identity, not HC engine runtime	DRAFT_NOT_FINANCE_S2	Two enumerated hedge candidates, no global solver
+HC.HEDGE.07	HEDGE.07-SYN01	BEST_CANDIDATE_OBJECTIVE	MONEY	KZT	40	Independent standalone JS arithmetic identity, not HC engine runtime	DRAFT_NOT_FINANCE_S2	Two enumerated hedge candidates with lambda=1, no global solver
 HC.INS.01	INS.01-SYN01	ANALYTICAL_EARNED_PREMIUM	MONEY	KZT	300	Independent standalone JS arithmetic identity, not HC engine runtime	DRAFT_NOT_FINANCE_S2	Uniform coverage 90 of 360; NOT IFRS17 insurance revenue
 HC.INS.02	INS.02-SYN01	COMBINED_RATIO	RATIO	dimensionless	0.85	Independent standalone JS arithmetic identity, not HC engine runtime	DRAFT_NOT_FINANCE_S2	Claims and underwriting expenses / matched earned premiums
 HC.INS.03	INS.03-SYN01	PURE_PREMIUM	MONEY_PER_UNIT	KZT/exposure-year	10	Independent standalone JS arithmetic identity, not HC engine runtime	DRAFT_NOT_FINANCE_S2	Claim frequency 20/1000 severity 500
