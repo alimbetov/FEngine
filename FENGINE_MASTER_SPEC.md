@@ -1,10 +1,10 @@
 # FEngine — единая спецификация финансово-экономического аналитического ядра
 
-Версия документа: 0.4 (концепция + FIN snapshot + Python→Rust HPC + deep-indicator requirements catalogue)
+Версия документа: 0.5 (83 model contracts, 81 typed dataset DTO candidates, Python-first hub requirements)
 Дата: 2026-11-20
 Репозиторий: https://github.com/alimbetov/FEngine
 Статус: DRAFT / синхронизация знаний с FIN на 2026-11-20; архитектурное задание; не является свидетельством реализованных расчётов.
-Правило текущего этапа: хранить концепцию, реестры-направления, проектные контракты, графы и план работ В ОДНОМ ЭТОМ ТЕКСТОВОМ ФАЙЛЕ. Не создавать дополнительные файлы, сервисы, схемы БД или исходный код до отдельного согласования.
+Правило текущего этапа: хранить канонический реестр/обзор в ЭТОМ MASTER ФАЙЛЕ; по прямому решению пользователя детальные ТЗ ведутся отдельными приложениями в docs. Не создавать Python/Rust исходный код, сервисы, схемы БД или миграции до отдельного согласования.
 
 ## 1. Цель
 
@@ -1544,3 +1544,33 @@ PG16 gate 5/5 PASS на тестируемом SHA d39af2e4...; это дока�
 evidence для P0, затем P1/P2 по бизнес-приоритету. До отдельного разрешения
 разработка, нагрузочные тесты, новые SQL/Python/Rust файлы — STOP.
 
+
+
+---
+
+## 19. HPC Wave-2/Wave-3: все 83 показателя и Python-first комплексная спецификация (v0.5)
+
+**Дата:** 2026-11-20. **Статус:** REQUIREMENTS_COLLECTION / METHOD_CANDIDATE / NOT_IMPLEMENTED / FINANCIAL_S2_HOLD.
+
+Утверждённый пользователем рабочий охват FEngine (НЕ финансово утверждённые калькуляторы): один Python Memory Calculation Hub для всех 83 candidate methods, без выделения отдельных независимых сервисов или движков под каждую метрику. Сохранять этот master как canonical индекс и обзор; развёрнутые технические приложения по явному решению пользователя расположены в docs. Никаких исходных кодов, БД-миграций или runtime-сервисов на этапе requirements.
+
+| Волна | Приоритет | Кодов FEngine | Typed Dataset DTO | Связанный подробный документ |
+|---|---|---:|---|---|
+| W1 | P0 | 14 | D01–D15 (15) | docs/FENGINE-HPC-WAVE1-14-CALCULATION-CONTRACTS-TZ.md v1.1 |
+| W2 | P1 | 42 | D16–D54 (39) | docs/FENGINE-HPC-WAVE2-P1-42-METHOD-DTO-RESULT-TZ.md v1.0 |
+| W3 | P2 | 27 | D55–D81 (27) | docs/FENGINE-HPC-WAVE3-P2-27-STATISTICAL-METHOD-DTO-TZ.md v1.0 |
+| **Итого** | P0/P1/P2 | **83** | **81 types** | один логический InputBatchDTO / CalculationResponseDTO |
+
+Сверка точных кодов по §18: P0 14/14, P1 42/42, P2 27/27; 83 уникальных кандидатных output definitions, без пропусков. Все 81 dataset schema — **проектные транспортные DTO**, не доказанные существующие FIN source tables/fields. Любой недостающий source binding остаётся BLOCKED_SOURCE до отдельной квалификации.
+
+**Канонический путь:** versioned Contract → verified immutable DatasetRevision + SHA → sealed Calculation Session → TaskCode and immutable CalcPlan → Python Decimal Reference Worker → versioned CalculationResultSet arrays → durable PostgreSQL Result/Outbox → archive acknowledgment → eligible temporary purge. Rust alternative через тот же контракт — будущий этап после golden/benchmark.
+
+**Типы ResultShape для полного охвата:** ROW_ALIGNED, GROUPED, TIME_SERIES, EVENT_SERIES, AGGREGATE, ROOT_SET, SCENARIO_MATRIX, DISTRIBUTION, OPTIMIZATION_PLAN. Последние три не должны появляться «втихую»: требуют отдельной версионируемой совместимой редакции OutputSchemaRevision.
+
+**Логические типы, не закрытые Word DTO:** MONEY_PER_UNIT = MONEY / physical QUANTITY unit with exact currency, numerator and denominator; MATRIX/VECTOR/POINT_SERIES = LIST<typed values> with declared shape/dimensions and deterministic ordering; distribution sample weights must be RATE with correct normalization. Numeric policy Decimal money, statistical precision/PRNG and optimizer tolerances are different policy families. Universal auto-conversion without evidence prohibited.
+
+**Состояния исследования:** REGISTERED → TYPED_METHOD_DRAFT → FINANCIAL_SOURCE_REVIEW → INDEPENDENT_MATH_GOLDEN_REVIEW → future PYTHON_PARITY → future RUST_PARITY → FINANCIAL_S2 (if applicable) → PRODUCTION_ADMISSION. На 2026-11-20 полнота спецификаций равна 83 кодам; математическая, нормативная и функциональная готовность **не доказана**.
+
+**Нормативный источник KZ_GESV:** постановление Правления АРРФР от 3 апреля 2026 №44, зарегистрировано №38333: https://zakon.uchet.kz/rus/docs/V2600038333. Вступление в силу, дата договора, тип организации и историческая редакция закона должны быть проверены для каждого отдельного расчёта. KZ_GESV ≠ IFRS EIR.
+
+**Приоритет дальнейшего design:** формализовать финансовую applicability, actual FIN source-to-field binding и независимые golden cases для P0, затем P1/P2; Python/Rust implementation остаётся STOP до отдельного явного распоряжения.
