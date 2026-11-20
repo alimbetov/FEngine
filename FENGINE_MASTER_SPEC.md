@@ -2064,6 +2064,8 @@ Open ADR: GEO-ADR-01 hierarchy tree versus DAG contract; -02 coordinate/altitude
 - catalog/tase_operator_candidates_r0.tsv — 53 общих строготипизированных математических оператора с разрешёнными семантиками, merge strategy, reasonCode и status DRAFT_NOT_IMPLEMENTED;
 - catalog/tase_product_pack_candidates_r0.tsv — 6 конфигураций FIN, BANK, INSURANCE, LOGISTICS, INDUSTRY, CUSTOM, статус DRAFT_NO_SIGNATURE_NO_ADMISSION;
 - catalog/tase_metric_semantics_candidates_r0.tsv — 26 исходных описаний типизированных продуктовых метрик, в том числе derived physical units, статус DRAFT_SEMANTIC_CANDIDATE.
+- catalog/tase_input_predicates_r0.tsv — 21 структурный предикат входных классов и допусков операторов; каждый использован в каталоге 53 операторов.
+- catalog/tase_golden_and_negative_candidates_r0.tsv — 42 кандидата тестовых сценариев: 36 ожидаемых математических/семантических результатов и блокировок, 6 будущих runtime/security/recovery проверок; НИ ОДИН ещё не доказывает готовность TASE Python runtime.
 
 **Обязательные правила:** FLOW SUM лишь по подтверждённым неперекрывающимся интервалам; STOCK LAST_AS_OF, а не SUM; RATIO_OF_SUMS пересчитывается из numerator/denominator с типизированной алгеброй единиц, не средним процентов; weighted mean требует подходящий weight metric; интервалы [start,end), 4-4-5 fiscal and leap calendar; missing и zero различаются; partial coverage документируется; double-count в иерархиях и many-to-many join блокируется.
 
