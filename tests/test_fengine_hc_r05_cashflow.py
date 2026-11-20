@@ -203,7 +203,7 @@ class DirectCFOReferenceTests(unittest.TestCase):
         self.fails("BINARY_FLOAT_FORBIDDEN", lambda: self.run_model(ledger(postings=rows)))
         inp = ledger()
         inp["currency"] = "kzt"
-        self.fails("DIRECT_CFO_SOURCE_DIGEST_MISMATCH", lambda: self.run_model(inp))
+        self.fails("CASH_CURRENCY_CODE_REQUIRED", lambda: self.run_model(inp))
         self.fails("ENUM_OUT_OF_RANGE", lambda:
                    self.run_model(config={**configuration(),
                                           "valueDateVsPostingDate": "VALUE_DATE_ONLY"}))
