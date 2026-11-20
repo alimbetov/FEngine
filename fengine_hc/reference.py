@@ -287,8 +287,22 @@ def stock_cost(events: Any, variant: str) -> dict[str, str]:
         raise CalculationError("STOCK_EVENTS_REQUIRED")
     data = []
     for row in events:
+        if not isinstance(row, Mapping):
+            raise CalculationError("STOCK_EVENT_SCHEMA")
         when, event_id, quantity = _req(row, "date", "id", "quantity")
         qty = number(quantity)
+        # The existing stock reference is a SINGLE, externally identified
+        # inventory cost pool. It does not have SKU/location/currency grouping
+        # semantics. Previously surplus event fields (including another SKU or
+        # currency) were silently ignored, permitting fabricated cost totals.
+        # Purchases must contain unit cost; issues must not override the cost
+        # policy with a supplied unit cost.
+        expected = (
+            {"date", "id", "quantity", "unitCost"} if qty > 0
+            else {"date", "id", "quantity"}
+        )
+        if set(row) != expected:
+            raise CalculationError("STOCK_EVENT_SCHEMA")
         if qty == 0 or not isinstance(event_id, str) or not event_id:
             raise CalculationError("INVALID_STOCK_EVENT")
         unit = positive(row["unitCost"]) if qty > 0 else None
