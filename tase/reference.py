@@ -463,6 +463,19 @@ def _check_rows(rows: list[Observation], metric: Metric, begin: date, end: date,
         elif metric.time_kind in {"AS_OF", "RATE_FIXING"}:
             if row.end is not None:
                 raise TaseError("AS_OF_MUST_BE_INSTANT")
+    # Even partial/incomplete interval datasets must never double-count
+    # overlapping source windows. A missing month can be PARTIAL; two claims
+    # to the same interval are an integrity error, not partial coverage.
+    if not stock and metric.time_kind in {"INTERVAL_FLOW", "COVERAGE_INTERVAL"}:
+        leaves: dict[tuple[tuple[str, str], ...], list[Observation]] = {}
+        for row in rows:
+            leaves.setdefault(row.dimensions, []).append(row)
+        for leaf in leaves.values():
+            previous_end: date | None = None
+            for row in sorted(leaf, key=lambda r: (r.start, r.end or r.start)):
+                if previous_end is not None and row.start < previous_end:
+                    raise TaseError("SOURCE_OVERLAP")
+                previous_end = row.end
     if not require_full or stock:
         return
     if metric.time_kind == "EVENT_AT":
@@ -551,6 +564,39 @@ def calculate(catalog: Catalog, req: PeriodRequest, dataset: Dataset) -> TaseRes
     if not groups:
         raise TaseError("MISSING_PERIOD_SOURCE")
     periods = _buckets(req)
+    # Full reported totals must not silently drop one measured leaf (branch,
+    # SKU, account, facility) from a later bucket. Presence in a group must
+    # describe the same observed universe across the requested windows.
+    # This is intentionally restricted to interval facts and dated stock
+    # snapshots; event/rate fixing populations have different semantics.
+    if req.require_full_coverage and len(periods) > 1 and req.operation in {
+        "SUM", "RATIO_OF_SUMS", "LAST_AS_OF",
+    }:
+        required_metrics = (
+            (metric.numerator, metric.denominator_or_weight)
+            if req.operation == "RATIO_OF_SUMS"
+            else (req.metric,)
+        )
+        for code in required_metrics:
+            source_metric = catalog.metrics[(req.product, code)]
+            if source_metric.time_kind not in {
+                "INTERVAL_FLOW", "COVERAGE_INTERVAL", "AS_OF",
+            }:
+                continue
+            by_group: dict[tuple[tuple[str, str], ...], set[tuple[tuple[str, str], ...]]] = {}
+            for item in all_rows:
+                if item.metric == code and req.start <= item.start < req.end:
+                    by_group.setdefault(_group(item, group_keys), set()).add(item.dimensions)
+            for group, identities in by_group.items():
+                for begin, end in periods:
+                    present = {
+                        item.dimensions for item in all_rows
+                        if item.metric == code and
+                        begin <= item.start < end and
+                        _group(item, group_keys) == group
+                    }
+                    if present != identities:
+                        raise TaseError("PARTIAL_COHORT_COVERAGE")
     if len(groups) * (len(periods) + int(req.include_total)) > 100000:
         raise TaseError("RESOURCE_BUDGET_EXCEEDED")
     # Every eligible model/metric uses the same typed window evaluator.
