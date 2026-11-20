@@ -52,7 +52,7 @@ def _freeze(v: Any) -> Any:
 
 
 NUMERIC_POLICY_ID = "DECIMAL40_GENERAL_DECIMAL55_ROOT_ACT365F_R02"
-IMPLEMENTATION_REVISION = "PY_HC_REFERENCE_R0_5A"
+IMPLEMENTATION_REVISION = "PY_HC_REFERENCE_R0_7A"
 
 
 def fingerprint(v: Any) -> str:
@@ -612,6 +612,17 @@ class ReferenceEngine:
                     model, variant, config, reference_mode=True
                 )
                 output = direct_cfo(inputs, resolved.config, variant)
+            elif model in ("HC.DCF.06", "HC.COST.08"):
+                from .semantics import ParameterSemantics
+                resolved = ParameterSemantics(self.root).resolve(
+                    model, variant, config, reference_mode=True
+                )
+                if model == "HC.DCF.06":
+                    from .r06_fcfe import fcfe
+                    output = fcfe(inputs, resolved.config, variant)
+                else:
+                    from .r07_pvm import price_volume_mix
+                    output = price_volume_mix(inputs, resolved.config, variant)
             else:
                 raise CalculationError("MODEL_NOT_IMPLEMENTED", model)
             inhash, confighash = fingerprint(inputs), fingerprint({"model": model, "variant": variant, "config": config})
