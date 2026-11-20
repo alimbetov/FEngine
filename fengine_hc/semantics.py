@@ -135,7 +135,7 @@ RULES: dict[tuple[str, str], VariantRule] = {
         VariantRule(("inflationIndexRev", "compoundingBasis", "contingencyOverlap"), (),
                     (("compoundingBasis", ("DISCRETE_ANNUAL_END",)),
                      ("contingencyOverlap", ("NO_CONTINGENCY_DOUBLE_COUNT",)),),
-                    ("inflationIndexRev",)),,
+                    ("inflationIndexRev",)),
     ("HC.CASH.04", "DIRECT_POSTED_CFO"):
         VariantRule(("cashClassification", "reconciliationRule", "periodCutoff",
                      "transferExclusionRule", "valueDateVsPostingDate"), (),
