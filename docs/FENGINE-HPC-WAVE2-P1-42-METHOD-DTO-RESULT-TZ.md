@@ -933,3 +933,61 @@ IFRS Foundation standards pages:
 - IFRS 16 leases — https://www.ifrs.org/content/dam/ifrs/publications/pdf-standards/english/2022/issued/part-a/ifrs-16-leases.pdf
 
 **Release decision:** REQUIREMENTS_ONLY. All 42 P1 metrics have proposed method, typed input, parameter variants, output DTO, synthetic worked example and dependency gate. This document does NOT assert 42 implemented Python computations, accepted standards clauses or financial S2.
+
+
+## 8. Typed MethodParameter Schema Matrix (W2/P1, проектная типизация)
+
+**Требование:** ParameterValueDTO = {parameterCode, logicalType, value, unitCode?, valueState, policyRevisionRef, sourceEvidenceRef?, effectiveRange?}. Каждое имя параметра в §4 имеет указанную ниже логическую типизацию; один параметр может быть REQUIRED или CONDITIONAL по точной MethodVariantRevision. Здесь типы **кандидатны**, не заменяют будущий однозначный IDL/S2. Неизвестный параметр либо изменённый тип запрещён до новой schema revision.
+
+| FEngine code | Все объявленные параметры, типы и единицы |
+|---|---|
+| HC.SET.04 | weightBasis:CODE; cutoff:CODE; denominatorPolicy:CODE; calendarPolicyRef:REFERENCE |
+| HC.SET.05 | nettingRule:CODE; legalApprovalRev:REFERENCE; sameCurrencyPolicy:ISO4217; intendedSettlementBasis:CODE; asOf:LOCAL_DATE |
+| HC.SET.07 | averageStockPolicy:CODE; denominatorSalesPolicy:CODE; dayCount:CODE; currency/basis:STRUCT{currencyCode:ISO4217,accountingBasis:CODE} |
+| HC.ECL.01 | approach:CODE; cohortPolicyRef:REFERENCE; scenarioWeightRev:REFERENCE; forwardOverlayPolicyRef:REFERENCE; discountEligibility:CODE |
+| HC.ECL.02 | defaultWindow:CODE; discountBasis:CODE; PDType:CODE; recoveryTimingRef:REFERENCE |
+| HC.ECL.03 | horizon:INTEGER[PERIODS]; survivalRecursion:CODE; scenarioWeightRev:REFERENCE; cashShortfallModelRef:REFERENCE; amortizingExposurePolicy:CODE |
+| HC.LOAN.04 | originalEirRev:REFERENCE; accountingCashflowDirection:CODE; interestAccrualPeriod:PERIOD; modificationPolicyRef:REFERENCE; roundingStage:CODE |
+| HC.LOAN.05 | modificationType:CODE; originalEirRev:REFERENCE; discountOriginDate:LOCAL_DATE; financialDerecognitionGate:CODE |
+| HC.LOAN.06 | earlyDate:LOCAL_DATE; prepaymentAmount:MONEY; earlyFeePolicyRef:REFERENCE; recalcMethod:CODE; discountRateBasis:CODE |
+| HC.LOAN.07 | cfadsContractRev:REFERENCE; serviceIncludesFees:BOOLEAN; threshold:RATIO; comparison:CODE; grace/cure policyRef:REFERENCE; zeroServicePolicy:CODE |
+| HC.CASH.02 | bucketCalendarRev:REFERENCE; openingCashPolicy:CODE; includeUndrawnFacilities:BOOLEAN; minimumBufferPolicy:CODE |
+| HC.CASH.03 | horizon:INTEGER[PERIODS]; cashFloor:MONEY; interpolationPolicy:CODE; nonMonotonicCashHandling:CODE; scenarioProbabilitiesRef:REFERENCE |
+| HC.CASH.06 | matchMode:CODE; dateWindow:INTEGER[DAYS]; cashAccountMapRev:REFERENCE; reversalPolicy:CODE; manyToOneRule:CODE |
+| HC.CASH.07 | functionalCurrency:ISO4217; presentationCurrency:ISO4217; rateQuoteConvention:CODE; fxCashFlowPolicyRev:REFERENCE; roundingStage:CODE |
+| HC.CASH.08 | fundingObjective:CODE; borrowLimit:MONEY; costRate:RATE; availabilityWindow:PERIOD; minimumCash:MONEY |
+| HC.DCF.02 | annualDiscountRate:RATE; dayCount:CODE; valuationDate:LOCAL_DATE; cashflowBasis:CODE; allowPreValuationFlows:BOOLEAN |
+| HC.DCF.04 | dayCount:CODE; domainMinRate>−1:RATE(>-1); domainMaxRate:RATE; solverTolerance:RATE; rootCompletenessPolicy:CODE; rootSearchStatus:CODE |
+| HC.DCF.05 | taxOnOperatingProfitPolicy:CODE; depreciationNonCashScope:CODE; capexScope:CODE; workingCapitalPolicy:CODE; financingExclusion:CODE |
+| HC.DCF.06 | cfadsBase:CODE; interestTaxTreatmentPolicy:CODE; debtDrawsCash:BOOLEAN; principalPaymentsCash:BOOLEAN; debtFeesEligibility:CODE |
+| HC.DCF.07 | terminalMethod:CODE; waccRate:RATE; growthRate:RATE; terminalYear:INTEGER[YEARS]; midyearConvention:CODE; currency:ISO4217 |
+| HC.DCF.08 | valuationMethod:CODE; netDebtPolicyRef:REFERENCE; bridgeAdjustmentsRef:REFERENCE; Ke:RATE; currency:ISO4217 |
+| HC.DCF.09 | axesCodes:LIST<CODE>; cellBudget:INTEGER[CELL_COUNT]; monotonicityNotAssumed:BOOLEAN; scenarioAxisPolicy:CODE; modelHash:HASH |
+| HC.ACC.01 | cashflowClassificationPolicy:CODE; assetLiabilityEquitySigns:CODE; retainedEarningsPolicy:CODE; openingBalanceRef:REFERENCE; taxPolicyRef:REFERENCE |
+| HC.ACC.02 | consolidationPerimeterRef:REFERENCE; matchTolerance:CODE; intercompanyUnrealizedProfitRef:REFERENCE; groupCurrencyPolicy:ISO4217 |
+| HC.ACC.04 | matchingKeys:LIST<CODE>; asOf:LOCAL_DATE; dateTolerance:INTEGER[DAYS]; currencyConversionPolicyRef:REFERENCE; residualMateriality:MONEY |
+| HC.ACC.06 | lesseeEligibility:CODE; discountRateRev:REFERENCE; paymentTiming:CODE; extensionOptionEvidence:REFERENCE; reassessmentPolicy:CODE; leaseTerm:INTEGER[PERIODS] |
+| HC.STOCK.03 | valuationMethod:CODE; itemEligibilityPolicyRef:REFERENCE; costCurrency:ISO4217; transferReturnPolicy:CODE |
+| HC.STOCK.04 | nrvEligibleItemsRef:REFERENCE; expectedSellingPricePolicy:CODE; completionCostPolicy:CODE; sellingCostPolicy:CODE; reversalCeilingPolicy:CODE |
+| HC.STOCK.06 | stockInterval:PERIOD; unitConversionPolicy:CODE; transferNettingPolicy:CODE; cutOffPolicy:CODE |
+| HC.ASSET.01 | method:CODE; lifeRevisionPolicy:CODE; convention:CODE; suspended/disposal rule:CODE |
+| HC.ASSET.02 | revaluationModelRef:REFERENCE; fairValueEvidenceRef:REFERENCE; ociBalanceRef:REFERENCE; reversalLimit:MONEY; impairmentClassificationRef:REFERENCE |
+| HC.ASSET.04 | asOf:LOCAL_DATE; componentAggregationPolicy:CODE; duplicateEventGuard:CODE; currencyValuationPolicy:ISO4217 |
+| HC.ASSET.07 | capitalizationPolicyRef:REFERENCE; cashVsAccrualMode:CODE; delayHandling:CODE; periodCalendarRef:REFERENCE; committedBudgetScope:CODE |
+| HC.COST.01 | allocationStages:LIST<CODE>; driverZeroPolicy:CODE; unallocatedResidualPolicy:CODE; entityScope:CODE; roundingStage:CODE |
+| HC.COST.02 | wasteRatePolicy:CODE; conversionPolicy:CODE; effectivePriceDate:LOCAL_DATE; laborOverheadVariant:CODE; resourceInclusionRule:CODE |
+| HC.COST.03 | attributionVariant:CODE; newSkuPolicy:CODE; missingSkuPolicy:CODE; aggregationPolicy:CODE |
+| HC.COST.06 | measurementStandardRevision:REFERENCE; unitConversionPolicy:CODE; overheadMarginPolicy:CODE; taxEscalationVersion:CODE; contractCurrency:ISO4217 |
+| HC.COST.07 | EACVariant:CODE; noCompletionBeyondBACPolicy:CODE; zeroDenominator:CODE |
+| HC.COST.08 | flexBudgetVariant:CODE; varianceSign:CODE; driversUnitRev:REFERENCE |
+| HC.PLAN.01 | rollingHorizon:INTEGER[PERIODS]; fiscalCalendarRef:REFERENCE; forecastCutover:LOCAL_DATE; modelDependencyDAGRef:REFERENCE; latestActualRevision:REFERENCE |
+| HC.PLAN.07 | dependencyGraphRev:REFERENCE; scenarioRevision:REFERENCE; accountingRecognitionRules:CODE; cashFlowClassPolicy:CODE; balancingPolicy:CODE |
+| HC.RISK.04 | shockApplicationOrder:CODE; scenarioWeight:RATE[0..1]; riskHorizon:INTEGER[PERIODS]; FXShockRef:REFERENCE; cashFloor:MONEY; liquidityConstraintPolicy:CODE |
+
+**Type aliases and validation rules:**
+- CODE = versioned allowlisted ENUM; REFERENCE = immutable scoped ID with required SHA/source evidence; HASH = canonical SHA-256 hex.
+- RATE = Decimal fraction with dimension ONE (0.10 means 10%), unless separately constrained > −1 for rate-root domain; probability RATE is [0,1]; RATIO distinct but shares physical dimension ONE.
+- MONEY = Decimal string with ISO4217 currency, time and accounting basis; DATE = LOCAL_DATE; INTEGER[DAYS]/[PERIODS]/[COUNT] has explicit unit; MONEY_PER_UNIT in dataset schemas = struct{money:Decimal,currency:ISO4217,denominatorUnit:CODE}.
+- STRUCT / LIST<...> demand their own exact nested versioned schema. Free-form maps, arbitrary Python names or expressions are prohibited.
+- Parameters with type CODE but carrying a numerical value by a future methodology decision MUST be revised to a numeric logical type prior to implementation; no silent coercion. Source authorization, effective param values and their SHA belong to the immutable execution binding.
+- These assignments are architectural **initial type candidates**, not final finance-approved method metadata.
