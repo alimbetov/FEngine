@@ -2083,7 +2083,7 @@ Open ADR: GEO-ADR-01 hierarchy tree versus DAG contract; -02 coordinate/altitude
 
 Реализован отдельный исполняемый Python-пакет tase/ (не новая вычислительная микрослужба): безопасная загрузка declarative Product Packs, проверка всех 62 связей metric/operator через 21 входной предикат, разрешение базовой семантики, календарное bucketing и 13 точных Decimal-операторов. Остальные 40 кандидатов из 53 возвращают OPERATOR_NOT_IMPLEMENTED; коммерческие/финансовые HC calculation methods по-прежнему не реализованы.
 
-**Подтвержденный CI:** GitHub Actions https://github.com/alimbetov/FEngine/actions/runs/44720599167, 129/129 unittest PASS на Python 3.11 и 3.13 (вместе GEO, TASE и существующий банк). Источник — реальные CI-логи, но не полная R0.6 и не PostgreSQL E2E приёмка.
+**Подтвержденный CI:** GitHub Actions https://github.com/alimbetov/FEngine/actions/runs/44721269472, 131/131 unittest PASS на Python 3.11 и 3.13 (вместе GEO, TASE и существующий банк). Источник — реальные CI-логи, но не полная R0.6 и не PostgreSQL E2E приёмка.
 
 **Каталог полноты:** catalog/model_parameter_inventory_116_r0.tsv охватывает ровно 116 candidate modelCode и 417 candidate параметров (310 W1–W4 + 107 W5); у всех domainReview=PENDING, у 399 requiredness=REVIEW_PENDING, финансовый S2 не получен. catalog/tase_core_parameter_candidates_r0.tsv содержит 32 проектных параметра control plane, включая 10 ещё не реализованных. Ни одно число не означает готовности 116 моделей к production.
 
