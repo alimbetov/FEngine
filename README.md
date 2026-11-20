@@ -10,22 +10,26 @@ FEngine is a specification-first, evidence-driven financial and economic calcula
 
 | Scope | Verified status |
 |---|---|
-| Financial/economic HC catalogue | **83 candidate model contracts** — 14 P0 + 42 P1 + 27 P2; not implemented |
-| Input datasets | D01–D81 logical typed DTO candidates, not verified FIN source bindings |
+| Financial/economic HC catalogue | **95 candidate model contracts** — W1 14 + W2 42 + W3 27 + W4 12; financial HC not implemented |
+| Input datasets | D01–D93 logical typed DTO candidates, not verified FIN source bindings |
 | Fact catalogue | 235 unique DRAFT source fact definitions |
-| Financial 83-model Python Calculation Hub | **Not implemented**; mathematical, numerical and financial admission gates remain closed |
+| Financial 95-model Python Calculation Hub | **Not implemented**; mathematical, numerical and financial admission gates remain closed |
 | GEO-OPT Python reference | Typed directed graph compiler, Dijkstra, A*, Yen K-shortest paths; **38/38 unittest tests** on Python 3.11 and 3.13 in GitHub Actions |
 | Functional finance E2E / PostgreSQL / Inbox-Outbox | Not implemented, not tested |
 
-Independent synthetic arithmetic checks performed during review: 83/83 positive examples and 34/34 boundary/invariant cases. These tests do **not** import executable HC model code, and do not constitute financial S2, regulatory qualification, or functional finance engine acceptance.
+Prior 83-model review: 83/83 external synthetic arithmetic and 34/34 external boundary examples (historical). New R95 CI: 34/34 unittest methods on Python 3.11 and 3.13, including 95 specification-level subtests plus independent Decimal invariants. None of these tests import executable financial HC model code, and do not constitute financial S2, regulatory qualification, or functional finance engine acceptance.
 
 ## Current audit decision
 
 **CONTRACT_FREEZE_BLOCKED** pending methodology and applicability review, pre-freeze typed parameter additions, source-to-field mappings, independent golden examples and full mathematical edge cases (ECL, EIR/GESV, DCF/IRR, VaR/ES, PVM and optimization).
 
-- [83-model methodology audit](docs/FENGINE-R83-METHODOLOGICAL-AUDIT-2026-11-20.md)
+- [95-model methodological and functional audit](docs/FENGINE-R95-METHODOLOGICAL-AND-FUNCTIONAL-AUDIT-2026-11-20.md)
+- [95-model risk and pre-freeze parameter matrix](docs/FENGINE-R95-PREFREEZE-AUDIT-MATRIX-2026-11-20.tsv)
+- [MethodParameterContractV2 pre-freeze design](docs/FENGINE-R95-PARAMETER-CONTRACT-V2-DESIGN.md)
+- [R95 independent contract and arithmetic bank — Python 3.11/3.13, 34/34 CI PASS](https://github.com/alimbetov/FEngine/actions/runs/44703835282)
+- [83-model original audit](docs/FENGINE-R83-METHODOLOGICAL-AUDIT-2026-11-20.md)
 - [83-model pre-freeze parameter and negative-test matrix](docs/FENGINE-R83-CONTRACT-HARDENING-MATRIX-2026-11-20.tsv)
-- [All 83 models and architecture](FENGINE_MASTER_SPEC.md)
+- [All 95 candidate models and architecture](FENGINE_MASTER_SPEC.md)
 - [P0 Wave-1: 14 detailed model contracts](docs/FENGINE-HPC-WAVE1-14-CALCULATION-CONTRACTS-TZ.md)
 - [P1 Wave-2: 42 detailed model contracts](docs/FENGINE-HPC-WAVE2-P1-42-METHOD-DTO-RESULT-TZ.md)
 - [P2 Wave-3: 27 statistical/regulatory model contracts](docs/FENGINE-HPC-WAVE3-P2-27-STATISTICAL-METHOD-DTO-TZ.md)
@@ -43,4 +47,4 @@ Independent synthetic arithmetic checks performed during review: 83/83 positive 
 - Outbox and archive receipt: durable immutable committed results before temporary payload deletion.
 - Finance S2: independent financial approval distinct from mathematical unit tests and Python/Rust parity.
 
-**Do not call any of the 83 financial model implementations production-ready until implemented and independently qualified.**
+**Do not call any of the 95 financial model implementations production-ready until implemented and independently qualified.**
