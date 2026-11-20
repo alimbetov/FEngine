@@ -14,7 +14,7 @@ from pathlib import Path
 from types import MappingProxyType
 from typing import Any, Mapping
 
-from .reference import CalculationError, ContractRegistry, day, fingerprint, integer, number
+from .reference import CalculationError, ContractRegistry, day, fingerprint, integer, number, _freeze
 
 # Known name collisions must be disambiguated until actual finance semantics
 # and contract-type migration are reviewed. Never rewrite legacy R3 TSVs.
@@ -84,6 +84,30 @@ RULES: dict[tuple[str, str], VariantRule] = {
     ("HC.ECL.03", "LIFETIME_TERM_PD"):
         VariantRule(("hazardConditionality",), (),
                     (("hazardConditionality", ("CONDITIONAL_PD",)),)),
+    ("HC.CASH.03", "DETERMINISTIC_RUNWAY"):
+        VariantRule(("floorValue", "firstPassageRule"), (),
+                    (("firstPassageRule", ("STRICT_BELOW_FLOOR", "AT_OR_BELOW_FLOOR")),)),
+    ("HC.CASH.03", "SCENARIO_RUNWAY"):
+        VariantRule(("floorValue", "firstPassageRule"), (),
+                    (("firstPassageRule", ("STRICT_BELOW_FLOOR", "AT_OR_BELOW_FLOOR")),)),
+    ("HC.COST.04", "SINGLE_PRODUCT_BREAKEVEN"):
+        VariantRule(("minimumLotRule",), (),
+                    (("minimumLotRule", ("WHOLE_UNITS",)),)),
+    ("HC.COST.04", "PRODUCT_MIX_BREAKEVEN"):
+        VariantRule(("minimumLotRule", "mixtureBundleIntegrality"), (),
+                    (("minimumLotRule", ("WHOLE_BUNDLES",)),
+                     ("mixtureBundleIntegrality", (True,)),)),
+    ("HC.COST.07", "EVM_BAC_CPI"):
+        VariantRule(("earnedValueRule", "eacFormula"), (),
+                    (("earnedValueRule", ("EXTERNALLY_SUPPLIED_EV",)),
+                     ("eacFormula", ("BAC_DIV_CPI",)),)),
+    ("HC.COST.07", "EVM_EAC_FORECAST"):
+        VariantRule(("earnedValueRule", "eacFormula"), (),
+                    (("earnedValueRule", ("EXTERNALLY_SUPPLIED_EV",)),
+                     ("eacFormula", ("AC_PLUS_ETC_CPI",)),)),
+    ("HC.DCF.07", "GORDON_FCFF_TERMINAL"):
+        VariantRule(("terminalMethod", "terminalGrowth"), (),
+                    (("terminalMethod", ("GORDON_FCFF",)),)),
 }
 
 
@@ -153,7 +177,8 @@ class ParameterSemantics:
             value = config[name]
             declared = self.bindings[(model_code, name)].logical_type
             if name in choices:
-                if not isinstance(value, str) or value not in choices[name]:
+                if not any(type(value) is type(option) and value == option
+                           for option in choices[name]):
                     raise CalculationError("ENUM_OUT_OF_RANGE", name)
             elif declared in ("RATE", "MONEY", "DECIMAL", "PERCENTAGE"):
                 value = format(number(value), "f")
@@ -186,8 +211,8 @@ class ParameterSemantics:
             cleaned[name] = value
         sha = fingerprint({
             "modelCode": model_code, "variantCode": variant_code,
-            "candidateConfig": cleaned, "referenceContract": "HC_R02A_2026_11_20"
+            "candidateConfig": cleaned, "referenceContract": "HC_R03_REFERENCE_RULES_V1"
         })
         return ResolvedVariant(
-            model_code, variant_code, MappingProxyType(cleaned), sha
+            model_code, variant_code, _freeze(cleaned), sha
         )
