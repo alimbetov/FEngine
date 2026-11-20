@@ -206,6 +206,34 @@ class QualR14PvmStockProperties(unittest.TestCase):
                 self.assertEqual(ex.exception.code,"DUPLICATE_STOCK_EVENT_ID")
 
     @independent_decimal_precision
+    def test_stock_mixed_sku_currency_and_untyped_sale_cost_fail_closed(self):
+        # HC.STOCK is deliberately ONE undimensioned cost pool. Unknown
+        # fields must not be silently ignored: otherwise a two-SKU or
+        # cross-currency feed can produce believable but false unit cost.
+        base=[
+            {"date":"2026-01-01","id":"A",
+             "quantity":"10","unitCost":"10"},
+            {"date":"2026-01-02","id":"B","quantity":"-3"},
+        ]
+        attacks=[
+            [{**base[0],"sku":"OTHER-SKU"},base[1]],
+            [{**base[0],"currency":"USD"},base[1]],
+            [base[0],{**base[1],"unitCost":"999"}],
+            [{k:v for k,v in base[0].items() if k!="unitCost"},base[1]],
+        ]
+        for variant in STOCK_VARIANTS:
+            for index,events in enumerate(attacks):
+                with self.subTest(variant=variant,attack=index):
+                    with self.assertRaises(CalculationError) as error:
+                        self.engine.calculate(
+                            "HC.STOCK.01" if variant=="FIFO_LOT_REPLAY"
+                            else "HC.STOCK.02",variant,
+                            {"events":events},{},reference_mode=True
+                        )
+                    self.assertEqual(error.exception.code,
+                                     "STOCK_EVENT_SCHEMA")
+
+    @independent_decimal_precision
     def test_pvm_cross_period_cost_vintage_and_currency_tamper_rejected(self):
         rows=[
             {"sku":"A","baselineQuantity":"100","actualQuantity":"110",
