@@ -1,6 +1,6 @@
 # FEngine — единая спецификация финансово-экономического аналитического ядра
 
-Версия документа: 0.2 (концепция + сверка с FIN Analyzer)
+Версия документа: 0.3 (концепция + FIN snapshot + Python→Rust HPC architecture)
 Дата: 2026-11-20
 Репозиторий: https://github.com/alimbetov/FEngine
 Статус: DRAFT / синхронизация знаний с FIN на 2026-11-20; архитектурное задание; не является свидетельством реализованных расчётов.
@@ -890,3 +890,373 @@ https://github.com/alimbetov/fin-analyzer/tree/c8cbb40e773c6d38dc4032149b0c91f7f
 с учётом разницы 793 vs 794, 840 vs 46, 10 formula candidates vs 42 model descriptors.
 Требуется полный построчный аудит перед заявлением 100% покрытия.
 Никаких новых файлов и разработки до отдельного решения пользователя.
+
+
+---
+
+## 17. FEngine HPC-R0 — Python-first Mathematical Reference → Rust High-Performance Calculation Engine (предлагаемая архитектура)
+
+**Решение/статус:** DESIGN_PROPOSAL / NOT_IMPLEMENTED / NOT_BENCHMARKED / NOT_FINANCIALLY_APPROVED.
+**Дата:** 2026-11-20.
+**Текущий этап:** дополнение ТОЛЬКО к единому FENGINE_MASTER_SPEC.md. Самостоятельных исходных файлов Python/Rust, Crate, микросервиса, стенда и performance test в FEngine пока нет.
+**Scope:** FEngine как самостоятельный проект; FIN Analyzer — один из возможных квалифицированных источников контрактов/FactSet через version-pinned adapter. Не заменять текущие FIN Java/SQL-механизмы без подтверждённого parity и performance gate.
+
+### 17.1. Цель, гипотеза и ограничения
+
+Цель: принимать типизированные **пакеты массивов фактов/входных параметров**
+и набор допущенных вычислительных заданий, эффективно исполнять связанные
+формулы и модели, возвращать **массивы результатов с состояниями ошибок и
+lineage** для различных Java, Python и других сервисов.
+
+Гипотеза ускорения: CPU-bound расчетные ядра со значительными пакетами и
+повторяющимися операциями могут выиграть от Rust (компиляция, контроль
+аллокатора, параллелизм, колонное исполнение). Ускорение НЕ гарантировано:
+небольшие scalar calls, JDBC pushdown, сетевые serialization и бизнес-логика
+Spring могут быть быстрее/дешевле без нового сетевого hop.
+Нужно отдельно измерять compute-only и full end-to-end.
+
+Rust — **data-plane / numerical execution**.
+Java/Spring Boot — control-plane (authn/authz, tenant, source admission, immutable
+CalcPlan, input resolving, orchestration, job, transaction, audit, result publication).
+PostgreSQL — source of truth и эффективные set-based operations (filter/joins/
+aggregation/win functions); pushdown может оказаться выгоднее Rust.
+Python — независимый reference-oracle / исследовательский и тестовый контур,
+НЕ обязательный production inference/finance dependency.
+
+Управление графами: четыре графа FEngine из раздела 4 остаются
+семантической/методологической системой; Rust исполняет **только
+компилированный, заранее разрешённый, acyclic Calculation DAG**, не
+навигационный и не reasoning graph, которые могут содержать бизнес-ветки.
+Стратегический граф разрешает метод/вариант и условия входа до отправки
+задания; узлы результата/finding формируются поверх точных вычислений.
+
+### 17.2. Строгая последовательность Python → Rust, но по вертикалям
+
+Вместо «сначала реализовать на Python сразу все 154 формы, потом переписать»
+ввести repeatable **помодельный квалификационный конвейер**:
+
+P0. Автор выбирает одну финансовую/экономическую модель и её применимость
+   (метрика, входы, период, валюта, единица, policy, формула, варианты).
+P1. Математическое определение + source evidence + independently worked golden
+   examples, подписанные/проверенные ответственным методологом.
+P2. Python reference implementation: decimal.Decimal и явный Context,
+   либо Fraction/integers там, где математически применимо;
+   собственные правила rounding/missing/overflow/IRR root selection.
+P3. Python deterministic test suite: normal, boundary, negative,
+   fuzz/property/metamorphic tests и large-shape tests.
+P4. Опубликованный **golden corpus**: входы, ожидаемые выходы/состояния,
+   алгоритм, версия формулы/параметров, source provenance, SHA-256,
+   policy и expected calculation precision.
+P5. Rust implementation **той же версии** с тем же typed contract,
+   positive/negative tests и golden corpus; никакой автоматической
+   трансляции случайного Python кода в production Rust.
+P6. Differential tests Python ↔ Rust ↔ Java/SQL (когда там существует
+   такая же методика) + cross-language serialization + replay.
+P7. Benchmark CPU+memory+end-to-end (Rust vs Java/SQL) на одинаковых
+   input snapshots; если выигрыш недоказан — сохранять действующий маршрут.
+P8. Методологическое review и отдельный financial S2 gate для
+   production admission; математическое совпадение НЕ заменяет S2.
+
+Важно: Python тоже может содержать ошибки. Эталонность возникает из
+независимых контрольных примеров, property invariants и ревью, а не
+только потому, что вычисления написаны на Python.
+
+Категории сравнения:
+- EXACT: fixed decimal arithmetic, balances/ratios по полному
+  контракту, status и currency/unit/period совпадают буквально
+  после явного normalized scale/quantization.
+- NUMERICAL_APPROXIMATION: EIR/IRR/NPV root solving, оптимизация,
+  сценарные численные методы; проверять root count/policy, остаточную
+  ошибку уравнения, заранее утверждённые absolute/relative tolerances,
+  детерминированность и одинаковую семантику округления на выходе.
+- NONDETERMINISTIC_MODELS (future): вероятностные/ML модели,
+  отдельная статистическая acceptance policy, никогда не применять
+  «точность ±ε» к денежным проводкам автоматически.
+
+В golden корпусе должны быть также zero denominator, decimal overflow,
+negative/credit balances, signed flows, currency mismatch, missing/null,
+NOT_APPLICABLE, AS_OF vs INTERVAL, leap year, day-count, duplicate keys,
+revoked source, stale plan, aggregation grain, cross-form and cases
+for multiple/no IRR roots.
+
+### 17.3. Предлагаемая архитектура Rust ядра
+
+**Core (без network и без DB):**
+- typed canonical batch: columnar arrays with schema, values and value-state bitmap;
+- immutable compiled plan (ops, typed dependencies, version/policy SHA);
+- policy-driven decimal execution: ADD/SUBTRACT/RATIO,
+  SUM_FLOW/LAST_AS_OF, GROUP_BY, PERIOD_COMPARE, ROLL_FORWARD,
+  RATIO_OF_SUMS, RECONCILE; domain operators добавлять только по доказанной
+  методике;
+- graph execution: validation, topological ordering, dependency closure,
+  skip/propagate/partial statuses, intermediate results and lineage;
+- batch scheduling: limit concurrency, memory usage and time;
+- deterministic reduction: explicit ordered fold or proved
+  associative/exact accumulator, stable grouping, safe overflow policy;
+- checked arithmetic and explicit rounding stages; forbid f32/f64 for
+  monetary/covenant/accounting results;
+- no SQL execution, networking, filesystem or dynamic plugin loading inside core;
+  no eval of user-authored expressions.
+
+**Transport adapter:**
+- phase 1: single long-lived Rust worker service with gRPC/Protobuf
+  typed request/response and internal unary batch calls; Rust core is
+  separately testable library and can run embedded in tests;
+- phase 2 (only if benchmarks justify): Apache Arrow IPC / Arrow Flight
+  for large columnar RecordBatch transfer and streaming; define
+  schema evolution and decimal compatibility first;
+- streaming execution for huge datasets with bounded memory and backpressure;
+- maintain service/connection pools; avoid 1 RPC per scalar metric.
+
+**Storage and authority:**
+- Java coordinator creates/validates exact CalcPlan and authorized source set,
+  passes validated resolved values or protected immutable batch handles;
+- Rust service must independently validate immutable plan schema/version,
+  worker admission class, allowed operation IDs, scope, batch fingerprints,
+  resource bounds and exact source plan references;
+- rust executor returns result buffers + hashes; Java commits
+  under trusted transaction/admission and idempotency;
+- no network-available endpoint permitted to approve financial S2;
+- short-lived, scope-bound service credentials, mTLS and quotas for
+  actual remote execution; never trust tenant/org from free-form payload;
+- no bulk logging of financial raw data and no Python in production critical path.
+
+### 17.4. Finance-safe numeric representation and interoperability
+
+Do not store financial money as JSON float/double.
+Wire representation for initial small batches:
+- decimal values as exact unscaled integer + scale, or canonical decimal
+  **string** with protocol-level precision/scale and unit metadata;
+- input data state separately: PRESENT, MISSING, NULL, NOT_APPLICABLE,
+  INVALID; zeros are normal PRESENT values;
+- per-column/per-row unit, currency policy, time basis and grain contract.
+All payloads are versioned and bounded.
+
+Rust numeric candidates to benchmark / select:
+- checked i128 scaled integers for homogeneous fixed-scale cases;
+- rust_decimal for bounded conventional decimal arithmetic, **not arbitrary
+  Java BigDecimal replacement** (96-bit coefficient; max scale 28);
+- Arrow Decimal128 for columnar exchange (up to 38-digit precision)
+  and Decimal256 for larger interchange; **the existence of Arrow
+  Decimal256 data type does not itself guarantee identical math operator
+  coverage or overflow behavior**;
+- arbitrary precision BigDecimal/BigInt/Rational where finance policy,
+  numerical guardrails and performance comparison require it.
+
+Python decimal.Context and Java BigDecimal differ by default in precision/
+rounding/exception behavior; every algorithm must specify precision,
+intermediate rounding, scale and overflow. Round *after* aggregation unless
+method policy explicitly requires per-item rounding. Beware rate/balance
+calculations with repeated multiplication and iterative solvers; a single
+global fixed scale is not enough for every application.
+
+### 17.5. Batch Request / Result — целевой пример контракта (DESIGN ONLY)
+
+Do not allow caller-supplied SQL, arbitrary AST, Python code or formula strings.
+Caller supplies server-known IDs and pinned revisions/plan hashes.
+
+Request shape (illustrative, NOT an active API):
+{
+  "contractVersion": "FENGINE-BATCH-V1",
+  "tenantScopeId": "pinned-scope-ref",
+  "calcPlanId": "immutable-plan-ref",
+  "calcPlanSha256": "<64 hex digest>",
+  "requestId": "stable-idempotency-key",
+  "batch": {
+    "rowIds": ["r1", "r2"],
+    "columns": [
+      {"metricCode":"F02.netRevenue","type":"DECIMAL","scale":2,"values":["200.00","300.00"]},
+      {"metricCode":"F02.cogs","type":"DECIMAL","scale":2,"values":["100.00","180.00"]},
+      {"metricCode":"F02.operatingExpenses","type":"DECIMAL","scale":2,"values":["50.00","70.00"]}
+    ],
+    "valueStates": "typed state arrays aligned by rowId",
+    "reportingCurrency":"KZT",
+    "periodKind":"INTERVAL",
+    "periodCode":"PINNED_MONTH"
+  },
+  "tasks":[
+    {"taskId":"gross","methodRevisionRef":"pinned-F02-gross-profit"},
+    {"taskId":"margin","methodRevisionRef":"pinned-F02-gross-margin"},
+    {"taskId":"operating","methodRevisionRef":"pinned-F02-operating-result"}
+  ]
+}
+
+Response shape (illustrative):
+{
+  "contractVersion":"FENGINE-BATCH-V1",
+  "requestId":"stable-idempotency-key",
+  "calcPlanSha256":"<64 hex digest>",
+  "rowIds":["r1","r2"],
+  "results":[
+    {"taskId":"gross","metricCode":"F02.grossProfit",
+     "unit":"KZT","values":["100.00","120.00"],"states":["COMPLETE","COMPLETE"]},
+    {"taskId":"margin","metricCode":"F02.grossMargin",
+     "unit":"RATIO","values":["0.5","0.4"],"states":["COMPLETE","COMPLETE"]},
+    {"taskId":"operating","metricCode":"F02.operatingResult",
+     "unit":"KZT","values":["50.00","50.00"],"states":["COMPLETE","COMPLETE"]}
+  ],
+  "resultSha256":"<64 hex digest>",
+  "lineageRef":"immutable-output-manifest-ref",
+  "warnings":[]
+}
+
+При разных task groups возможны row-wise, grouped и aggregate outputs;
+**нельзя обещать 1:1 число выходных строк для GROUP_BY**. Требуется typed
+ResultShape: ROW_ALIGNED, GROUPED, AGGREGATE, SERIES, SCENARIO_TREE.
+Массивы в строковых JSON — только учебный DTO. Для массового runtime
+выбирать protocol-specific binary/columnar data, если тесты доказали смысл.
+Поля "<64 hex digest>" — placeholders и не выдаются за реальные SHA.
+
+### 17.6. Кандидатные библиотеки и доказательства выбора
+
+Python:
+- decimal.Decimal + Context — reference exact-decimal implementation.
+- pytest + hypothesis — deterministic golden and property-based tests.
+- pandas/Polars/numpy — только подходящие vector/data operations;
+  проверять dtype, не подменять Decimal float64 в финансовых формулах.
+- pyarrow для Decimal128/256 и межъязыковой проверки Arrow schema.
+- PyO3/maturin — опциональное локальное Python↔Rust FFI для parity и
+  compute-only benchmark; не подменяет проверку remote gRPC.
+Rust:
+- crate с чистым ядром + rayon (data parallelism там, где это корректно).
+- checked decimal backend (i128/rust_decimal/BigDecimal по спецификации).
+- tonic + prost для gRPC.
+- arrow / arrow-flight только как optional batch transport optimization.
+- criterion для compute-only benchmark; интеграционные нагрузочные
+  тесты — отдельный внешний клиент и реальный Java/Rust/PG сетевой путь.
+- Polars/Rust columnar expressions рассматриваются для проекций/
+  агрегаций, но нельзя объявлять их эквивалентом подписанных финансовых
+  формул или использовать float dtypes для денежных расчётов.
+
+Официальные документы для tech due diligence (перепроверять версии при коде):
+https://docs.python.org/3/library/decimal.html
+https://hypothesis.readthedocs.io/
+https://pyo3.rs/main/
+https://arrow.apache.org/rust/arrow/datatypes/enum.DataType.html
+https://docs.rs/rust_decimal/latest/rust_decimal/
+https://docs.rs/rayon/latest/rayon/
+https://criterion-rs.github.io/book/
+https://github.com/apache/arrow-rs/tree/main/arrow-flight
+
+### 17.7. Бенчмарки без искусственных обещаний ускорения
+
+Сравнить:
+(1) Java 21 BigDecimal локально и/or существующий FIN kernel,
+(2) PostgreSQL 16 set-based SQL/JDBC,
+(3) Python Decimal reference,
+(4) Rust core in-process,
+(5) Rust gRPC over same host and over representative internal network,
+(6) Arrow Flight only after core baseline,
+(7) при необходимости SQL aggregation → Rust final hybrid.
+
+Фиксированные размеры: 1, 10, 1_000, 10_000, 100_000, 1_000_000 rows;
+операторные группы: arithmetic, SUM, GROUP_BY, RATIO_OF_SUMS,
+multi-step DAG, debt amortization, dates/day-count, DCF/IRR, scenario tree.
+Для смешанных реализаций сравнивать **одинаковые input hashes,
+calc policy, output shape и materialization**.
+
+Измерять: p50/p95/p99 end-to-end latency, compute CPU time,
+serialization/deserialization, network hop, GC/allocation pressure,
+RSS/peak memory, bytes transmitted, throughput, contention, errors,
+cold/warm start, concurrency (1/8/32/64), output SHA mismatch count.
+GPU/SIMD/Polars/Arrow имеют смысл только после профиля узкого места.
+
+Предлагаемые **пороговые цели проекта**, не измеренные достижения:
+- correctness: 0 mismatches в утверждённых EXACT golden кейсах;
+- numerical models: 0 violations принятой tolerance/root policy;
+- safety: 0 unintended production admissions / cross-tenant escapes;
+- performance: для выбранного Rust batch-кандидата >=2.0×
+  compute-only throughput relative to matched Java baseline при
+  равной точности, **и** отсутствие ухудшения p95 full-path; пороги
+  пересматриваются после измерения на целевом оборудовании;
+- ресурсные ограничения и OOM handling — обязательные, memory caps per request.
+Отчёт должен указывать процессор, число ядер, Rust/JDK/Python/PG версии,
+reproducible fixture, branch SHA, CI run и доверительные интервалы.
+Если на малом batch размер Rust проигрывает Java или PG, выбрать
+LOCAL_JAVA / SQL_PUSHDOWN, не вынуждать лишний network hop.
+
+### 17.8. Встраивание в существующую модель FEngine/FIN
+
+Рассматривать execution modes:
+- SQL_PUSHDOWN — фильтры, агрегаты, temporal/group joins в PostgreSQL;
+- JAVA_LOCAL — small batches, legacy parity/backward compatibility;
+- RUST_REMOTE_BATCH — CPU-heavy, large arrays, independent compiled plans;
+- RUST_EMBEDDED_TEST_ONLY — прототип/локальная parity без IPC;
+- SQL_PLUS_RUST — только после измеренного выигрыша гибридной стратегии.
+
+Выбор стратегии фиксируется в immutable CalcPlan
+(executorKind, version, capability manifest SHA, exact numeric policy).
+В FIN нельзя обойти существующие S2/admission/FactSet checks новым
+Rust endpoint. Future FIN adapter должен сначала использовать
+существующие версии и команды; FEngine не становится третьим writer.
+На случай ошибки/недоступности Rust — fail-closed или разрешённый
+версионированный fallback, только если результаты гарантированно
+эквивалентны и не обходятся доказательства финансового допуска.
+
+### 17.9. Первые модельные вертикали (не 154 сразу)
+
+HPC-PY-01: F02 Python oracle:
+netRevenue - COGS → grossProfit; grossProfit/netRevenue → grossMargin RATIO;
+grossProfit - operatingExpenses → operatingResult; zero/missing/negative
+scopes only as explicitly allowed. Сопоставить с точными FIN codes,
+ratio scale и существующим FIN synthetic golden.
+
+HPC-PY-02: C01/C02 snapshot as-of:
+SUM_AS_OF(gross) - allowance, declared overdue subset, outstanding,
+non-overlapping same-currency asOf; источник событий A01 пока отсутствует.
+Проверить duplicate obligation key vs row id, invalid allowance/overdue.
+
+HPC-PY-03: F01/F03 control math:
+assets - liabilities - equity reconciliation, opening cash +
+signed CFO/CFI/CFF +/- separately modeled FX bridge - closing cash;
+все политики и исключения независимо согласовать.
+
+HPC-PY-04: ROWSET C07/P06:
+GROUP_BY, RATIO_OF_SUMS, DSO/DIO/DPO и CCC только с совместимыми
+дневными периодами, кредитными продажами и закупками,
+не подставлять COGS автоматически для DPO.
+
+HPC-PY-05: A05 loan schedules:
+dated annuity/equal principal/custom cash schedule, fees, day-count;
+отдельные номинальная ставка, IFRS9 EIR, KZ_GESV; plan-fact с A01
+после источников платежей; проценты и rounding на каждой стадии.
+
+HPC-PY-06: A06 investments:
+NPV, FCFF/WACC vs FCFE/Ke, IRR multiple roots, XIRR/date semantics,
+DCF terminal assumptions, scenarios; нет универсального «единственного IRR».
+
+Реализовывать Rust-прототип для уже квалифицированной Python-модели
+последовательно, не ожидая окончания всего каталога; это снижает
+риск массового переписывания неверных assumptions.
+FEngine Python stage не означает, что FIN 154 форм уже завершены.
+
+### 17.10. Этапы, выходы и критерии GO
+
+HPC-R0.0 — **предлагаемая архитектура (этот раздел)**, без кода.
+HPC-R0.1 — Data/Decimal/Graph/Batch contract review:
+typed schema, memory caps, status taxonomy, batch result shapes, exact API
+transport; выбрать protocol и test matrix до реализации.
+HPC-R0.2 — Python math reference и golden corpus для первых 3
+семейств F02/C01/C02, с independent human-confirmed expected examples;
+конкретные source policies ограничены pilot.
+HPC-R0.3 — Rust pure core, checked decimals, DAG evaluator и batch test
+для уже подтверждённых Python контрактов.
+HPC-R0.4 — Differential/property/fuzz/serialization tests;
+exact results vs policy tolerance; verify third-party Rust lib behavior.
+HPC-R0.5 — Microbenchmark + SQL/Java/Rust end-to-end benchmark;
+выбрать per-form/per-task execution routing с доказуемыми границами.
+HPC-R0.6 — Rust gRPC worker service, quotas, versioned request,
+admission, idempotency, deadlines, cancellation and metrics.
+HPC-R0.7 — Operational integration through trusted orchestrator,
+leases/fencing/source revocation, result commit, observability,
+financial S2 policy and release qualification.
+HPC-R0.8 — Domain expansion A01–A06, затем methodologically
+reviewed remaining source and calculated outputs по coverage matrix.
+
+**Блокирующее условие:** прежде чем запускать performance claims,
+должны быть одинаковые numerics, versioned inputs, exact source evidence
+и независимые golden examples. Rust ≠ автоматическая финансовая валидация.
+**Главный acceptance:** для одного exact qualified CalcPlan из одного
+исходного FactSet получить одинаковые допустимые результаты и состояния
+на Python reference / Rust / Java-SQL где применимо,
+доказать lineage и измерить full microservice roundtrip.
