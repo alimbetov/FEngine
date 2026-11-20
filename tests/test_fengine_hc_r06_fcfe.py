@@ -143,7 +143,7 @@ class R06FcfeTests(unittest.TestCase):
         self.err("ENUM_OUT_OF_RANGE", lambda:
                  self.calc("FCFE_LEVERED", inp, {**cfg,
                                                "equityCashflowBasis": BASIS["FCFE_NORMALIZED"]}))
-        self.err("UNCONSUMED_CONFIGURATION", lambda:
+        self.err("UNKNOWN_PARAMETER", lambda:
                  self.calc("FCFE_LEVERED", inp, {**cfg, "hiddenTaxPolicy": "ANY"}))
 
     def test_borrowing_and_rate_mutations_change_output_receipt(self):
