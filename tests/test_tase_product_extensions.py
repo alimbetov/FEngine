@@ -54,7 +54,8 @@ class ProductExtensibilityTests(unittest.TestCase):
             out = calculate(catalog, PeriodRequest(
                 "EXPERIMENT", "NET_FLOW", "SUM", "S",
                 date(2026, 1, 1), date(2026, 4, 1), "QUARTER"),
-                Dataset("S", "b"*64, observations))
+                Dataset("S", "b"*64, observations,
+                        interval_coverage_attested=True, watermark=date(2026, 4, 1)))
             self.assertEqual(out.rows[0].value, "300")
             self.assertEqual(out.execution_class, "PYTHON_REFERENCE_NOT_S2")
             with self.assertRaises(TaseError) as cm:
@@ -131,7 +132,9 @@ class ProductExtensibilityTests(unittest.TestCase):
         )
         r = PeriodRequest("INDUSTRY", "ENERGY_INTENSITY", "RATIO_OF_SUMS",
                           "S", date(2026, 1, 1), date(2026, 2, 1), "MONTH")
-        out = calculate(catalog, r, Dataset("S", "b"*64, observations))
+        out = calculate(catalog, r, Dataset(
+            "S", "b"*64, observations,
+            interval_coverage_attested=True, watermark=date(2026, 2, 1)))
         self.assertEqual(out.rows[0].value, "3")
         self.assertEqual(out.rows[0].unit, "kWh/unit")
 
