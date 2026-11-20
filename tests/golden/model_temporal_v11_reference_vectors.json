@@ -1,0 +1,112 @@
+{
+  "schema": "FENGINE_TEMPORAL_V11_GOLDENS_V1",
+  "classification": "SYNTHETIC_NO_CUSTOMER_DATA_REFERENCE_NOT_FINANCIAL_S2",
+  "cases": [
+    {
+      "id": "EVM_CPI_COMPONENT_RECOMPUTATION",
+      "model": "HC.COST.07",
+      "variant": "EVM_BAC_CPI",
+      "output": "costPerformanceIndex",
+      "sourceGrain": "AS_OF",
+      "outputGrain": "MONTH",
+      "snapshots": [
+        {
+          "date": "2026-01-31",
+          "earnedValue": "60",
+          "actualCost": "75"
+        },
+        {
+          "date": "2026-02-28",
+          "earnedValue": "80",
+          "actualCost": "80"
+        },
+        {
+          "date": "2026-03-31",
+          "earnedValue": "100",
+          "actualCost": "200"
+        }
+      ],
+      "expectedBuckets": [
+        "0.8",
+        "1",
+        "0.5"
+      ],
+      "expectedTotal": "0.5",
+      "tolerance": "0"
+    },
+    {
+      "id": "EVM_CPI_ALTERNATIVE_EAC_SAME_RATIO",
+      "model": "HC.COST.07",
+      "variant": "EVM_EAC_FORECAST",
+      "output": "costPerformanceIndex",
+      "sourceGrain": "AS_OF",
+      "outputGrain": "MONTH",
+      "snapshots": [
+        {
+          "date": "2026-01-31",
+          "earnedValue": "60",
+          "actualCost": "75"
+        },
+        {
+          "date": "2026-02-28",
+          "earnedValue": "80",
+          "actualCost": "100"
+        },
+        {
+          "date": "2026-03-31",
+          "earnedValue": "120",
+          "actualCost": "150"
+        }
+      ],
+      "expectedBuckets": [
+        "0.8",
+        "0.8",
+        "0.8"
+      ],
+      "expectedTotal": "0.8",
+      "tolerance": "0"
+    },
+    {
+      "id": "NPV_PERIOD_END_FULL_REEXECUTION",
+      "model": "HC.DCF.01",
+      "variant": "PERIOD_END_NPV",
+      "output": "npv",
+      "sourceGrain": "MONTH",
+      "outputGrain": "MONTH",
+      "cashflows": [
+        "-100",
+        "121",
+        "121"
+      ],
+      "effectiveRatePerMonth": "0.1",
+      "expectedBuckets": [
+        "-100",
+        "121",
+        "121"
+      ],
+      "expectedTotal": "110",
+      "tolerance": "1e-32"
+    },
+    {
+      "id": "NPV_MIDPERIOD_FULL_REEXECUTION",
+      "model": "HC.DCF.01",
+      "variant": "MIDPERIOD_NPV",
+      "output": "npv",
+      "sourceGrain": "MONTH",
+      "outputGrain": "MONTH",
+      "cashflows": [
+        "-100",
+        "121",
+        "121"
+      ],
+      "effectiveRatePerMonth": "0.1",
+      "expectedBuckets": [
+        "-100",
+        "121",
+        "121"
+      ],
+      "expectedTotal": "120.249858115731824868205237872786895679807090",
+      "tolerance": "1e-32"
+    }
+  ]
+}
