@@ -178,5 +178,40 @@ class HCReferenceTests(unittest.TestCase):
         self.assertNotEqual(r1.output_sha256, r3.output_sha256)
 
 
+    def test_all_implemented_variant_mathematical_controls(self):
+        target = self.run_model("HC.CAP.02", "TARGET_WEIGHT_WACC",
+                                {"equityValue": "60", "debtValue": "40",
+                                 "costOfEquity": "0.12", "costOfDebt": "0.08",
+                                 "taxRate": "0.25"})
+        self.assertEqual(Decimal(target.output["wacc"]), Decimal("0.096"))
+        ddb = self.run_model("HC.ASSET.01", "DOUBLE_DECLINING", {"cost": "1000"},
+                             {"residualValue": "100", "usefulLifePeriods": 4})
+        self.assertEqual(Decimal(ddb.output["periods"][0]["depreciation"]), Decimal(500))
+        self.assertEqual(Decimal(ddb.output["closingBalance"]), Decimal(100))
+        grace = self.run_model("HC.SET.03", "GRACE_ADJUSTED_AGING",
+                               {"asOf": "2026-03-01",
+                                "obligations": [{"dueDate": "2026-02-28", "unpaidAmount": "10"}]},
+                               {"ageingBucketEdges": [30, 60], "graceDays": 2})
+        self.assertEqual(Decimal(grace.output["buckets"]["CURRENT"]), Decimal(10))
+
+    def test_result_is_deeply_immutable(self):
+        result = self.run_model("HC.ASSET.01", "STRAIGHT_LINE", {"cost": "1200"},
+                                {"residualValue": "200", "usefulLifePeriods": 5})
+        with self.assertRaises(TypeError):
+            result.output["closingBalance"] = "0"
+        with self.assertRaises(TypeError):
+            result.output["periods"][0]["closingBalance"] = "0"
+
+    def test_unconsumed_input_fail_closed(self):
+        self.fails("UNCONSUMED_INPUT", lambda:
+                   self.run_model("HC.ASSET.01", "STRAIGHT_LINE",
+                                  {"cost": "1000", "serviceDate": "2026-07-01"},
+                                  {"residualValue": "0", "usefulLifePeriods": 5}))
+        self.fails("UNCONSUMED_INPUT", lambda:
+                   self.run_model("HC.ASSET.01", "STRAIGHT_LINE",
+                                  {"cost": "1000", "production": ["100"]},
+                                  {"residualValue": "0", "usefulLifePeriods": 1}))
+
+
 if __name__ == "__main__":
     unittest.main()
