@@ -12,6 +12,8 @@ from datetime import date, timedelta
 from decimal import Decimal, localcontext
 from pathlib import Path
 
+from qualification_r13_precision import independent_decimal_precision
+
 from fengine_hc.reference import CalculationError, ReferenceEngine
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -155,6 +157,7 @@ class QualR13LoanEclPropertyTests(unittest.TestCase):
     def setUpClass(cls):
         cls.engine = ReferenceEngine(ROOT)
 
+    @independent_decimal_precision
     def test_256_positive_rate_dated_loan_schedules_and_per_row_oracles(self):
         count = 0
         for index, principal, rate, origin, dates in make_loan_cases():
@@ -198,6 +201,7 @@ class QualR13LoanEclPropertyTests(unittest.TestCase):
                     count+=1
         self.assertEqual(count,LOAN_CASES * len(LOAN_VARIANTS))
 
+    @independent_decimal_precision
     def test_64_loan_principal_scale_metamorphic_relations(self):
         # Fixed source policy, interest rate, dates: linearity in principal.
         count=0
@@ -224,6 +228,7 @@ class QualR13LoanEclPropertyTests(unittest.TestCase):
                     count+=1
         self.assertEqual(count,64)
 
+    @independent_decimal_precision
     def test_200_lifetime_and_first_year_ecl_numeric_oracles(self):
         total=0
         for lifetime in (False,True):
@@ -256,6 +261,7 @@ class QualR13LoanEclPropertyTests(unittest.TestCase):
                     total+=1
         self.assertEqual(total,2*ECL_CASES_PER_METHOD)
 
+    @independent_decimal_precision
     def test_24_ecl_exposure_scale_and_discount_monotonicity(self):
         count=0
         for lifetime in (False,True):
@@ -290,6 +296,7 @@ class QualR13LoanEclPropertyTests(unittest.TestCase):
                 count+=1
         self.assertEqual(count,24)
 
+    @independent_decimal_precision
     def test_invalid_cases_reject_calendar_and_probability_domain(self):
         baseline={
             "principal":"1000","annualRate":"0.1",
