@@ -3,10 +3,10 @@ requires = ["setuptools>=68"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "fengine-geo-opt-reference"
+name = "fengine-python-reference"
 version = "0.1.0"
-description = "FEngine GEO-OPT typed graph compiler and reference route algorithms"
+description = "FEngine GEO-OPT and TASE in-process Python reference modules"
 requires-python = ">=3.11"
 
 [tool.setuptools]
-packages = ["geo_opt"]
+packages = ["geo_opt", "tase"]
