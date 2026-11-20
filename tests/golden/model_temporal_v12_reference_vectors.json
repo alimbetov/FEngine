@@ -1,0 +1,249 @@
+{
+  "schema": "FENGINE_TEMPORAL_V12_GOLDENS_V1",
+  "classification": "SYNTHETIC_REFERENCE_ONLY_NOT_FINANCIAL_S2",
+  "numericPolicy": "ACT_365_FIXED_ANNUAL_EFFECTIVE_RATE_DECIMAL40_AND_TASE_WEIGHTED_DECIMAL50",
+  "cases": [
+    {
+      "id": "DATED_XNPV_ACT365F_IRREGULAR",
+      "model": "HC.DCF.02",
+      "variant": "EXACT_DATE_XNPV",
+      "field": "xnpv",
+      "sourceGrain": "EVENT_AT",
+      "dates": [
+        "2026-01-01",
+        "2026-02-01",
+        "2026-03-15"
+      ],
+      "amounts": [
+        "-100",
+        "110",
+        "200"
+      ],
+      "annualRate": "0.1",
+      "expectedBuckets": [
+        "-100",
+        "109.11316215580769327405909173617528938969",
+        "196.22369914525286652137775036159368484284"
+      ],
+      "expectedTotal": "205.33686130106055979543684209776897423253",
+      "tolerance": "1e-32"
+    },
+    {
+      "id": "CAPM_EXPOSURE_WEIGHTED_RATES",
+      "model": "HC.CAP.01",
+      "variant": "CAPM_BASE",
+      "field": "costOfEquity",
+      "sourceGrain": "EVENT_AT",
+      "dates": [
+        "2026-01-15",
+        "2026-02-15",
+        "2026-03-15"
+      ],
+      "betas": [
+        "1",
+        "2",
+        "1.5"
+      ],
+      "weights": [
+        "100",
+        "300",
+        "100"
+      ],
+      "riskFree": "0.02",
+      "premium": "0.06",
+      "expectedBuckets": [
+        "0.08",
+        "0.14",
+        "0.11"
+      ],
+      "expectedTotal": "0.122",
+      "tolerance": "0"
+    },
+    {
+      "id": "PVM_FIXED_BASELINE_PRICE_VARIANCE",
+      "model": "HC.COST.08",
+      "variant": "PRICE_VARIANCE",
+      "field": "priceVariance",
+      "sourceGrain": "AS_OF",
+      "baselineDate": "2025-12-31",
+      "dates": [
+        "2026-01-31",
+        "2026-02-28",
+        "2026-03-31"
+      ],
+      "baseline": {
+        "A": {
+          "quantity": "60",
+          "unitCost": "10"
+        },
+        "B": {
+          "quantity": "40",
+          "unitCost": "20"
+        }
+      },
+      "actuals": [
+        {
+          "A": {
+            "quantity": "50",
+            "unitCost": "11"
+          },
+          "B": {
+            "quantity": "60",
+            "unitCost": "18"
+          }
+        },
+        {
+          "A": {
+            "quantity": "55",
+            "unitCost": "12"
+          },
+          "B": {
+            "quantity": "65",
+            "unitCost": "17"
+          }
+        },
+        {
+          "A": {
+            "quantity": "60",
+            "unitCost": "11"
+          },
+          "B": {
+            "quantity": "70",
+            "unitCost": "19"
+          }
+        }
+      ],
+      "expectedBuckets": [
+        "-70",
+        "-85",
+        "-10"
+      ],
+      "expectedTotal": "-10",
+      "tolerance": "0"
+    },
+    {
+      "id": "PVM_FIXED_BASELINE_QUANTITY_VARIANCE",
+      "model": "HC.COST.08",
+      "variant": "QUANTITY_VARIANCE",
+      "field": "quantityVariance",
+      "sourceGrain": "AS_OF",
+      "baselineDate": "2025-12-31",
+      "dates": [
+        "2026-01-31",
+        "2026-02-28",
+        "2026-03-31"
+      ],
+      "baseline": {
+        "A": {
+          "quantity": "60",
+          "unitCost": "10"
+        },
+        "B": {
+          "quantity": "40",
+          "unitCost": "20"
+        }
+      },
+      "actuals": [
+        {
+          "A": {
+            "quantity": "50",
+            "unitCost": "11"
+          },
+          "B": {
+            "quantity": "60",
+            "unitCost": "18"
+          }
+        },
+        {
+          "A": {
+            "quantity": "55",
+            "unitCost": "12"
+          },
+          "B": {
+            "quantity": "65",
+            "unitCost": "17"
+          }
+        },
+        {
+          "A": {
+            "quantity": "60",
+            "unitCost": "11"
+          },
+          "B": {
+            "quantity": "70",
+            "unitCost": "19"
+          }
+        }
+      ],
+      "expectedBuckets": [
+        "140",
+        "280",
+        "420"
+      ],
+      "expectedTotal": "420",
+      "tolerance": "0"
+    },
+    {
+      "id": "PVM_FIXED_BASELINE_MIX_VARIANCE",
+      "model": "HC.COST.08",
+      "variant": "MIX_VARIANCE",
+      "field": "mixVariance",
+      "sourceGrain": "AS_OF",
+      "baselineDate": "2025-12-31",
+      "dates": [
+        "2026-01-31",
+        "2026-02-28",
+        "2026-03-31"
+      ],
+      "baseline": {
+        "A": {
+          "quantity": "60",
+          "unitCost": "10"
+        },
+        "B": {
+          "quantity": "40",
+          "unitCost": "20"
+        }
+      },
+      "actuals": [
+        {
+          "A": {
+            "quantity": "50",
+            "unitCost": "11"
+          },
+          "B": {
+            "quantity": "60",
+            "unitCost": "18"
+          }
+        },
+        {
+          "A": {
+            "quantity": "55",
+            "unitCost": "12"
+          },
+          "B": {
+            "quantity": "65",
+            "unitCost": "17"
+          }
+        },
+        {
+          "A": {
+            "quantity": "60",
+            "unitCost": "11"
+          },
+          "B": {
+            "quantity": "70",
+            "unitCost": "19"
+          }
+        }
+      ],
+      "expectedBuckets": [
+        "160",
+        "170",
+        "180"
+      ],
+      "expectedTotal": "180",
+      "tolerance": "0"
+    }
+  ]
+}
