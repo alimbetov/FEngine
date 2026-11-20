@@ -202,8 +202,8 @@ class TemporalModelCapabilityTests(unittest.TestCase):
         runs=[fcff_run(start,end) for start,end in WINDOWS]
         out=self.calculate(request("HC.DCF.05","FCFF_UNLEVERED",
                                    "freeCashFlowToFirm"),runs)
-        self.assertEqual([r.value for r in out.result.rows], ["110","110","110"])
-        self.assertEqual(out.result.total_rows[0].value,"330")
+        self.assertEqual([Decimal(r.value) for r in out.result.rows], [Decimal("110")]*3)
+        self.assertEqual(Decimal(out.result.total_rows[0].value),Decimal("330"))
 
     def test_actual_fcfe_flow_sums_but_present_value_is_unadmitted(self):
         runs=[fcfe_run(start,end) for start,end in WINDOWS]
