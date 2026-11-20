@@ -177,6 +177,37 @@ class UniversalTemporalExtensionTests(unittest.TestCase):
         self.reject("SOURCE_GRAIN_MISMATCH",lambda:
                     calculate(self.cat,request(),source(*rows)))
 
+    def test_dynamic_new_model_uses_same_temporal_kernel_without_new_math_code(self):
+        from tase.reference import ProductPack, Metric
+        products = dict(self.cat.products)
+        products["NEW_HC"] = ProductPack(
+            "NEW_HC", "NEW_HC.TEMPORAL.R1",
+            frozenset({"DAY", "MONTH", "QUARTER"}), frozenset({"SUM"}), "REFERENCE_DRAFT"
+        )
+        metrics = dict(self.cat.metrics)
+        metrics[("NEW_HC", "GENERIC_CASH_FLOW")] = Metric(
+            "NEW_HC", "GENERIC_CASH_FLOW", "MONEY", "KZT", "FLOW",
+            "INTERVAL_FLOW", "SUM", frozenset({"SUM"}), "", "",
+            "DRAFT_NOT_FINANCIAL_S2"
+        )
+        new_catalog = Catalog(products, metrics, self.cat.operators,
+                              self.cat.predicates, reference_mode=True)
+        rows = (
+            row("GENERIC_CASH_FLOW", JAN, JAN + timedelta(days=1), "5",
+                product="NEW_HC"),
+            row("GENERIC_CASH_FLOW", JAN + timedelta(days=1),
+                JAN + timedelta(days=2), "7", product="NEW_HC"),
+        )
+        request_for_model = request(
+            product="NEW_HC", metric="GENERIC_CASH_FLOW",
+            start=JAN, end=JAN + timedelta(days=2),
+            source_grain="DAY", output_grain="DAY"
+        )
+        outcome = calculate(new_catalog, request_for_model, source(*rows))
+        self.assertEqual([r.value for r in outcome.rows], ["5", "7"])
+        self.assertEqual(outcome.total_rows[0].value, "12")
+        self.assertEqual(outcome.execution_class, "PYTHON_REFERENCE_NOT_S2")
+
     def test_missing_month_and_overlapping_windows_still_block_total(self):
         inp=source(*monthly("REVENUE",("100","120","80"))[::2])
         self.reject("MISSING_PERIOD_SOURCE",lambda:calculate(self.cat,request(),inp))
