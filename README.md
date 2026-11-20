@@ -10,10 +10,10 @@ FEngine is a specification-first, evidence-driven financial and economic calcula
 
 | Scope | Verified status |
 |---|---|
-| Financial/economic HC catalogue | **116 candidate model contracts** — W1 14 + W2 42 + W3 27 + W4 12 + W5 21; bounded Python mathematical reference for 25 model codes (not finance S2) |
+| Financial/economic HC catalogue | **116 candidate model contracts** — W1 14 + W2 42 + W3 27 + W4 12 + W5 21; bounded Python mathematical reference for 27 model codes (not finance S2) |
 | Input datasets | D01–D114 logical typed DTO candidates, not verified FIN source bindings |
 | Fact catalogue | 235 unique DRAFT source fact definitions |
-| Financial 116-model Python Calculation Hub | **Partial:** 25 model codes, 43 named variants with real bounded Python Decimal reference executors; remaining 91 model codes not implemented; financial S2 and Redis ACK/TTL runtime gates remain closed |
+| Financial 116-model Python Calculation Hub | **Partial:** 27 model codes, 48 named variants with real bounded Python Decimal reference executors; remaining 89 model codes not implemented; financial S2 and Redis ACK/TTL runtime gates remain closed |
 | GEO-OPT Python reference | Typed directed graph compiler, Dijkstra, A*, Yen K-shortest paths; **38/38 unittest tests** on Python 3.11 and 3.13 in GitHub Actions |
 | Functional finance E2E / ephemeral Redis ACK/TTL session runtime | Not implemented, not tested. PostgreSQL persistence of calculation data is prohibited by current FEngine design |
 
@@ -26,7 +26,7 @@ FEngine is an **ephemeral computation engine**, not a durable source-fact wareho
 
 ## HC-R0.1 — bounded real mathematical engine (Python reference)
 
-**Executable in-process numerical calculations, not 116 production financial models.** HC-R0.2 added IRR/EIR, VaR/ES and ECL reference calculations; HC-R0.3 added CASH runway, COST break-even, COST EVM and Gordon terminal valuation; HC-R0.4 added indirect CFO, FCFF, EV-to-equity bridge and compound annual cost escalation. HC-R0.5 adds two source-bound direct CFO variants and a typed direct-to-indirect reconciliation edge, giving **25 model codes and 43 named reference variants**. All 222 catalogue variants remain financially unapproved. The package fengine_hc contains genuine Decimal reference functions for NPV/XNPV, CAPM/WACC, five depreciation methods, four dated loan schedules, FIFO/moving/periodic WAC, debt ageing and LLCR/PLCR. Explicitly selected variants are validated against the R3 catalogue; unsupported models/variants return typed errors instead of placeholder results.
+**Executable in-process numerical calculations, not 116 production financial models.** HC-R0.2 added IRR/EIR, VaR/ES and ECL reference calculations; HC-R0.3 added CASH runway, COST break-even, COST EVM and Gordon terminal valuation; HC-R0.4 added indirect CFO, FCFF, EV-to-equity bridge and compound annual cost escalation. HC-R0.5 added two source-bound direct CFO variants and a typed direct-to-indirect reconciliation edge. HC-R0.6/R0.7 add two independent FCFE derivations and three-factor cost Price–Volume–Mix, giving **27 model codes and 48 named reference variants**, with **29 explicit reference variant rules**. All 222 catalogue variants remain financially unapproved. The package fengine_hc contains genuine Decimal reference functions for NPV/XNPV, CAPM/WACC, five depreciation methods, four dated loan schedules, FIFO/moving/periodic WAC, debt ageing and LLCR/PLCR. Explicitly selected variants are validated against the R3 catalogue; unsupported models/variants return typed errors instead of placeholder results.
 
 - [Real Python HC reference implementation](fengine_hc/reference.py)
 - [116-node candidate graph, typed in-memory calculation DAG and strategy graph](fengine_hc/graphs.py)
@@ -51,6 +51,13 @@ FEngine is an **ephemeral computation engine**, not a durable source-fact wareho
 - [Synthetic posted/reclassified portable SHA vectors](tests/golden/hc_r05_cashflow_vectors.json)
 - [Strict source/classification cashflow tests](tests/test_fengine_hc_r05_cashflow.py)
 - [Typed DAG reconciliation tests](tests/test_fengine_hc_r05_direct_indirect_graph.py)
+- [HC-R0.6/R0.7 FCFE and Price–Volume–Mix full methodology, constraints and acceptance](docs/FENGINE-HC-R06-R07-FCFE-PVM-REFERENCE-AUDIT.md)
+- [HC-R0.6 two FCFE methods and cross-method reconciliation](fengine_hc/r06_fcfe.py)
+- [HC-R0.7 three-factor price / volume / mix executor](fengine_hc/r07_pvm.py)
+- [FCFE mathematical tests and negative guards](tests/test_fengine_hc_r06_fcfe.py)
+- [Price / volume / mix decomposition tests](tests/test_fengine_hc_r07_pvm.py)
+- [Five portable Python/Rust golden vectors](tests/golden/hc_r06_r07_reference_vectors.json)
+- [Portable SHA and numeric golden test runner](tests/test_fengine_hc_r07_portable_goldens.py)
 
 **Risk control:** All 222 variants are *candidate method entries*; only the explicitly supported subset runs as PYTHON_REFERENCE_NOT_S2. The reference has no production-grade input source authority, independent financial qualification, Redis ephemeral job/ACK-purge implementation, signed calculation plan or certified Rust parity. Non-reference mode remains blocked. No generic fallback returns 0 or fabricated results.
 
