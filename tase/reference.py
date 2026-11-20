@@ -595,7 +595,9 @@ def calculate(catalog: Catalog, req: PeriodRequest, dataset: Dataset) -> TaseRes
                         begin <= item.start < end and
                         _group(item, group_keys) == group
                     }
-                    if present != identities:
+                    # Preserve the distinct MISSING_PERIOD_SOURCE / MISSING_SNAPSHOT
+                    # path if a whole bucket has no source observations.
+                    if present and present != identities:
                         raise TaseError("PARTIAL_COHORT_COVERAGE")
     if len(groups) * (len(periods) + int(req.include_total)) > 100000:
         raise TaseError("RESOURCE_BUDGET_EXCEEDED")
