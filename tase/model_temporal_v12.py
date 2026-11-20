@@ -439,6 +439,14 @@ def calculate_model_temporal_v12(
         "contract": "HC_TEMPORAL_V12_EXECUTED_BATCH_V1",
         "capabilitySha": cap.revision_sha256, "scope": request.scope,
         "sourceAndResultReceipts": ordered,
+        # Completeness claims and watermark are part of the source evidence
+        # identity, even if two requests happen to yield the same numeric value.
+        "coverageEvidence": {
+            "attested": request.coverage_attested,
+            "watermark": request.watermark.isoformat()
+            if request.watermark is not None else None,
+            "requireFullCoverage": request.require_full_coverage,
+        },
     })
     ds = Dataset(
         scope=request.scope, content_sha=batch_sha,
