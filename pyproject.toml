@@ -5,8 +5,8 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "fengine-python-reference"
 version = "0.1.0"
-description = "FEngine GEO-OPT and TASE in-process Python reference modules"
+description = "FEngine GEO-OPT, TASE and bounded HC in-process Python reference modules"
 requires-python = ">=3.11"
 
 [tool.setuptools]
-packages = ["geo_opt", "tase"]
+packages = ["geo_opt", "tase", "fengine_hc"]
