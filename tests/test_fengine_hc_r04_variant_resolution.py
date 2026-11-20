@@ -30,7 +30,7 @@ class CatalogSelectionTests(unittest.TestCase):
     def test_all_rule_dependencies_are_registered_and_typed(self):
         self.assertEqual(len(self.p.registry.variants), 222)
         self.assertEqual(len(self.p.bindings), 732)
-        self.assertEqual(len(RULES), 24)
+        self.assertEqual(len(RULES), 29)
         self.assertEqual({k for k in RULES if k not in self.p.registry.variants}, set())
         for (model, variant), rule in RULES.items():
             with self.subTest(model=model, variant=variant):
