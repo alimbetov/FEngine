@@ -36,9 +36,17 @@ The [universal temporal extension](docs/FENGINE-TEMPORAL-SERIES-EXTENSION-V1.md)
 
 ## ModelTemporalCapabilityV1.1 — non-additive time series reducers
 
-The shared temporal extension now supports 13 reference-mode model+variant+output contracts across 7 HC models: the previous 9 additive/as-of bindings and **four V1.1** derived contracts. V1.1 implements **RECOMPUTE_FROM_COMPONENTS** for dated EVM CPI (latest EV / AC, not an average of CPI values) and **RE_EXECUTE_FULL_WINDOW** for PERIOD_END_NPV / MIDPERIOD_NPV (recalculate actual HC NPV from the full monthly cashflow series instead of summing monthly NPVs). Both use the **same TASE calendar/coverage kernel**; the [unified reference API](tase/temporal_dispatch.py) selects the method by reviewed declarative model/variant/output policy only. Undeclared models and unsafe aggregations remain blocked. No new HC mathematical model code is claimed.
+The shared temporal extension now supports 13 reference-mode model+variant+output contracts across 6 distinct HC models: the previous 9 additive/as-of bindings and **four V1.1** derived contracts. V1.1 implements **RECOMPUTE_FROM_COMPONENTS** for dated EVM CPI (latest EV / AC, not an average of CPI values) and **RE_EXECUTE_FULL_WINDOW** for PERIOD_END_NPV / MIDPERIOD_NPV (recalculate actual HC NPV from the full monthly cashflow series instead of summing monthly NPVs). Both use the **same TASE calendar/coverage kernel**; the [unified reference API](tase/temporal_dispatch.py) selects the method by reviewed declarative model/variant/output policy only. Undeclared models and unsafe aggregations remain blocked. No new HC mathematical model code is claimed.
 
 [Review and numerical acceptance](docs/FENGINE-MODEL-TEMPORAL-CAPABILITY-V11-ACCEPTANCE.md) · [V1.1 capability registry](catalog/model_temporal_capabilities_v11.tsv) · [portable reference vectors](tests/golden/model_temporal_v11_reference_vectors.json) · [negative/functional tests](tests/test_model_temporal_capability_v11.py).
+
+## ModelTemporalCapabilityV1.2 — dated XNPV, exposure-weighted CAPM and PVM series
+
+Five additional **explicit reference-only** temporal contracts across three existing HC mathematical models: **HC.DCF.02 EXACT_DATE_XNPV** executes ACT/365-fixed dated cashflows by bucket and full range at one annual rate and fixed valuation origin; **HC.CAP.01 CAPM_BASE** produces an exposure-weighted rate from independently executed model outputs and aligned positive/zero exposure weights; **HC.COST.08** returns fixed-baseline Price, Volume and Mix comparisons using the latest comparable AS_OF snapshot rather than summing monthly deviations. All use the same TASE temporal calendar/coverage kernel via the [unified model temporal API](tase/temporal_dispatch.py).
+
+**Temporal coverage: 18 reviewed reference contracts across 9 distinct HC model codes of 116.** The underlying mathematical reference model count remains 27/116, financial S2 is closed, and FIN source proof/Redis sessions are not implemented. The requirement remains Redis-only ephemeral user data, absolute TTL <= 10,800 seconds with atomic delete upon authenticated ACK; no data persistence in FEngine.
+
+[Design, examples and limitations](docs/FENGINE-MODEL-TEMPORAL-CAPABILITY-V12-ACCEPTANCE.md) · [Bounded executor](tase/model_temporal_v12.py) · [V1.2 capability catalogue](catalog/model_temporal_capabilities_v12.tsv) · [numeric and negative tests](tests/test_model_temporal_capability_v12.py) · [portable golden vectors](tests/golden/model_temporal_v12_reference_vectors.json).
 
 ## Current user-data retention policy (supersedes historical PostgreSQL proposals)
 
