@@ -1,4 +1,4 @@
-name: FEngine R95 model contract bank
+name: FEngine R95 + R1 methodology reference bank
 on:
   pull_request:
     paths:
@@ -14,6 +14,9 @@ on:
       - "docs/FENGINE-HPC-WAVE3-P2-27-STATISTICAL-METHOD-DTO-TZ.md"
       - "docs/FENGINE-MODEL-EXT-R1-WAVE4-12-CONTRACTS-TZ.md"
       - "tests/test_fengine_model_contract_bank.py"
+      - "tests/test_fengine_method_hardening_r1.py"
+      - "catalog/method_parameter_candidates_r1.tsv"
+      - "docs/FENGINE-METHOD-HARDENING-R1-P0-ADDENDUM.md"
       - ".github/workflows/fengine-r95-model-bank.yml"
   push:
     branches: [main]
@@ -36,4 +39,4 @@ jobs:
         with:
           python-version: ${{ matrix.python-version }}
       - name: Independent model specification bank (NOT financial engine E2E)
-        run: python -m unittest discover -s tests -p 'test_fengine_model_contract_bank.py' -v
+        run: python -m unittest discover -s tests -p 'test_fengine_*.py' -v
