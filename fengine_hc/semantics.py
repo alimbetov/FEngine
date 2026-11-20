@@ -22,8 +22,8 @@ KNOWN_TYPE_COLLISIONS = frozenset({
     "calendarPolicy", "taxShieldEligibility", "horizon", "dayCount", "capitalBudget",
 })
 SUPPORTED_TYPES = frozenset({
-    "REFERENCE", "CODE", "ENUM", "BOOLEAN", "INTEGER", "RATE", "MONEY",
-    "DECIMAL", "DATE", "LOCAL_DATE", "PERIOD", "QUANTITY", "LIST",
+    "REFERENCE", "CODE", "ENUM", "BOOLEAN", "INTEGER", "INT64", "RATE", "MONEY",
+    "DECIMAL", "RATIO", "MONEY_PER_UNIT", "DATE", "LOCAL_DATE", "PERIOD", "QUANTITY", "LIST",
     "STRUCT", "FX", "ISO4217", "PERCENTAGE", "DISTRIBUTION", "CURVE",
 })
 
