@@ -84,6 +84,43 @@ class ProductExtensibilityTests(unittest.TestCase):
                 Catalog.load(Path(tmp), reference_mode=True)
             self.assertEqual(cm.exception.code, "PRODUCT_UNKNOWN_OPERATOR")
 
+    def test_all_62_metric_operator_edges_have_typed_predicates(self):
+        catalog = Catalog.load(ROOT, reference_mode=True)
+        edges = 0
+        for metric in catalog.metrics.values():
+            for op_code in metric.operators:
+                edges += 1
+                op = catalog.operators[op_code]
+                self.assertTrue(any(
+                    metric.kind in catalog.predicates[p].quantity_kinds
+                    and metric.logical_type in catalog.predicates[p].logical_types
+                    and metric.time_kind in catalog.predicates[p].time_kinds
+                    for p in op.predicates
+                ), msg=f"{metric.product}:{metric.code}:{op_code}")
+        self.assertEqual(edges, 62)
+
+    def test_invalid_semantic_operator_edge_blocks_product_catalogue(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            directory = Path(tmp) / "catalog"
+            directory.mkdir()
+            for filename in NAMES:
+                copyfile(ROOT / "catalog" / filename, directory / filename)
+            path = directory / "tase_metric_semantics_candidates_r0.tsv"
+            lines = path.read_text(encoding="utf-8").splitlines()
+            idx = lines[0].split("\t").index("allowedOperatorIds")
+            for line_number in range(1, len(lines)):
+                fields = lines[line_number].split("\t")
+                if fields[0] == "FIN" and fields[1] == "REVENUE":
+                    fields[idx] += ",LAST_AS_OF"
+                    lines[line_number] = "\t".join(fields)
+                    break
+            else:
+                self.fail("FIN.REVENUE not found")
+            path.write_text("\n".join(lines) + "\n", encoding="utf-8")
+            with self.assertRaises(TaseError) as cm:
+                Catalog.load(Path(tmp), reference_mode=True)
+            self.assertEqual(cm.exception.code, "METRIC_OPERATOR_TYPE_MISMATCH")
+
     def test_physical_unit_intensity_not_percentage(self):
         catalog = Catalog.load(ROOT, reference_mode=True)
         observations = (
