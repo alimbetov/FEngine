@@ -16,7 +16,7 @@ TASE-014	GROUP	FIN	SUM	unqualified many-to-many join		MONEY	BLOCKED	JOIN_CARDINA
 TASE-015	CALENDAR	FIN	SUM	monthly total 300 split into partial week without events		MONEY	BLOCKED	INSUFFICIENT_INPUT_GRAIN		no invented interpolation
 TASE-016	CALENDAR	FIN	SUM	overlapping monthly flow source windows		MONEY	BLOCKED	SOURCE_OVERLAP		no duplicate time
 TASE-017	CALENDAR	FIN	YTD	Jan 100 Feb120 Mar80 complete fiscal source	300	MONEY	COMPLETE		0	YTD sum on date window
-TASE-018	CALENDAR	FIN	SUM	3 observed months no source expected completeness		MONEY	PARTIAL	COVERAGE_UNKNOWN		not FULL from row count
+TASE-018	CALENDAR	FIN	SUM	3 observed months no source expected completeness		MONEY	BLOCKED	COVERAGE_UNKNOWN		strict FULL-required profile cannot silently report completeness; source watermark missing
 TASE-019	NUMERIC	CUSTOM	ARITH_MEAN	x [100,120,80]	100	DECIMAL	COMPLETE		0	simple mean
 TASE-020	NUMERIC	CUSTOM	VAR_POP	x [100,120,80]	266.6666666666667	UNIT_SQUARED	COMPLETE		0.000000000001	n denominator
 TASE-021	NUMERIC	CUSTOM	VAR_SAMPLE	x [100,120,80]	400	UNIT_SQUARED	COMPLETE		0	n-1 denominator
