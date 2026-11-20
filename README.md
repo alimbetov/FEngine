@@ -10,10 +10,10 @@ FEngine is a specification-first, evidence-driven financial and economic calcula
 
 | Scope | Verified status |
 |---|---|
-| Financial/economic HC catalogue | **116 candidate model contracts** — W1 14 + W2 42 + W3 27 + W4 12 + W5 21; bounded Python mathematical reference for 10 model codes (not finance S2) |
+| Financial/economic HC catalogue | **116 candidate model contracts** — W1 14 + W2 42 + W3 27 + W4 12 + W5 21; bounded Python mathematical reference for 16 model codes (not finance S2) |
 | Input datasets | D01–D114 logical typed DTO candidates, not verified FIN source bindings |
 | Fact catalogue | 235 unique DRAFT source fact definitions |
-| Financial 116-model Python Calculation Hub | **Partial:** 10 model codes with real Python Decimal reference executors; remaining 106 not implemented; financial S2 and durable job gates remain closed |
+| Financial 116-model Python Calculation Hub | **Partial:** 16 model codes, 29 named variants with real bounded Python Decimal reference executors; remaining 100 model codes not implemented; financial S2 and durable job gates remain closed |
 | GEO-OPT Python reference | Typed directed graph compiler, Dijkstra, A*, Yen K-shortest paths; **38/38 unittest tests** on Python 3.11 and 3.13 in GitHub Actions |
 | Functional finance E2E / PostgreSQL / Inbox-Outbox | Not implemented, not tested |
 
@@ -22,13 +22,18 @@ Prior 83-model review: 83/83 external synthetic arithmetic and 34/34 external bo
 
 ## HC-R0.1 — bounded real mathematical engine (Python reference)
 
-**Executable in-process numerical calculations, not 116 production financial models.** The package fengine_hc contains genuine Decimal reference functions for NPV/XNPV, CAPM/WACC, five depreciation methods, four dated loan schedules, FIFO/moving/periodic WAC, debt ageing and LLCR/PLCR. Explicitly selected variants are validated against the R3 catalogue; unsupported models/variants return typed errors instead of placeholder results.
+**Executable in-process numerical calculations, not 116 production financial models.** HC-R0.2 adds six additional model codes (IRR, EIR, VaR, ES, 12-month ECL, lifetime ECL), giving 16 model codes and 29 named reference variants. All 222 catalogue variants remain financially unapproved. The package fengine_hc contains genuine Decimal reference functions for NPV/XNPV, CAPM/WACC, five depreciation methods, four dated loan schedules, FIFO/moving/periodic WAC, debt ageing and LLCR/PLCR. Explicitly selected variants are validated against the R3 catalogue; unsupported models/variants return typed errors instead of placeholder results.
 
 - [Real Python HC reference implementation](fengine_hc/reference.py)
 - [116-node candidate graph, typed in-memory calculation DAG and strategy graph](fengine_hc/graphs.py)
 - [HC numerical golden and negative tests](tests/test_fengine_hc_reference.py)
 - [Cross-model CAPM → WACC graph execution and cycle tests](tests/test_fengine_hc_graphs.py)
 - [20-family primitive matrix, complete architecture and Rust parity gates](docs/FENGINE-HC-R01-METAMODEL-PRIMITIVE-MATRIX-AND-EXECUTION.md)
+- [HC-R0.2 wave-by-wave implementation audit and outstanding gates](docs/FENGINE-HC-R02-WAVES-IMPLEMENTATION-AUDIT.md)
+- [Typed parameter semantics and bounded variant resolver](fengine_hc/semantics.py)
+- [IRR/EIR, VaR/ES and ECL numerical primitives](fengine_hc/r02_math.py)
+- [Portable machine-readable golden reference cases](tests/golden/hc_r02_reference_vectors.json)
+- [Typed plan/snapshot/edge negative tests](tests/test_fengine_hc_r02_graphs.py)
 
 **Risk control:** All 222 variants are *candidate method entries*; only the explicitly supported subset runs as PYTHON_REFERENCE_NOT_S2. The reference has no production-grade input source authority, independent financial qualification, PostgreSQL durable job, signed calculation plan or certified Rust parity. Non-reference mode remains blocked. No generic fallback returns 0 or fabricated results.
 
