@@ -292,8 +292,21 @@ class PeriodRequest:
     require_full_coverage: bool = True
     max_snapshot_age_days: int | None = None
     quantile_alpha: Decimal | str | None = None
+    # Optional, generic temporal extension: no legacy call changes unless enabled.
+    source_grain: str | None = None
+    include_total: bool = False
 
     def __post_init__(self) -> None:
+        if not isinstance(self.include_total, bool):
+            raise TaseError("INVALID_INCLUDE_TOTAL")
+        if self.source_grain is not None and self.source_grain not in {
+            "DAY", "ISO_WEEK", "MONTH", "QUARTER", "HALF_YEAR",
+            "YEAR", "FISCAL_PERIOD", "FISCAL_QUARTER", "FISCAL_HALF_YEAR",
+            "FISCAL_YEAR", "EVENT_AT", "AS_OF"
+        }:
+            raise TaseError("SOURCE_GRAIN_NOT_SUPPORTED")
+        if self.include_total and self.source_grain is None:
+            raise TaseError("SOURCE_GRAIN_REQUIRED")
         if self.end <= self.start:
             raise TaseError("INVALID_REQUEST_INTERVAL")
         if not 1 <= self.fiscal_start_month <= 12:
@@ -338,6 +351,8 @@ class TaseResult:
     result_sha: str
     status: str = "COMPLETE"
     execution_class: str = "PYTHON_REFERENCE_NOT_S2"
+    # Only populated by explicit include_total requests.
+    total_rows: tuple[ResultRow, ...] = ()
 
 
 def _month_add(d: date, months: int) -> date:
@@ -413,6 +428,10 @@ def compile_plan(catalog: Catalog, req: PeriodRequest) -> TasePlan:
         "semantic": [metric.kind, metric.time_kind, metric.logical_type, metric.unit,
                      metric.time_aggregate, sorted(metric.operators)],
     }
+    if req.source_grain is not None:
+        manifest["sourceGrain"] = req.source_grain
+    if req.include_total:
+        manifest["includeTotal"] = True
     return TasePlan(req, catalog.products[req.product].revision,
                     req.product + ":" + req.metric, req.operation,
                     _fingerprint(manifest))
@@ -531,86 +550,133 @@ def calculate(catalog: Catalog, req: PeriodRequest, dataset: Dataset) -> TaseRes
     groups = sorted(set(_group(r, group_keys) for r in all_rows))
     if not groups:
         raise TaseError("MISSING_PERIOD_SOURCE")
-    if len(groups) * len(_buckets(req)) > 100000:
+    periods = _buckets(req)
+    if len(groups) * (len(periods) + int(req.include_total)) > 100000:
         raise TaseError("RESOURCE_BUDGET_EXCEEDED")
-    results: list[ResultRow] = []
-    for begin, end in _buckets(req):
-        for group in groups:
-            selected = _selected(dataset.rows, req.metric, group, group_keys, begin, end)
-            if req.operation == "RATIO_OF_SUMS":
-                num = catalog.metrics[(req.product, metric.numerator)]
-                den = catalog.metrics[(req.product, metric.denominator_or_weight)]
-                numerator = _selected(dataset.rows, num.code, group, group_keys, begin, end)
-                denominator = _selected(dataset.rows, den.code, group, group_keys, begin, end)
-                _check_rows(numerator, num, begin, end, dataset, req.require_full_coverage)
-                _check_rows(denominator, den, begin, end, dataset, req.require_full_coverage)
-                if not numerator or not denominator:
-                    raise TaseError("COMPONENT_SOURCE_MISSING")
-                units = {num.unit, den.unit}
-                if num.logical_type == "MONEY" and den.logical_type == "MONEY" and len(units) != 1:
-                    raise TaseError("CURRENCY_MISMATCH")
-                with localcontext() as ctx:
-                    ctx.prec = 50
-                    a = sum((r.value for r in numerator), Decimal(0))
-                    b = sum((r.value for r in denominator), Decimal(0))
-                    if b == 0:
-                        raise TaseError("ZERO_DENOMINATOR")
-                    value = a / b
-                unit = "fraction" if num.unit == den.unit else num.unit + "/" + den.unit
-                count = len(numerator) + len(denominator)
-            elif req.operation == "WEIGHTED_MEAN":
-                weight_metric = catalog.metrics[(req.product, metric.denominator_or_weight)]
-                weights = _selected(dataset.rows, weight_metric.code, group, group_keys, begin, end)
-                _check_rows(selected, metric, begin, end, dataset, req.require_full_coverage)
-                _check_rows(weights, weight_metric, begin, end, dataset, req.require_full_coverage)
-                # Preserve full atomic keys/dates rather than joining by bucket alone.
-                key = lambda r: (r.dimensions, r.start, r.end)
-                rate_map = {key(r): r.value for r in selected}
-                weight_map = {key(r): r.value for r in weights}
-                if len(rate_map) != len(selected) or len(weight_map) != len(weights):
-                    raise TaseError("DUPLICATE_PAIR_KEY")
-                if not rate_map or rate_map.keys() != weight_map.keys():
-                    raise TaseError("PAIR_ALIGNMENT")
-                if any(w < 0 for w in weight_map.values()):
-                    raise TaseError("NEGATIVE_WEIGHT")
-                with localcontext() as ctx:
-                    ctx.prec = 50
-                    denominator = sum(weight_map.values(), Decimal(0))
-                    if denominator <= 0:
-                        raise TaseError("ZERO_TOTAL_WEIGHT")
-                    value = sum((v * weight_map[k] for k, v in rate_map.items()), Decimal(0)) / denominator
-                unit = metric.unit
-                count = len(selected)
-            elif req.operation == "LAST_AS_OF":
-                _check_rows(selected, metric, begin, end, dataset, False, stock=True)
-                if not selected:
-                    raise TaseError("MISSING_SNAPSHOT")
-                by_leaf: dict[tuple[tuple[str, str], ...], Observation] = {}
-                for r in sorted(selected, key=lambda r: r.start):
-                    if r.dimensions in by_leaf and r.start == by_leaf[r.dimensions].start:
-                        raise TaseError("DUPLICATE_SNAPSHOT")
-                    by_leaf[r.dimensions] = r
-                for row in by_leaf.values():
-                    if (end - timedelta(days=1) - row.start).days > (req.max_snapshot_age_days
-                             if req.max_snapshot_age_days is not None else 31):
-                        raise TaseError("STALE_SNAPSHOT")
-                value = sum((r.value for r in by_leaf.values()), Decimal(0))
-                unit = metric.unit
-                count = len(by_leaf)
+    # Every eligible model/metric uses the same typed window evaluator.
+    # Source grain is a contract, not a hint to apportion monthly facts into days.
+    if req.source_grain is not None:
+        for row in all_rows:
+            if not req.start <= row.start < req.end:
+                continue
+            if req.source_grain in {"AS_OF", "EVENT_AT"}:
+                if row.end is not None:
+                    raise TaseError("SOURCE_GRAIN_MISMATCH")
+                if (req.source_grain == "AS_OF" and
+                        catalog.metrics[(row.product, row.metric)].time_kind
+                        not in {"AS_OF", "RATE_FIXING"}):
+                    raise TaseError("SOURCE_GRAIN_MISMATCH")
+                if (req.source_grain == "EVENT_AT" and
+                        catalog.metrics[(row.product, row.metric)].time_kind != "EVENT_AT"):
+                    raise TaseError("SOURCE_GRAIN_MISMATCH")
+            elif row.end is not None:
+                if (_start_of_bucket(row.start, req.source_grain, req.fiscal_start_month) != row.start
+                        or _next_bucket(row.start, req.source_grain) != row.end):
+                    raise TaseError("SOURCE_GRAIN_MISMATCH")
             else:
-                _check_rows(selected, metric, begin, end, dataset, req.require_full_coverage)
-                value = _statistic(req.operation, [r.value for r in selected], req.quantile_alpha)
-                unit = metric.unit
-                if req.operation in {"VAR_POP", "VAR_SAMPLE"}:
-                    unit += "^2"
-                count = len(selected)
-            results.append(ResultRow(
-                group, begin, end, _text(value), unit, count,
-                coverage="FULL" if req.require_full_coverage else "UNKNOWN",
-                status="COMPLETE" if req.require_full_coverage else "PARTIAL"))
-    digest = _fingerprint({"plan": plan.plan_sha, "dataset": dataset.content_sha,
-                           "rows": [{"group": list(r.group), "period": [r.start.isoformat(), r.end.isoformat()],
-                                     "value": r.value, "unit": r.unit, "count": r.observation_count}
-                                    for r in results]})
-    return TaseResult(plan.plan_sha, dataset.content_sha, tuple(results), digest,
-                      status="COMPLETE" if req.require_full_coverage else "PARTIAL")
+                raise TaseError("SOURCE_GRAIN_MISMATCH")
+
+    def evaluate_window(begin: date, end: date,
+                        group: tuple[tuple[str, str], ...]) -> ResultRow:
+        selected = _selected(dataset.rows, req.metric, group, group_keys, begin, end)
+        if req.operation == "RATIO_OF_SUMS":
+            num = catalog.metrics[(req.product, metric.numerator)]
+            den = catalog.metrics[(req.product, metric.denominator_or_weight)]
+            numerator = _selected(dataset.rows, num.code, group, group_keys, begin, end)
+            denominator = _selected(dataset.rows, den.code, group, group_keys, begin, end)
+            _check_rows(numerator, num, begin, end, dataset, req.require_full_coverage)
+            _check_rows(denominator, den, begin, end, dataset, req.require_full_coverage)
+            if not numerator or not denominator:
+                raise TaseError("COMPONENT_SOURCE_MISSING")
+            units = {num.unit, den.unit}
+            if num.logical_type == "MONEY" and den.logical_type == "MONEY" and len(units) != 1:
+                raise TaseError("CURRENCY_MISMATCH")
+            with localcontext() as ctx:
+                ctx.prec = 50
+                a = sum((r.value for r in numerator), Decimal(0))
+                b = sum((r.value for r in denominator), Decimal(0))
+                if b == 0:
+                    raise TaseError("ZERO_DENOMINATOR")
+                value = a / b
+            unit = "fraction" if num.unit == den.unit else num.unit + "/" + den.unit
+            count = len(numerator) + len(denominator)
+        elif req.operation == "WEIGHTED_MEAN":
+            weight_metric = catalog.metrics[(req.product, metric.denominator_or_weight)]
+            weights = _selected(dataset.rows, weight_metric.code, group, group_keys, begin, end)
+            _check_rows(selected, metric, begin, end, dataset, req.require_full_coverage)
+            _check_rows(weights, weight_metric, begin, end, dataset, req.require_full_coverage)
+            # Preserve full atomic keys/dates rather than joining by bucket alone.
+            key = lambda r: (r.dimensions, r.start, r.end)
+            rate_map = {key(r): r.value for r in selected}
+            weight_map = {key(r): r.value for r in weights}
+            if len(rate_map) != len(selected) or len(weight_map) != len(weights):
+                raise TaseError("DUPLICATE_PAIR_KEY")
+            if not rate_map or rate_map.keys() != weight_map.keys():
+                raise TaseError("PAIR_ALIGNMENT")
+            if any(w < 0 for w in weight_map.values()):
+                raise TaseError("NEGATIVE_WEIGHT")
+            with localcontext() as ctx:
+                ctx.prec = 50
+                denominator = sum(weight_map.values(), Decimal(0))
+                if denominator <= 0:
+                    raise TaseError("ZERO_TOTAL_WEIGHT")
+                value = sum((v * weight_map[k] for k, v in rate_map.items()), Decimal(0)) / denominator
+            unit = metric.unit
+            count = len(selected)
+        elif req.operation == "LAST_AS_OF":
+            _check_rows(selected, metric, begin, end, dataset, False, stock=True)
+            if not selected:
+                raise TaseError("MISSING_SNAPSHOT")
+            by_leaf: dict[tuple[tuple[str, str], ...], Observation] = {}
+            for r in sorted(selected, key=lambda r: r.start):
+                if r.dimensions in by_leaf and r.start == by_leaf[r.dimensions].start:
+                    raise TaseError("DUPLICATE_SNAPSHOT")
+                by_leaf[r.dimensions] = r
+            for row in by_leaf.values():
+                if (end - timedelta(days=1) - row.start).days > (req.max_snapshot_age_days
+                         if req.max_snapshot_age_days is not None else 31):
+                    raise TaseError("STALE_SNAPSHOT")
+            value = sum((r.value for r in by_leaf.values()), Decimal(0))
+            unit = metric.unit
+            count = len(by_leaf)
+        else:
+            _check_rows(selected, metric, begin, end, dataset, req.require_full_coverage)
+            value = _statistic(req.operation, [r.value for r in selected], req.quantile_alpha)
+            unit = metric.unit
+            if req.operation in {"VAR_POP", "VAR_SAMPLE"}:
+                unit += "^2"
+            count = len(selected)
+        return ResultRow(
+            group, begin, end, _text(value), unit, count,
+            coverage="FULL" if req.require_full_coverage else "UNKNOWN",
+            status="COMPLETE" if req.require_full_coverage else "PARTIAL")
+    rows_by_bucket = [
+        evaluate_window(begin, end, group)
+        for begin, end in periods for group in groups
+    ]
+    # Recalculate from the same atomic source, not from bucket results:
+    # SUM flow, LAST_AS_OF stock and RATIO_OF_SUMS each retain their semantics.
+    totals = [
+        evaluate_window(req.start, req.end, group)
+        for group in groups
+    ] if req.include_total else []
+    if req.include_total:
+        digest = _fingerprint({
+            "plan": plan.plan_sha, "dataset": dataset.content_sha,
+            "rows": [{"group": list(r.group), "period": [r.start.isoformat(), r.end.isoformat()],
+                      "value": r.value, "unit": r.unit, "count": r.observation_count}
+                     for r in rows_by_bucket],
+            "totalRows": [{"group": list(r.group),
+                           "period": [r.start.isoformat(), r.end.isoformat()],
+                           "value": r.value, "unit": r.unit,
+                           "count": r.observation_count} for r in totals],
+        })
+    else:
+        # Preserve legacy response digest exactly, for unchanged requests.
+        digest = _fingerprint({"plan": plan.plan_sha, "dataset": dataset.content_sha,
+                               "rows": [{"group": list(r.group), "period": [r.start.isoformat(), r.end.isoformat()],
+                                         "value": r.value, "unit": r.unit, "count": r.observation_count}
+                                        for r in rows_by_bucket]})
+    return TaseResult(plan.plan_sha, dataset.content_sha, tuple(rows_by_bucket), digest,
+                      status="COMPLETE" if req.require_full_coverage else "PARTIAL",
+                      total_rows=tuple(totals))
