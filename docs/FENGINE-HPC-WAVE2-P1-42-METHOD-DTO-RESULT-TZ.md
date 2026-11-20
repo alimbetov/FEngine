@@ -238,7 +238,7 @@ Each task spec below enumerates logical source, typed dataset arrays, necessary 
 | Contract item | Specification |
 |---|---|
 | Input arrays / fields | D16 balances + W1 D02 installments; balances >0 asOf |
-| Method parameters / variants | weightBasis=OVERDUE_AMOUNT | OPEN_BALANCE, cutoff=AS_OF, denominatorPolicy=UNDEFINED_ZERO, calendarPolicyRef; common NumericPolicy/Calendar/Scope/Revision SHA from Wave-1 |
+| Method parameters / variants | weightBasis=OVERDUE_AMOUNT \| OPEN_BALANCE, cutoff=AS_OF, denominatorPolicy=UNDEFINED_ZERO, calendarPolicyRef; common NumericPolicy/Calendar/Scope/Revision SHA from Wave-1 |
 | Method formula / conditions | WDPD = Σ_i max(0,asOf-due_i)×weight_i / Σ_i weight_i, using verified unpaid due amounts; do not average invoiced face values |
 | Unified OutputDTO values | WEIGHTED_DPD:DECIMAL[DAYS], WEIGHT_TOTAL:MONEY, COUNT:INTEGER; AGGREGATE |
 | Independent synthetic control candidate | 2 overdue installments: 100 KZT aged 10 days, 50 KZT aged 30 days → weighted DPD=(1000+1500)/150=16.6666667 days |
@@ -270,7 +270,7 @@ Each task spec below enumerates logical source, typed dataset arrays, necessary 
 | Contract item | Specification |
 |---|---|
 | Input arrays / fields | D16 opening and closing stock snapshots + D17 creditSales/costOfSales or policy-specific creditPurchases; same period |
-| Method parameters / variants | averageStockPolicy=TWO_POINT | DAILY_WEIGHTED, denominatorSalesPolicy=CREDIT_ONLY, dayCount, currency/basis; common NumericPolicy/Calendar/Scope/Revision SHA from Wave-1 |
+| Method parameters / variants | averageStockPolicy=TWO_POINT \| DAILY_WEIGHTED, denominatorSalesPolicy=CREDIT_ONLY, dayCount, currency/basis; common NumericPolicy/Calendar/Scope/Revision SHA from Wave-1 |
 | Method formula / conditions | DSO = avg eligible AR / eligible period credit sales × days; DPO = avg eligible AP / eligible purchases or COGS (versioned alternative) × days. Never swap denominators without variant revision |
 | Unified OutputDTO values | DSO:DAYS, DPO:DAYS, AVG_AR:MONEY, AVG_AP:MONEY, SALES_BASE:MONEY; AGGREGATE |
 | Independent synthetic control candidate | AR open 80 and close120, credit sales 1000 across 365 days => DSO=36.5 days |
@@ -350,7 +350,7 @@ Each task spec below enumerates logical source, typed dataset arrays, necessary 
 | Contract item | Specification |
 |---|---|
 | Input arrays / fields | D24 old/new expected cashflows + D23 carrying + originalEir; modification classification evidence |
-| Method parameters / variants | modificationType=NON_DERECOGNITION | DERECOGNITION_REVIEW, originalEirRev, discountOriginDate, financialDerecognitionGate; common NumericPolicy/Calendar/Scope/Revision SHA from Wave-1 |
+| Method parameters / variants | modificationType=NON_DERECOGNITION \| DERECOGNITION_REVIEW, originalEirRev, discountOriginDate, financialDerecognitionGate; common NumericPolicy/Calendar/Scope/Revision SHA from Wave-1 |
 | Method formula / conditions | For qualified non-derecognition case new carrying = PV(revised cashflows, original EIR); modification gain/loss = new carrying − pre-modification carrying by agreed asset/liability sign. Derecognition cases use distinct policy and cannot pass generic branch |
 | Unified OutputDTO values | MODIFIED_PV:MONEY, MODIFICATION_GAIN_LOSS:MONEY, NEW_CARRYING:MONEY, CLASSIFICATION:CODE; AGGREGATE |
 | Independent synthetic control candidate | Old carrying100, one revised receipt 110 in 1 year at original EIR10% ⇒ new PV100, modification difference0 |
@@ -366,7 +366,7 @@ Each task spec below enumerates logical source, typed dataset arrays, necessary 
 | Contract item | Specification |
 |---|---|
 | Input arrays / fields | W1 D06/D07/D08/D09 loan cash events + D24 revised expected cashflows, scenario baseline vs early |
-| Method parameters / variants | earlyDate, prepaymentAmount, earlyFeePolicyRef, recalcMethod=REDUCE_TERM | REDUCE_INSTALLMENT, discountRateBasis; common NumericPolicy/Calendar/Scope/Revision SHA from Wave-1 |
+| Method parameters / variants | earlyDate, prepaymentAmount, earlyFeePolicyRef, recalcMethod=REDUCE_TERM \| REDUCE_INSTALLMENT, discountRateBasis; common NumericPolicy/Calendar/Scope/Revision SHA from Wave-1 |
 | Method formula / conditions | Construct two admissible contractual schedules under same basis: baseline vs accelerated; delta interest=baseline future interest−scenario future interest; net borrower benefit = interest saved−early repayment fees, excluding principal timing unless discount/PV policy is selected |
 | Unified OutputDTO values | INTEREST_SAVED:MONEY, EARLY_FEE:MONEY, NET_NOMINAL_BENEFIT:MONEY, NEW_SCHEDULE:TIME_SERIES |
 | Independent synthetic control candidate | Baseline future nominal interest100, early scenario interest60, penalty10 ⇒ nominal benefit30 KZT, ignoring timing by stated variant |
@@ -430,7 +430,7 @@ Each task spec below enumerates logical source, typed dataset arrays, necessary 
 | Contract item | Specification |
 |---|---|
 | Input arrays / fields | D28 bank transactions + D53 ledger postings, valueDate, postedAt, amount/currency and match refs |
-| Method parameters / variants | matchMode=EXACT | APPROVED_TOLERANCE, dateWindow, cashAccountMapRev, reversalPolicy, manyToOneRule; common NumericPolicy/Calendar/Scope/Revision SHA from Wave-1 |
+| Method parameters / variants | matchMode=EXACT \| APPROVED_TOLERANCE, dateWindow, cashAccountMapRev, reversalPolicy, manyToOneRule; common NumericPolicy/Calendar/Scope/Revision SHA from Wave-1 |
 | Method formula / conditions | Bipartite/policy-allowed matching by account/date/ref/amount; reconcile unmatched bank rows, unmatched ledger and verified matched total; no arbitrary best-match writes |
 | Unified OutputDTO values | MATCHED_TOTAL:MONEY, UNMATCHED_BANK:MONEY, UNMATCHED_LEDGER:MONEY, MATCH_STATUS:CODE per event; ROW_ALIGNED |
 | Independent synthetic control candidate | Bank debit80, ledger matched80 ⇒ unmatched amount0, matched80, before other rows |
@@ -462,7 +462,7 @@ Each task spec below enumerates logical source, typed dataset arrays, necessary 
 | Contract item | Specification |
 |---|---|
 | Input arrays / fields | D26 cash path, D27 thresholds and D52 candidate facilities with borrowing rules |
-| Method parameters / variants | fundingObjective=MIN_PEAK_DRAWDOWN | MIN_COST, borrowLimit, costRate, availabilityWindow, minimumCash; common NumericPolicy/Calendar/Scope/Revision SHA from Wave-1 |
+| Method parameters / variants | fundingObjective=MIN_PEAK_DRAWDOWN \| MIN_COST, borrowLimit, costRate, availabilityWindow, minimumCash; common NumericPolicy/Calendar/Scope/Revision SHA from Wave-1 |
 | Method formula / conditions | At each bucket compute minimum eligible facility draw required to keep end cash>=threshold, obey capacity and eligibility; return infeasible if insufficient. Objective distinguishes minimal required draw vs cost-optimal financing |
 | Unified OutputDTO values | REQUIRED_DRAW:MONEY per bucket, TOTAL_DRAW:MONEY, FINANCING_GAP:MONEY, FEASIBILITY:CODE; TIME_SERIES |
 | Independent synthetic control candidate | Cash deficit30, facility capacity50 and minimum cash0 → required draw30, closing cash0; capacity20 => remaining gap10/infeasible |
@@ -542,7 +542,7 @@ Each task spec below enumerates logical source, typed dataset arrays, necessary 
 | Contract item | Specification |
 |---|---|
 | Input arrays / fields | periodic FCFF qualified output + D31 terminal basis, WACC, growth, horizon |
-| Method parameters / variants | terminalMethod=GORDON | EXIT_MULTIPLE_REVIEW, waccRate, growthRate, terminalYear, midyearConvention, currency; common NumericPolicy/Calendar/Scope/Revision SHA from Wave-1 |
+| Method parameters / variants | terminalMethod=GORDON \| EXIT_MULTIPLE_REVIEW, waccRate, growthRate, terminalYear, midyearConvention, currency; common NumericPolicy/Calendar/Scope/Revision SHA from Wave-1 |
 | Method formula / conditions | Gordon TV_n=FCFF_(n+1)/(WACC−g), require WACC>g; EV=Σ_t FCFF_t/(1+WACC)^t+TV_n/(1+WACC)^n. Never FCFE/WACC |
 | Unified OutputDTO values | ENTERPRISE_VALUE:MONEY, TERMINAL_VALUE:MONEY, PV_TERMINAL:MONEY, TERMINAL_SHARE:RATIO; AGGREGATE |
 | Independent synthetic control candidate | n=1 FCFF1=100, nextFCFF=60, WACC0.10,g0.04 ⇒ TV1=1000; EV=(100+1000)/1.1=1000 KZT |
@@ -558,7 +558,7 @@ Each task spec below enumerates logical source, typed dataset arrays, necessary 
 | Contract item | Specification |
 |---|---|
 | Input arrays / fields | D31 EV and net debt/non-operating items + qualified FCFE and costOfEquity as separate valuation alternative |
-| Method parameters / variants | valuationMethod=EV_BRIDGE | DISCOUNT_FCFE, netDebtPolicyRef, bridgeAdjustmentsRef, Ke, currency; common NumericPolicy/Calendar/Scope/Revision SHA from Wave-1 |
+| Method parameters / variants | valuationMethod=EV_BRIDGE \| DISCOUNT_FCFE, netDebtPolicyRef, bridgeAdjustmentsRef, Ke, currency; common NumericPolicy/Calendar/Scope/Revision SHA from Wave-1 |
 | Method formula / conditions | Equity via EV bridge=EV−netDebt+eligible nonoperating adjustments; discounted FCFE/Ke is separate method, consistency check not automatic equivalence |
 | Unified OutputDTO values | EQUITY_VALUE:MONEY, NET_DEBT:MONEY, BRIDGE_ADJUSTMENT:MONEY, VALUATION_BASIS:CODE; AGGREGATE |
 | Independent synthetic control candidate | EV1000, netDebt300, nonoperating adjustments+20 ⇒ equity720 KZT |
@@ -702,7 +702,7 @@ Each task spec below enumerates logical source, typed dataset arrays, necessary 
 | Contract item | Specification |
 |---|---|
 | Input arrays / fields | D39 components with useful life/residual/cost/inService date + D40 changes |
-| Method parameters / variants | method=STRAIGHT_LINE | DECLINING | UNITS_PRODUCTION, lifeRevisionPolicy, convention, suspended/disposal rule; common NumericPolicy/Calendar/Scope/Revision SHA from Wave-1 |
+| Method parameters / variants | method=STRAIGHT_LINE \| DECLINING \| UNITS_PRODUCTION, lifeRevisionPolicy, convention, suspended/disposal rule; common NumericPolicy/Calendar/Scope/Revision SHA from Wave-1 |
 | Method formula / conditions | Straight-line per component annual depreciation=(cost−residual)/usefulLifeYears, apportioned by admitted in-service fraction; other variants use distinct methods. Stop when fully depreciated, at derecognition, or appropriate rule |
 | Unified OutputDTO values | DEPRECIATION:MONEY, ACCUMULATED_DEPR:MONEY, NBV:MONEY; TIME_SERIES |
 | Independent synthetic control candidate | Asset component cost1200, residual200, life5 full years ⇒ depreciation200 KZT/year |
@@ -798,7 +798,7 @@ Each task spec below enumerates logical source, typed dataset arrays, necessary 
 | Contract item | Specification |
 |---|---|
 | Input arrays / fields | D46 SKU prices/quantities baseline and actual, stable mix categories and same currency |
-| Method parameters / variants | attributionVariant=PRICE_THEN_VOLUME | SHAPLEY, newSkuPolicy, missingSkuPolicy, aggregationPolicy; common NumericPolicy/Calendar/Scope/Revision SHA from Wave-1 |
+| Method parameters / variants | attributionVariant=PRICE_THEN_VOLUME \| SHAPLEY, newSkuPolicy, missingSkuPolicy, aggregationPolicy; common NumericPolicy/Calendar/Scope/Revision SHA from Wave-1 |
 | Method formula / conditions | Ordered decomposition for revenue ΔR=Σ(P1Q1−P0Q0), priceEffect=Σ(P1−P0)Q1 and volumeEffect=Σ(Q1−Q0)P0, exact sum under this stated order. Mix decomposition needs additional share/volume baseline and cannot be inferred from these two effects alone |
 | Unified OutputDTO values | REVENUE_DELTA:MONEY, PRICE_EFFECT:MONEY, VOLUME_EFFECT:MONEY, RESIDUAL:MONEY; GROUPED |
 | Independent synthetic control candidate | One SKU P0=10,Q0=10,P1=12,Q1=11 => ΔR=32, price effect22, volume effect10 KZT |
@@ -830,7 +830,7 @@ Each task spec below enumerates logical source, typed dataset arrays, necessary 
 | Contract item | Specification |
 |---|---|
 | Input arrays / fields | D48 verified planned value PV, earned value EV, actual cost AC, BAC at same asOf |
-| Method parameters / variants | EACVariant=BAC/CPI | AC+(BAC−EV)/CPI, noCompletionBeyondBACPolicy, zeroDenominator; common NumericPolicy/Calendar/Scope/Revision SHA from Wave-1 |
+| Method parameters / variants | EACVariant=BAC/CPI \| AC+(BAC−EV)/CPI, noCompletionBeyondBACPolicy, zeroDenominator; common NumericPolicy/Calendar/Scope/Revision SHA from Wave-1 |
 | Method formula / conditions | CPI=EV/AC; SPI=EV/PV; illustrative EAC=BAC/CPI if EAC variant assumes future CPI, VAC=BAC−EAC. Forecast assumptions versioned; zero denominators undefined not zero |
 | Unified OutputDTO values | CPI:RATIO, SPI:RATIO, EAC:MONEY, VAC:MONEY, ETC:MONEY; AGGREGATE |
 | Independent synthetic control candidate | EV80, AC100, PV100, BAC200 ⇒ CPI0.8,SPI0.8,EAC250,VAC−50 KZT |
