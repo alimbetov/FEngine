@@ -2073,3 +2073,23 @@ Open ADR: GEO-ADR-01 hierarchy tree versus DAG contract; -02 coordinate/altitude
 
 **Freeze:** только после independent math goldens, financial applicability, signed product pack contract, source binding, authorization and negative test qualification. Existing 116 method revisions and W1–W5 names unchanged; TASE has own independent versioned operator and ProductPack contracts.
 
+
+
+---
+
+## 27. FENGINE-TASE-PY-R0.1 — исполняемый Python reference, параметры и Rust-паритет
+
+**Дата:** 2026-11-20. **Статус:** PYTHON_REFERENCE_PARTIAL / BUSINESS_METHOD_FREEZE_HOLD / PRODUCTION_HOLD.
+
+Реализован отдельный исполняемый Python-пакет tase/ (не новая вычислительная микрослужба): безопасная загрузка declarative Product Packs, проверка всех 62 связей metric/operator через 21 входной предикат, разрешение базовой семантики, календарное bucketing и 13 точных Decimal-операторов. Остальные 40 кандидатов из 53 возвращают OPERATOR_NOT_IMPLEMENTED; коммерческие/финансовые HC calculation methods по-прежнему не реализованы.
+
+**Подтвержденный CI:** GitHub Actions https://github.com/alimbetov/FEngine/actions/runs/44720599167, 129/129 unittest PASS на Python 3.11 и 3.13 (вместе GEO, TASE и существующий банк). Источник — реальные CI-логи, но не полная R0.6 и не PostgreSQL E2E приёмка.
+
+**Каталог полноты:** catalog/model_parameter_inventory_116_r0.tsv охватывает ровно 116 candidate modelCode и 417 candidate параметров (310 W1–W4 + 107 W5); у всех domainReview=PENDING, у 399 requiredness=REVIEW_PENDING, финансовый S2 не получен. catalog/tase_core_parameter_candidates_r0.tsv содержит 32 проектных параметра control plane, включая 10 ещё не реализованных. Ни одно число не означает готовности 116 моделей к production.
+
+**Важный исправленный инвариант:** для строгой полноты ряда недостаточно непрерывных записей — требуется явно подтверждённое источником покрытие интервала с watermark. В этом reference подтверждение пока синтетическое/предоставленное вызывающим кодом; реальная проверка подписанных FIN FactSet/SourceRevision — последующий этап.
+
+**Пределы текущего решения:** нет подписанных Product Packs, Java/SQL source binding, CalculationSession durable jobs, lease/fencing/outbox/archive ACK, PII/group ABAC, фискального 4-4-5/53-week/DST calendar, параметрической квалификации HC и полной 250-case TASE приёмки. Rust не запускался.
+
+**План перехода:** Python Decimal mathematical reference → full independent goldens + 250-case QA and operational load → profile full path → Rust hot-kernel candidates with exact state/unit/rounding parity → controlled shadow/cutover only after measured benefit. Полное ТЗ и матрица: docs/FENGINE-TASE-PY-R01-IMPLEMENTATION-AUDIT.md.
+
