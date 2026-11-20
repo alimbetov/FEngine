@@ -68,9 +68,18 @@ class ProductExtensibilityTests(unittest.TestCase):
             for filename in NAMES:
                 copyfile(ROOT / "catalog" / filename, directory / filename)
             path = directory / "tase_product_pack_candidates_r0.tsv"
-            raw = path.read_text(encoding="utf-8")
-            raw = raw.replace("SUM,LAST_AS_OF", "SUM,UNREVIEWED_EVAL,LAST_AS_OF", 1)
-            path.write_text(raw, encoding="utf-8")
+            lines = path.read_text(encoding="utf-8").splitlines()
+            columns = lines[0].split("\t")
+            idx = columns.index("candidateOperators")
+            for line_index in range(1, len(lines)):
+                parts = lines[line_index].split("\t")
+                if parts[0] == "FIN":
+                    parts[idx] += ",UNREVIEWED_EVAL"
+                    lines[line_index] = "\t".join(parts)
+                    break
+            else:
+                self.fail("FIN Product Pack not found")
+            path.write_text("\n".join(lines) + "\n", encoding="utf-8")
             with self.assertRaises(TaseError) as cm:
                 Catalog.load(Path(tmp), reference_mode=True)
             self.assertEqual(cm.exception.code, "PRODUCT_UNKNOWN_OPERATOR")
