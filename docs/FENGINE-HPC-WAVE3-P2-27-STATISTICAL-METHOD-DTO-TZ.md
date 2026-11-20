@@ -179,6 +179,7 @@ instrumentKey:REF!; asOf:LOCAL_DATE!; riskFactorCode:CODE!; factorValue:DECIMAL!
 | Prerequisite DAG / Calculation Session reuse | HC.ECL.02/.03; D55/D81 |
 | Validation standard | Exact decimal accounting money; statistics error estimates where applicable; solver residual/feasibility gap; independent financial calibration required |
 
+**METHOD-HARDENING-R1 pre-freeze:** calibrated `HC.ECL.04` PD hazard curve, where admitted, must be an **upstream** input to future ECL.02/.03 plans, not downstream of them; existing `Prerequisite DAG` phrase `HC.ECL.02/.03` is an **intended consumer relationship**, not a dependency edge. Prohibit cyclic ECL graph. Survival/marginal convention and censoring must be versioned; addendum §2.
 
 ### 02. HC.ECL.05 — LGD по временны́м путям взысканий
 
@@ -499,6 +500,7 @@ instrumentKey:REF!; asOf:LOCAL_DATE!; riskFactorCode:CODE!; factorValue:DECIMAL!
 | Prerequisite DAG / Calculation Session reuse | HC.DCF.01/.07; D74 |
 | Validation standard | Exact decimal accounting money; statistics error estimates where applicable; solver residual/feasibility gap; independent financial calibration required |
 
+**METHOD-HARDENING-R1 pre-freeze:** require hard `decisionDomain=BINARY`, objective MAX_TOTAL_NPV, constraint units, `solverRevision`, feasibilityTolerance, bounds and gap/timeout policies; a feasible heuristic is not OPTIMAL_PROVEN. Golden A=(capex6, NPV12), B=(capex5, NPV8), budget10 ⇒ select only A, no fractional B. Addendum §6.
 
 ### 22. HC.RISK.01 — Monte Carlo распределение NPV
 
@@ -515,6 +517,7 @@ instrumentKey:REF!; asOf:LOCAL_DATE!; riskFactorCode:CODE!; factorValue:DECIMAL!
 | Prerequisite DAG / Calculation Session reuse | HC.DCF.01; D75/D79 |
 | Validation standard | Exact decimal accounting money; statistics error estimates where applicable; solver residual/feasibility gap; independent financial calibration required |
 
+**METHOD-HARDENING-R1 pre-freeze:** require pinned PRNG algorithm/build/seed, covariance PSD policy, scenario design, effective sample size, sample/MC standard error and out-of-time calibration; deterministic replay of four example draws does NOT qualify distribution accuracy. Addendum §5.
 
 ### 23. HC.RISK.02 — Value at Risk по распределению потерь
 
@@ -531,6 +534,7 @@ instrumentKey:REF!; asOf:LOCAL_DATE!; riskFactorCode:CODE!; factorValue:DECIMAL!
 | Prerequisite DAG / Calculation Session reuse | HC.RISK.01; D76 |
 | Validation standard | Exact decimal accounting money; statistics error estimates where applicable; solver residual/feasibility gap; independent financial calibration required |
 
+**METHOD-HARDENING-R1 pre-freeze:** weighted VaR must bind `lossSignPolicy`, `quantileEstimator`, normalization, horizon and comparison currency; empirical left-CDF VaR α=.75 for [0,10,20,20,100] is 20. Pass exactly ordered loss/weight distribution to HC.RISK.03; addendum §5.
 
 ### 24. HC.RISK.03 — Expected Shortfall / CVaR
 
@@ -547,6 +551,7 @@ instrumentKey:REF!; asOf:LOCAL_DATE!; riskFactorCode:CODE!; factorValue:DECIMAL!
 | Prerequisite DAG / Calculation Session reuse | HC.RISK.02; D76 |
 | Validation standard | Exact decimal accounting money; statistics error estimates where applicable; solver residual/feasibility gap; independent financial calibration required |
 
+**METHOD-HARDENING-R1 pre-freeze:** `esTailMassRule=QUANTILE_INTEGRAL_FRACTIONAL_ATOM` is mandatory for this method variant; `E[L|L>VaR]` is INVALID at ties. Exact oracle [0,10,20,20,100] α=.75 ⇒ VaR=20, ES=84, not 100. Weighted [0,20,100], weights [.5,.4,.1] at α=.75 ⇒ ES=52. Output schema must identify estimator and tail-mass provenance; addendum §5.
 
 ### 25. HC.RISK.05 — Чувствительность ECL к макроэкономике
 
