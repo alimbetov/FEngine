@@ -1937,3 +1937,30 @@ Editor (DRAFT only) handles import CSV/GeoJSON/typed network datasets, manual pl
 Open ADR: GEO-ADR-01 hierarchy tree versus DAG contract; -02 coordinate/altitude CRS and local engineering transforms; -03 weight aggregation and missing states; -04 road data source/licensing and topology ownership; -05 negative costs / node reward formulation; -06 path diversity and tie policy; -07 temporal FIFO/non-FIFO capability; -08 data volume and solve SLO; -09 visibility/security of sensitive critical infrastructure; -10 integration with FIN project planning and production S2.
 
 **First future executable vertical slice (only after separate authorization):** import 1 ROOT + 3 child branches + 1 target, 6 directed routing edges with weights; create sealed ScenarioRevision; run GEO.ROUTE.TOP_K.V1 (K=3) on existing Hub; independently verify costs 5/7/9; return immutable typed route result + evidence; then change one node weight to prove new revision and no stale cache. No new microservice or financial writer.
+
+
+
+---
+
+## 21. FIN-R83-AUD-R0.1 — сводное методологическое ревью и запрет преждевременного contract freeze
+
+**Срез:** 2026-11-20, main, все 83 HC.* кандидата (P0=14/P1=42/P2=27), 81 dataset DTO и 235 fact definitions со статусом DRAFT.
+
+**Подтверждено разными уровнями проверки:** 
+- 83/83 code coverage, уникальные taskCodes и структурное наличие входов, параметров, метода, выхода, положительного golden/negative и зависимостей;
+- 83/83 независимых упрощенных арифметических oracle PASS (не вызывают FEngine HC implementation);
+- 34/34 математических adversarial oracle PASS (не вызывают FEngine HC implementation);
+- GEO-OPT reference 38/38 Python 3.11 и 38/38 Python 3.13 PASS в GitHub Actions: https://github.com/alimbetov/FEngine/actions/runs/44699098351.
+
+**Не подтверждено:** HC financial Python runtime (0/83 implemented), HC full E2E, независимые нормативные/финансовые golden по 83, FIN source bindings, model calibration/ML, independent financial S2, performance optimization claims. Нельзя говорить «83 финансовых расчета протестированы» без указания, что проверялась арифметика synthetic fixtures, а не работающий FEngine.
+
+**Итог:** CONTRACT_FREEZE_BLOCKED. Semantic P0 включает отсутствие MIX-компонента в HC.COST.03, ECL lifetime/default-window applicability, statutory GESV revision and fees, IRR/XIRR multiple/tangent root completeness, VaR/ES ties and quantile mass, integer solver feasibility/gap. Требуется версия MethodParameterContractV2 с обязательностью/типами/доменами/единицами, source-linked golden и classification of reasons distinct from job/value states.
+
+**Документы ревью:**
+- docs/FENGINE-R83-METHODOLOGICAL-AUDIT-2026-11-20.md — семейства, математика, операционные и нормативные ограничения, ML assistance, этапы допуска;
+- docs/FENGINE-R83-CONTRACT-HARDENING-MATRIX-2026-11-20.tsv — все 83 кода, дополнительные параметрические поля и целевой негативный пример;
+- README.md — актуальный main и фактическое состояние Python GEO vs финансового Hub.
+
+**ML boundary:** допускаются только versioned predictive assistance, scenario inputs, классификация и anomaly proposals с backtesting/out-of-time/censorship/calibration/governance; ML не заменяет deterministic accounting, legal GESV/EIR recognition, period/currency and fixed source lineage. Все финансовые результаты сохраняют оригинальные SHA и financial S2 gates.
+
+**Дальнейший этап:** согласовать 83 параметрические добавления, проверить FIN input source binding, построить независимый банка boundary/negative/golden, после этого публиковать immutable reviewed Input/Method/Output schema revisions. До отдельного явного разрешения не реализовывать все финансовые Python calculation models или Rust engine.
