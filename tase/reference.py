@@ -174,6 +174,20 @@ class Catalog:
         for op in ops.values():
             if op.predicates - predicates.keys():
                 raise TaseError("OPERATOR_UNKNOWN_PREDICATE", op.code)
+        # Validate EVERY declarative metric/operator edge when loading a pack,
+        # not only the operators that happen to be implemented in this worker.
+        for m in metrics.values():
+            for op_code in m.operators:
+                op = ops[op_code]
+                matched = any(
+                    m.kind in predicates[pred].quantity_kinds
+                    and m.logical_type in predicates[pred].logical_types
+                    and m.time_kind in predicates[pred].time_kinds
+                    for pred in op.predicates
+                )
+                if not matched:
+                    raise TaseError("METRIC_OPERATOR_TYPE_MISMATCH",
+                                    m.product + ":" + m.code + ":" + op_code)
         # There is no approved/signed Product Pack in the current repository.
         if not reference_mode:
             raise TaseError("UNAPPROVED_PRODUCT_PACK",
