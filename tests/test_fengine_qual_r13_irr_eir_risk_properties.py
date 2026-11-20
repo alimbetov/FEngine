@@ -177,9 +177,14 @@ class QualR13RootRiskPropertyTests(unittest.TestCase):
                 mass=(1-alpha)*len(ordered)
                 whole=int(mass)
                 fraction=mass-whole
+                # Python [-0:] selects the ENTIRE list. For a tail
+                # smaller than one sample, the independent reference must
+                # contain only the fractional highest loss, not all losses.
+                fully_selected=ordered[-whole:] if whole else []
+                fractional_loss=ordered[-whole-1] if fraction else Decimal(0)
                 reference_es=(
-                    sum(ordered[-whole:],Decimal(0))+
-                    (ordered[-whole-1]*fraction if fraction else Decimal(0))
+                    sum(fully_selected,Decimal(0))+
+                    fractional_loss*fraction
                 )/mass
             with self.subTest(seed=SEED_RISK,index=index,alpha=str(alpha)):
                 var=self.calc(
