@@ -24,5 +24,7 @@ jobs:
         run: python -m compileall -q geo_opt tase fengine_hc tests
       - name: Mandatory QUAL-R1 adversarial integrity pattern gate (all 48 HC variants)
         run: python -m unittest discover -s tests -p 'test_fengine_integrity_pattern_gate.py' -v
+      - name: Mandatory QUAL-R1.1 independent per-variant execution and adversarial replay (48 variants)
+        run: python -m unittest discover -s tests -p 'test_fengine_qual_r11_per_variant_adversarial.py' -v
       - name: Execute GEO-OPT, TASE and bounded HC reference suites
         run: python -m unittest discover -s tests -v
