@@ -10,11 +10,12 @@ from __future__ import annotations
 import csv
 import heapq
 import re
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 from pathlib import Path
+from types import MappingProxyType
 from typing import Any, Mapping, Sequence
 
-from .reference import CalculationError, CalculationResult, ContractRegistry, ReferenceEngine, number
+from .reference import CalculationError, CalculationResult, ContractRegistry, ReferenceEngine, number, fingerprint, _freeze
 
 
 def _sort_dag(nodes: set[str], arcs: set[tuple[str, str]]) -> tuple[str, ...]:
@@ -81,6 +82,36 @@ class CandidateModelGraph:
 
 
 @dataclass(frozen=True)
+class TypedPort:
+    model_code: str
+    field: str
+    value_kind: str
+    unit_semantics: str
+
+
+# Allowed cross-model field bindings are separately reviewed for the bounded
+# Python reference. Existence of a catalog dependency never implies this edge.
+REFERENCE_PORTS: dict[tuple[str, str], TypedPort] = {
+    ("HC.CAP.01", "costOfEquity"): TypedPort("HC.CAP.01", "costOfEquity", "DECIMAL_RATE", "PER_ANNUAL"),
+    ("HC.CAP.02", "costOfEquity"): TypedPort("HC.CAP.02", "costOfEquity", "DECIMAL_RATE", "PER_ANNUAL"),
+}
+REFERENCE_EDGE_ALLOWLIST = frozenset({
+    ("HC.CAP.01", "costOfEquity", "HC.CAP.02", "costOfEquity"),
+})
+
+
+def _validate_typed_reference_edge(source: "CalculationJob", target: "CalculationJob",
+                                    binding: "InputBinding") -> None:
+    key = (source.model_code, binding.source_field, target.model_code, binding.target_field)
+    if key not in REFERENCE_EDGE_ALLOWLIST:
+        raise CalculationError("MODEL_BINDING_NOT_REVIEWED", ".".join(key))
+    src = REFERENCE_PORTS.get((source.model_code, binding.source_field))
+    dst = REFERENCE_PORTS.get((target.model_code, binding.target_field))
+    if src is None or dst is None or src.value_kind != dst.value_kind or src.unit_semantics != dst.unit_semantics:
+        raise CalculationError("MODEL_PORT_TYPE_MISMATCH")
+
+
+@dataclass(frozen=True)
 class InputBinding:
     source_job: str
     source_field: str
@@ -102,7 +133,8 @@ class CalculationJob:
 class InMemoryCalculationPlan:
     def __init__(self, engine: ReferenceEngine, jobs: Sequence[CalculationJob]):
         self.engine = engine
-        self.jobs = {j.job_id: j for j in jobs}
+        self.jobs = {j.job_id: replace(j, inputs=_freeze(j.inputs), config=_freeze(j.config))
+                     for j in jobs}
         if not jobs or len(jobs) != len(self.jobs):
             raise CalculationError("INVALID_OR_DUPLICATE_JOB_ID")
         arcs = set()
@@ -120,6 +152,25 @@ class InMemoryCalculationPlan:
                 seen.add(b.target_field)
                 arcs.add((b.source_job, j.job_id))
         self.order = _sort_dag(set(self.jobs), arcs)
+        # After structural cycle detection, refuse any unreviewed cross-model
+        # binding even if fields share the same textual name or numeric type.
+        for job in self.jobs.values():
+            for binding in job.bindings:
+                _validate_typed_reference_edge(self.jobs[binding.source_job], job, binding)
+        self.plan_sha256 = fingerprint({
+            "referencePlanContract": "HC_R02C_PORTS_V1",
+            "jobs": [{
+                "jobId": job_id, "model": self.jobs[job_id].model_code,
+                "variant": self.jobs[job_id].variant_code,
+                "inputs": self.jobs[job_id].inputs,
+                "config": self.jobs[job_id].config,
+                "bindings": [
+                    {"source": b.source_job, "sourceField": b.source_field,
+                     "targetField": b.target_field}
+                    for b in self.jobs[job_id].bindings
+                ],
+            } for job_id in sorted(self.jobs)]
+        })
 
     def execute(self, *, reference_mode: bool = False) -> Mapping[str, CalculationResult]:
         if not reference_mode:
@@ -132,11 +183,17 @@ class InMemoryCalculationPlan:
                 upstream = results[b.source_job].output
                 if b.source_field not in upstream:
                     raise CalculationError("MISSING_BOUND_OUTPUT", b.source_field)
-                inputs[b.target_field] = upstream[b.source_field]
+                value = upstream[b.source_field]
+                # Contract explicitly expects canonical numeric decimal strings.
+                # Never silently coerce a list, object, float or unknown unit.
+                if not isinstance(value, str):
+                    raise CalculationError("MODEL_PORT_TYPE_MISMATCH")
+                number(value)
+                inputs[b.target_field] = value
             results[job_id] = self.engine.calculate(
                 j.model_code, j.variant_code, inputs, j.config, reference_mode=True
             )
-        return results
+        return MappingProxyType(results)
 
 
 @dataclass(frozen=True)
