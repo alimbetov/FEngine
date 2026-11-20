@@ -52,6 +52,8 @@ Independent control tests do not invoke any financial HC calculation implementat
 - [53 typed operator candidates](catalog/tase_operator_candidates_r0.tsv)
 - [6 signed-pack design candidates](catalog/tase_product_pack_candidates_r0.tsv)
 - [26 typed sample metric semantics](catalog/tase_metric_semantics_candidates_r0.tsv)
+- [21 typed input predicate candidates](catalog/tase_input_predicates_r0.tsv)
+- [42 TASE golden/negative acceptance seed cases](catalog/tase_golden_and_negative_candidates_r0.tsv)
 
 Semantics: FLOW SUM, STOCK LAST_AS_OF, qualified time-weighted stocks, RATIO_OF_SUMS with exact numerator/denominator, unit/currency dimensional analysis, fiscal calendars, gaps/overlaps and scope-based dedup. Planned 250 test cases across semantics, products, calendars, stats, comparison, recovery and load are **not PASS** until written and executed in CI. TASE is a platform capability and does not change the 116 candidate HC model count.
 
