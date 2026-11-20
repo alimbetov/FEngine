@@ -34,6 +34,12 @@ The [universal temporal extension](docs/FENGINE-TEMPORAL-SERIES-EXTENSION-V1.md)
 
 [ModelTemporalCapabilityV1 implementation and limitations](docs/FENGINE-MODEL-TEMPORAL-CAPABILITY-V1-ACCEPTANCE.md) · [Real HC-to-TASE E2E tests](tests/test_model_temporal_capability_v1.py).
 
+## ModelTemporalCapabilityV1.1 — non-additive time series reducers
+
+The shared temporal extension now supports 13 reference-mode model+variant+output contracts across 7 HC models: the previous 9 additive/as-of bindings and **four V1.1** derived contracts. V1.1 implements **RECOMPUTE_FROM_COMPONENTS** for dated EVM CPI (latest EV / AC, not an average of CPI values) and **RE_EXECUTE_FULL_WINDOW** for PERIOD_END_NPV / MIDPERIOD_NPV (recalculate actual HC NPV from the full monthly cashflow series instead of summing monthly NPVs). Both use the **same TASE calendar/coverage kernel**; the [unified reference API](tase/temporal_dispatch.py) selects the method by reviewed declarative model/variant/output policy only. Undeclared models and unsafe aggregations remain blocked. No new HC mathematical model code is claimed.
+
+[Review and numerical acceptance](docs/FENGINE-MODEL-TEMPORAL-CAPABILITY-V11-ACCEPTANCE.md) · [V1.1 capability registry](catalog/model_temporal_capabilities_v11.tsv) · [portable reference vectors](tests/golden/model_temporal_v11_reference_vectors.json) · [negative/functional tests](tests/test_model_temporal_capability_v11.py).
+
 ## Current user-data retention policy (supersedes historical PostgreSQL proposals)
 
 FEngine is an **ephemeral computation engine**, not a durable source-fact warehouse. Runtime calculation inputs, intermediate state and results must be stored **only in Redis** for an absolute maximum of **3 hours (10,800 seconds)**. On explicit authenticated successful consumer ACK, the entire calculation session and results must be **atomically deleted immediately**. Reading or retrying must not renew the absolute expiration. No calculation user data may persist in PostgreSQL, Redis RDB/AOF, logs or backups. The Redis implementation and ACK/TTL cleanup acceptance remain **NOT IMPLEMENTED**; current Python functions are stateless in-process references and do not claim production data lifecycle compliance. Static algorithms and synthetic test fixtures may remain versioned in Git.
