@@ -15,7 +15,7 @@ from pathlib import Path
 from typing import Any, Mapping, Sequence
 
 from fengine_hc.reference import (
-    CalculationError, ContractRegistry, ReferenceEngine, fingerprint, number,
+    ContractRegistry, IMPLEMENTATION_REVISION, ReferenceEngine, fingerprint, number,
 )
 from tase.reference import (
     Catalog, Dataset, Metric, Observation, PeriodRequest, ProductPack,
@@ -431,7 +431,7 @@ def calculate_model_temporal(
         "capabilitySha256": cap.capability_sha256,
         "tasePlanSha256": typed_plan.plan_sha,
         "sourceBatchSha256": dataset_sha,
-        "referenceEngineRevision": "PY_HC_REFERENCE_R0_7A",
+        "referenceEngineRevision": IMPLEMENTATION_REVISION,
     })
     response_sha = fingerprint({
         "modelTemporalPlanSha256": plan_sha,
