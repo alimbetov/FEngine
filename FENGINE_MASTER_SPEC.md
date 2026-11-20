@@ -1,9 +1,9 @@
 # FEngine — единая спецификация финансово-экономического аналитического ядра
 
-Версия документа: 0.1 (первичная концепция)
+Версия документа: 0.2 (концепция + сверка с FIN Analyzer)
 Дата: 2026-11-20
 Репозиторий: https://github.com/alimbetov/FEngine
-Статус: DRAFT / архитектурное задание; не является свидетельством реализованных расчётов.
+Статус: DRAFT / синхронизация знаний с FIN на 2026-11-20; архитектурное задание; не является свидетельством реализованных расчётов.
 Правило текущего этапа: хранить концепцию, реестры-направления, проектные контракты, графы и план работ В ОДНОМ ЭТОМ ТЕКСТОВОМ ФАЙЛЕ. Не создавать дополнительные файлы, сервисы, схемы БД или исходный код до отдельного согласования.
 
 ## 1. Цель
@@ -468,3 +468,425 @@ Analytical Branch → Immutable Result → Lineage/Findings.
 Итог: FEngine — единый версионируемый семантический каталог и четыре
 взаимосвязанных графа, из которых воспроизводимо строятся расчёты,
 аналитические маршруты, выводы и стратегии действий.
+
+
+---
+
+## 16. Сверка знаний с FIN Analyzer: snapshot 2026-11-20 (FEngine v0.2)
+
+**Источник:** alimbetov/fin-analyzer, строго ветка feat/fin-form-library-standalone.
+**Зафиксированный исходный HEAD:** c8cbb40e773c6d38dc4032149b0c91f7f27acfcd (2026-11-20).
+**Назначение:** заимствовать проверяемые понятия, инвентарь, связи и инженерные ограничения из реального FIN, не выдавая кандидатов за утверждённые расчёты.
+**Статус синхронизации:** DOCUMENTATION_KNOWLEDGE_SYNC; никакой код FIN в FEngine не скопирован, база данных не перенесена, тесты FEngine не запускались.
+**Сохранено пользовательское ограничение:** пока весь FEngine в одном FENGINE_MASTER_SPEC.md. Не создавать другие файлы и приложения до следующего решения.
+**Проверка полноты:** это аудированный архитектурно-методологический снимок ключевых реестров и реализаций, а НЕ построчный импорт всех 840 метрик, 877 полей или каждой формы.
+
+### 16.1. Реальный инвентарь и статус достоверности
+
+| Объект | Количество/состояние в FIN | Правильная интерпретация для FEngine |
+|---|---:|---|
+| Формы | 166 | Идентичности и редакции форм уже существуют; не создавать 167-ю ради аналитических приложений |
+| FINANCE / PLANNING / LEDGERS / DETAIL / SECTOR / EVIDENCE | 8 / 10 / 14 / 59 / 63 / 12 | Взаимоисключающие каталожные семейства, а не отдельные расчётные движки |
+| Числовые формы | 154 = 3 SINGLE_RECORD + 151 ROWSET | Единый расчётный контур с разными source adapters |
+| EVIDENCE-формы | 12 | Документальные доказательства и поля метаданных, не обязательные numeric outputs |
+| Числовые формы с прямым числовым источником | 145 | Остальные 9 числовых форм являются reference-only; не фабриковать источники |
+| Физические поля | 877 = 793 source + 84 document metadata | Кандидатные физические контракты, не 877 финансовых метрик |
+| Исторический каталог metric definition | 840 | 794 legacy SOURCE_FIELD + 46 ANALYTICAL_OUTPUT; не путать с 793 физическими source-binding |
+| Исключение F02.netProfit | 1 | Исторически классифицирован SOURCE_FIELD, фактически unbound FORM_DERIVED_CANDIDATE; отдельный migration/semantic reconciliation |
+| Выходные метрики аналитических моделей | 46 уникальных кодов | Существование кода не доказывает наличие формулы или выполненного результата |
+| Модели-описания | 42 = 37 DESIGN_ONLY + 5 CALC_PILOT | Пилотный статус модели не означает 5 работающих E2E-движков |
+| Пользовательские задачи | 7 CANDIDATE_NOT_S2 | Кандидатные навигационные сценарии, не финансово квалифицированные стратегии |
+| Use case → form | 101 связей: 34 CORE / 46 SUPPORTING / 21 EVIDENCE | 53 уникальные формы по прямым связям |
+| Формы-источники моделей | 47 уникальных | Совокупно с прямыми связями 71 уникальная форма; 95 форм пока вне связанного goal/model graph |
+| Кандидатные formula revisions | 10 в 5 формах | Не равно 154 формам с определёнными финансовыми расчетами |
+| Синтетические контрольные примеры | 12 по 10 кандидатным ревизиям | Математические векторы; не независимая финансовая проверка |
+| E2E browser gate DC-R2.5 | F02, C01, C02; 3/3 PASS на SHA f5fee543ac8a865ff81e013ad5824e265024a1f6 | Только bounded MANAGEMENT/SYNTHETIC KZT, saved intake → UAT preview → explain/history; не FIN S2 |
+
+Уточнение: 48 формул F001–F048 в разделе 5 FEngine — **наши универсальные иллюстративные кандидаты**. Они НЕ являются выгрузкой 10 кандидатных формул FIN и не могут засчитываться как успешно исполненные формулы FIN.
+
+Ссылки на исходные контракты:
+- https://github.com/alimbetov/fin-analyzer/blob/c8cbb40e773c6d38dc4032149b0c91f7f27acfcd/README.md
+- https://github.com/alimbetov/fin-analyzer/blob/c8cbb40e773c6d38dc4032149b0c91f7f27acfcd/form-library/docs/FIN-R16-FIELD-METRIC-CONTRACT-COMPLETION.md
+- https://github.com/alimbetov/fin-analyzer/blob/c8cbb40e773c6d38dc4032149b0c91f7f27acfcd/docs/FIN-KPI-R0-INDICATOR-NAVIGATOR-TZ.md
+- https://github.com/alimbetov/fin-analyzer/blob/c8cbb40e773c6d38dc4032149b0c91f7f27acfcd/docs/FIN-CALC154-METHODOLOGY-COMPLETION-AND-CALC4D5-RUNBOOK.md
+- https://github.com/alimbetov/fin-analyzer/blob/c8cbb40e773c6d38dc4032149b0c91f7f27acfcd/docs/qa/FIN-DATA-CALC-R25-UNIFIED-BROWSER-ACCEPTANCE.md
+
+### 16.2. Границы ответственности: FIN ↔ FEngine
+
+FIN Analyzer (существующая реализация):
+- **fin_lib**: версии форм, поля, определения метрик, локализация RU/KK/EN/ZH, схемы ввода, редакционные и частично вычислительные контракты.
+- **fin_intake**: пользовательские значения и неизменяемые редакции сохранённых данных; существующие FormDraftService и ReportGridService имеют два разных контракта хранения, их нельзя незаметно объединять.
+- **fin_fact**: квалифицированный контур точных FactSet со строгими допусками, исходными ревизиями, SHA, изоляцией и INGEST-2 rehash.
+- **fin_calc**: candidate formula revisions, typed DAG, SQL/JDBC и Java BigDecimal; production calc_plan/calc_job/result ограничены независимыми воротами.
+- **calc4d_uat_*:** отдельное синтетическое UAT-хранилище планов, заданий, receipt и immutable результатов, не аналог production admission.
+- **frontend**: реальный React Form Studio, decision-tree навигация и ограниченный Calculate/Explain/History для F02/C01/C02.
+
+FEngine (отдельный будущий продукт):
+- Канонический **семантический слой** определений финансовых/экономических метрик, формул, стратегий и версионируемой их применимости к организациям.
+- Четыре графа из раздела 4, включая cause/evidence edges и объяснимую трассу анализа.
+- Не объявлять FEngine «источником пользовательских фактов» на основании FIN; факты могут поступать через проверяемый адаптер из FIN или другой системы.
+- До отдельного ADR не решено, будет ли FEngine самостоятельным вычислительным сервисом, вынесенным совместно используемым Java-модулем или версионируемым knowledge-package поверх FIN. Нельзя порождать внутри FIN второй источник истинных метрик или второй параллельный калькулятор.
+- Экспорт/импорт кандидатов из FIN должен быть **read-only / version-pinned** на этапе синхронизации; изменение источника не редактирует исторические записи FEngine.
+- В FIN применяются Liquibase и PostgreSQL 16; в FEngine ранее предложен Flyway. Нельзя копировать миграции FIN в FEngine как есть. При интеграции выбрать один migration tool на физическую БД, утвердить схему и версию контракта.
+
+### 16.3. Четыре графа FEngine — уточнение на основе реального FIN
+
+**Graph A / Semantic Metric & Decision Knowledge**
+Хранит canonical metric, source field binding, aliases, unit/time/dimension,
+method output, accounting basis, sector scope, аудит происхождения, goal и
+невычислительные прикладные отношения.
+
+Строго различать три связи:
+1. **REQUIRES_DATA** — доказуемая техническая входная зависимость.
+2. **HELPS_DECISION** — показатель полезен для решения; не говорит о причинности.
+3. **BUSINESS_IMPACT** — гипотеза о влиянии на бизнес, требующая направления влияния, assumptions и отдельной проверки; может быть NON_MONOTONIC/CONTEXT_DEPENDENT.
+
+Не превращать «увеличение X способствует Y» в расчётную формулу без
+самостоятельного финансового и причинного обоснования.
+
+**Graph B / Typed Calculation DAG + Cross-Form Reconciliation**
+Проверенные идеи FIN: Calc4DTypedDagCompiler компилирует explicit formula revision UUID,
+проверяет типы, целостность revision/SHA, missing edges/cycles и топологический порядок.
+Calc4DExactFactSetInputResolver привязывает вычисления к точным synthetic TEST_QUALIFIED
+FactSet с rehash source revision. Опциональная SQL/JDBC+Java strategy разрешена
+только по whitelist, с currency/period/dimension invariant и тестами parity.
+Добавить к модели FEngine отдельные RECONCILES_WITH, DIFFERENCE, AS_OF_SNAPSHOT,
+PERIOD_COMPARE edges, которые не считаются арифметическими зависимостями автоматически.
+
+У результата сверки самостоятельные состояния:
+PASS, DIFFERENCE, NOT_COMPARABLE, MISSING_SOURCE, BLOCKED.
+Запрещены автоматический SUM по датам запасов AS_OF, скрытое смешивание IFRS и
+MANAGEMENT и считывание «latest» вместо точной входной ревизии.
+
+**Graph C / Goal → Strategy → Method Variant → Required Form Fields**
+Текущий FIN имеет 7 goal/use-case, 42 model candidates и граф навигации
+«пользовательский вопрос → метрика → кандидатная модель → формы».
+Это НЕ то же самое, что квалифицированный граф вычислений.
+Целевой **MG-R0.1 read-only resolver**:
+goal → output metric → method family/variant/revision → dependency DAG
+→ exact physical input metric/field → required form revisions → data gaps.
+Система обязана отображать reason codes:
+METHOD_MISSING, FINANCIAL_S2_HOLD, MISSING_INPUT, REQUIREDNESS_UNREVIEWED,
+POLICY_UNQUALIFIED, UNIT_MISMATCH, AS_OF_INTERVAL_MISMATCH, FX_MISSING,
+REVISION_REVOKED, SCENARIO_INCOMPATIBLE.
+Затем к нему добавлять стратегии и сценарии с условными переходами.
+
+**Graph D / Evidence, Findings & Action Graph**
+FIN подтверждает необходимость разделить редакционное решение,
+научно-методический факт, математическую проверку, signed financial S2
+и фактическую пригодность к production.
+У каждого Finding сохранять lineage:
+пользовательская цель → показатель → selected method → formula/parameter SHA
+→ source FactSet/revisions → calc/result SHA → reconciliation state
+→ интерпретационный rule/reviewer → рекомендация.
+Запретить вывод «норматив выполнен» без version-pinned порога,
+доказательства применимости и валидной сверки.
+
+### 16.4. Контракты исходных данных: что зафиксировать заранее
+
+Для InputObservation/FactSet:
+organizationId; economicEntityId; businessScopeId; projectId; scenarioId;
+accountingBasis (IFRS / MANAGEMENT раздельно); dataSpace; formCode/versionId;
+fieldCode; metricCode/revisionId; sourceRevisionId; stableBusinessKey;
+physicalRowKey; typed value/state; signed semantics; source amount currency;
+functional/reporting currency; stock/flow kind; period start/end или exact asOf;
+event/effective/posting dates; dimension grain; canonical source SHA; provenance.
+
+Для Formula/Method/CalcPlan:
+formulaRevision UUID; AST/allowlisted operation; typed input bindings;
+operation and artifact version; parameters/config SHA; methodology selection SHA;
+scope/policy/standard revision; source/FactSet SHA; exact units/currency/FX;
+time calendar/interval/dimension; zero/missing/rounding policy; as-of and
+cutoff; signer evidence; status и revocation epoch; reproducible plan fingerprint.
+
+Для Output:
+raw BigDecimal, display rounding separately, unit, status COMPLETE/PARTIAL/
+UNDEFINED/MISSING/INVALID/BLOCKED, exact input lineage, reason codes,
+execution strategy, UAT/prod admission class, immutable receipt and optional
+cross-form reconciliation receipt.
+
+Критические семантические отличия:
+- F02.netProfit исторически SOURCE_FIELD, но концептуально derived candidate;
+  не использовать исторический kind как единственное доказательство writable input.
+- lib_form_field.required — обязательность **входного поля**, не обязательность
+  вычисляемого выходного показателя.
+- DATA form может легитимно иметь **ZERO_DERIVED_OUTPUTS**.
+- 9 reference-only числовых форм нельзя объявлять пустыми/ошибочными
+  без проверки межформенных зависимостей.
+- 12 документальных форм — validation/evidence, а не forced numeric formula.
+- 840 legacy metrics ≠ 840 вычисляемых финансовых показателей.
+
+### 16.5. Области фактически работающих вычислений и их пределы
+
+**FIN F02 synthetic test-only**:
+source F02.netRevenue, F02.cogs, F02.operatingExpenses;
+grossProfit = netRevenue - cogs;
+grossMargin = grossProfit / netRevenue (в FIN output является RATIO: 0.5,
+а не 50 как процентная шкала из общей формулы FEngine F002);
+operatingResult = grossProfit - operatingExpenses.
+При нулевой выручке grossMargin UNDEFINED/INVALID_ZERO_DENOMINATOR,
+но остальные выходы могут остаться определёнными.
+F02 kernel использует BigDecimal, строгие синтетические KZT/monthly условия.
+Не переносить его test rounding как универсальную бухгалтерскую норму.
+
+**FIN C01 synthetic trade receivables**:
+C01 gross = непогашенный остаток на exact asOf ДО положительного allowance;
+netReceivables = SUM_AS_OF(gross) - SUM_AS_OF(allowance).
+Declared overdue входит в gross, не прибавляется отдельно.
+overdueGrossShare = SUM_AS_OF(overdue)/SUM_AS_OF(gross), если сумма gross > 0
+и overdue присутствует в каждой учтённой строке.
+Credit balances/advance и allowance>gross — отдельные проблемы классификации /
+review в ограниченном positive-stock UAT, не автоматическое write-off.
+
+**FIN C02 synthetic trade payables**:
+outstanding = непогашенная признанная обязанность на exact asOf;
+totalOutstanding = SUM_AS_OF(outstanding).
+overdue — подмножество outstanding, overdueOutstandingShare = overdue/outstanding;
+авансы поставщика не зачитываются автоматически.
+Частичные платежи и amendments должны быть подтверждены source events;
+сейчас UAT читает уже предоставленный stock snapshot и сам не восстанавливает
+allocation history.
+
+**FIN UAT execution foundation**:
+10 кандидатных formula revisions для 5 форм; GROUP_BY/RATIO_OF_SUMS и
+предварительные typed арифметические операторы; 12 synthetic mathematical cases.
+Calc4DUatPlanStore и Calc4DUatLeasedWorker реализуют изолированный
+UAT-only план, leased job, fencing epoch, source revalidation,
+атомарное сохранение immutable result и SUCCEEDED job.
+FIN_CALC4D_UAT_EXECUTION_ENABLED=false по умолчанию; нет разрешённого
+автономного production scheduler и нет независимого S2.
+Не путать рабочий synthetic UAT queue с допущенным production executor.
+
+**DC-R2.5 browser evidence**:
+3 Chromium/Playwright tests PASS на отдельном exact SHA
+f5fee543ac8a865ff81e013ad5824e265024a1f6,
+real saved fin_intake → calculation preview → revision compare.
+Это доказательство только конкретного тестового среза,
+не автоматический GREEN нынешнего HEAD или финансовая приёмка.
+
+Источники:
+- https://github.com/alimbetov/fin-analyzer/blob/c8cbb40e773c6d38dc4032149b0c91f7f27acfcd/docs/FIN-CALC-4D-EXECUTION-FOUNDATION-AND-METHODOLOGY-REGISTRATION.md
+- https://github.com/alimbetov/fin-analyzer/blob/c8cbb40e773c6d38dc4032149b0c91f7f27acfcd/docs/FIN-CALC154-C01-C02-EDITORIAL-POLICIES-V2-2026-11-20.md
+- https://github.com/alimbetov/fin-analyzer/blob/c8cbb40e773c6d38dc4032149b0c91f7f27acfcd/docs/FIN-DATA-CALC-R2-CROSS-FORM-CALCULATION-ROADMAP.md
+
+### 16.6. Ветви финансовых приложений A01–A06: операционный DAG
+
+Все приложения **поверх существующих 166 форм**, не новые report forms:
+- **A01 / Obligations & Settlement Allocation**: C01/C02/C11 и DF-CSH,
+  durable obligation ID, due-date amendments, payment allocation,
+  overdue/aging; обязательный предок реального loan plan/fact.
+- **A02 / ECL & Credit Risk**: cohorts, aging buckets, verified historical loss,
+  recognized ECL, policy variants, forward-looking assumptions;
+  write-off как самостоятельное подтверждённое событие, не арифметический shortcut.
+- **A03 / Inventory Accounting**: item/lot movements, FIFO/WAC/specific ID,
+  NRV, C03→COGS/F02→P06 DIO; item granularity and returns.
+- **A04 / Fixed Asset Accounting**: component/useful-life/residual/impairment
+  policies, depreciation, C04/F01/F02/P05 roll-forward.
+- **A05 / Loan Contract & Payment Schedule Studio**: C05, P04, P09, F01/F02/F03;
+  договорные события, комиссии, dates/day-count, cash schedule,
+  amortized-cost/EIR schedule и план-факт.
+- **A06 / Investments & Scenarios**: dated FCFF→WACC→Enterprise Value,
+  FCFE→Ke→Equity Value; NPV, ambiguity-aware IRR, terminal value,
+  сценарии P01–P09; запрет FCFF+Ke и FCFE+WACC.
+
+Строго разделить в A05:
+1. NOMINAL_CONTRACT_RATE — начисление договорных процентов/cashflows.
+2. IFRS9_EIR — амортизированная стоимость, при применимости стандарта и
+   квалифицированных комиссиях/денежных потоках.
+3. KZ_GESV — отдельно квалифицируемая регуляторная эффективная ставка РК,
+   только для соответствующих договоров и актуальных НПА.
+4. ANNUITY / EQUAL_PRINCIPAL / CUSTOM — погашение основного долга
+   (отдельная ось от номинальная/EIR/ГЭСВ).
+
+A05-R1 — только proposed specification, 38 acceptance checks не являются PASS.
+Не создавать для него новый независимый источник договорных финансовых данных.
+C05 сохраняет исходную контрактную identity/revision, P04/P09 — derived/read-only
+проекции и сверки, не молчаливое перезаписывание существующих строк.
+
+Исходники:
+- https://github.com/alimbetov/fin-analyzer/blob/c8cbb40e773c6d38dc4032149b0c91f7f27acfcd/docs/FIN-CALC-APPS-R0-SIX-APPLICATION-CONTRACTS-AND-ROADMAP.md
+- https://github.com/alimbetov/fin-analyzer/blob/c8cbb40e773c6d38dc4032149b0c91f7f27acfcd/docs/FIN-CALC-A05-R1-LOAN-CONTRACT-PAYMENT-SCHEDULE-STUDIO-TZ.md
+
+### 16.7. Политики, операторы, ветвление, методология
+
+FIN в каталоге выделяет 23 предварительных operator families на 154
+формы (это не 23 финансово проверенных вычислительных реализации).
+Предлагаемая частота по формам:
+SUM 128; GROUP_BY 127; PERIOD_COMPARE 74; RATIO 25; ROLL_FORWARD 15.
+Встречаются также AGING, ALLOCATION, AMORTIZATION, NPV, IRR,
+SCENARIO и другие design-only потребности. Новую операцию добавлять
+только после доказанного требования конкретного output contract.
+Суммирование запасов AS_OF в разных датах без выбора effective snapshot
+запрещено. Для совместимых интервалов и потоков использовать отдельно
+согласованную агрегирующую операцию.
+
+Референс FIN содержит 10 редакционных P0/P1 policy decisions:
+9 EDITORIAL_ACCEPTED_WITH_GATES, 1 NUMERIC_PARAMS_NOT_APPROVED,
+не финансовый S2. В FEngine каждое правило и threshold — versioned policy
+с документированным scope и source authority. Scope resolution:
+SYSTEM → ORGANIZATION → PROJECT → SCENARIO, по типизированным
+ограничениям, без произвольной подмены финансовой нормы.
+Алгоритм и параметры — отдельно версионируемые сущности.
+
+Проверка достаточности:
+FORMULA_VERIFIED → (methodology evidence + applicability qualification)
+→ FINANCIAL_S2_APPROVED → PRODUCTION_ADMITTED.
+Состояние AUTO_QUALIFIED не приравнивать к независимому S2.
+Списки BLOCKED/MISSING/POLICY_INCOMPLETE/REVIEW_REQUIRED — явные
+результаты валидатора, не скрытые исключения и не «ноль».
+
+### 16.8. Целевые Cross-Form зависимости для FEngine
+
+Видимый кроссформенный DAG следующего поколения:
+1. A01 obligations/payments → C01/C02 amount, due/overdue and aging → P06 DSO/DPO.
+2. A01 + credit classification → A02 ECL → C01 allowance/net and F01 assets.
+3. Inventory source events → A03 → C03 balance → F02 COGS → P06 DIO.
+4. Revenue C07 and recognized sales policy → F02 Revenue/Operating Result.
+5. Asset component events → A04 → C04 book value/F01 assets/F02 depreciation.
+6. C05 + loan events → A05 nominal cash schedule + IFRS9 EIR → P04/P09;
+   cash projection to F03/P03, accounting carrying and interest to F01/F02.
+7. F01/F02/F03 + P01–P06 + FX/basis/period controls → reconciled forecasts.
+8. Reconciled dated flows → A06 P07/P08 DCF/scenario.
+9. KPI views (CCC, DSCR, leverage, liquidity, cash runway, margin, NPV)
+   consume qualified metric outputs; не генерируют недостающие исходные данные.
+
+Каждому edge требуется: source type; target type; period mapping;
+unit/currency policy; grain; ordering; variant revision; applicability;
+reconciliation tolerance; lineage; BLOCKED reason; edge type
+(CALCULATES, RECONCILES, EVIDENCES, HELPS_DECISION, BUSINESS_IMPACT).
+
+Недостаток входного поля или метода блокирует конкретный downstream output,
+но не должен уничтожать независимые уже корректно вычисленные outputs.
+
+### 16.9. Стратегическая матрица с пользовательским входом
+
+FIN уже описывает семь задач:
+1. FINANCIAL_HEALTH — диагностика финансового состояния.
+2. INVESTOR_READINESS — диагностика для инвестора.
+3. BUSINESS_PLAN — подготовка бизнес-плана.
+4. BANK_FINANCING — подготовка к кредитованию.
+5. INVESTMENT_APPRAISAL — оценка инвестпроекта.
+6. MANAGEMENT_CONTROL — бюджет/управленческий анализ.
+7. GRANT_PROGRAM — грант и финансирование программы.
+
+Их source model refs — кандидаты. Сохранять заявленную различимость:
+- CORE form = главный источник для цели;
+- SUPPORTING = полезное дополнение;
+- EVIDENCE = подтверждающие документы;
+- MODEL_INPUT = доказанный вход модели (только после методологического
+  version-pinned контракта);
+- MISSING_REQUIRED = отсутствующий квалифицированный вход;
+- NOT_APPLICABLE = самостоятельное обоснованное состояние.
+
+FEngine может расширять стратегические задачи для экономики предприятий,
+банков, НКО и отраслей, но не считать все FIN 166 форм универсально
+обязательными для любой цели.
+
+### 16.10. Связка с правилами FEngine v0.1 и корректировка roadmap
+
+**Не менять:** четыре графа, immutable/typed versions, ацикличность
+вычислительного DAG, независимый S2, единый файл, FEngine как самостоятельная цель.
+
+**Приоритет v0.2:**
+- R0.K1 — подтверждённый каталог и инвентарь: сверить все 166 forms,
+  877 fields, 840 legacy metric definitions, 46 analytic outputs,
+  distinct source-role и DRAFT квалификацию; не допускать identity collision.
+- R0.K2 — crosswalk from FIN:
+  FIN form/field/metric/model/use-case/method code → FEngine canonical code
+  + exact source repository/branch/commit/file/revision;
+  mapping не равен финансовому утверждению.
+- R0.K3 — Read-only **Metric Graph MG-R0.1** contract:
+  goal → indicator → method variant → dependency → physical source fields,
+  gaps/readiness; запрет второго calc engine в FIN.
+- R0.K4 — Typed calculation DAG & reconciliation spec with
+  AS_OF/INTERVAL/YTD, FX/accounting-basis and source SHA constraints.
+- R0.K5 — Methodology completion backlog для всех 154 numeric forms:
+  per-form SOURCE_ONLY/CALCULATED/MIXED/CROSS_FORM/NEEDS_RESEARCH,
+  mandatory vs optional outputs, independent golden controls,
+  explicit 9 reference-only decisions.
+- R0.K6 — Outcome/Findings/Strategy graph:
+  clear claim taxonomy, blocked paths and audit evidence.
+- R0.K7 — Operational integration design AFTER separate approval:
+  choose whether FEngine is library/service/knowledge-package;
+  establish source-of-truth, ABI/API compatibility, independent migration
+  strategy and governance. No code until explicit permission.
+
+**Readiness evidence must be per output, not per form**:
+REGISTERED → INPUT_CONTRACT_PINNED →
+METHODOLOGY_VARIANT_AND_POLICY_PINNED → MATH_GOLDEN_GREEN →
+SQL_JAVA_PARITY_GREEN (если нужно) → INTAKE_UAT_E2E_GREEN →
+CROSS_FORM_RECONCILED (если нужно) →
+FINANCIAL_S2_QUALIFIED → PRODUCTION_ADMITTED.
+
+Управление статусами: машинно-проверяемый exact repository SHA,
+test run ID, input fingerprints, verified expected/actual, policy/method
+revision SHA, reviewer identity и timestamp. Результат тестов одного SHA
+не переносится на HEAD автоматически.
+
+**Разделение планов**: FIN roadmap DC-R2.6→R2.16 и A05-R1 следует
+использовать как источник архитектурных зависимостей, но не как доказательство
+того, что в FEngine создана реализация или импортированы базы.
+
+### 16.11. Запрещённые упрощения и открытые решения
+
+P0 — Не интерпретировать 840 definition как 840 работающих формул.
+P0 — Не интерпретировать 42 model descriptors как 42 executable methods.
+P0 — Не переводить 877 physical fields в 877 semantic facts без mapping.
+P0 — Не объединять два FIN writer автоматически (FormDraft/ReportGrid).
+P0 — Не считать редакционные C01/C02 IFRS/S2-certified.
+P0 — Не изобретать SUM для каждой из 154 форм; SOURCE_ONLY допустим.
+P0 — Не допускать ручных SQL/JavaScript expressions из каталоговых строк.
+P0 — Не превращать hash verification в подпись независимого ревьюера.
+P0 — Не усреднять и не суммировать stock AS_OF через несколько дат.
+P0 — Не смешивать F02 margin RATIO=0.5 и FEngine PERCENT=50 без явной unit/scale conversion.
+P0 — Не смешивать cash contractual debt service, EIR и KZ_GESV.
+P0 — Не считать FIN UAT leased workers автоматически production-ready.
+P1 — Уточнить у методологов semantics всех 46 analytic output metrics,
+   затем требуемые исходные наборы и конкретные методики для 154 форм.
+P1 — Принять отдельное ADR о режиме интеграции FEngine↔FIN.
+P1 — Актуализировать snapshot при смене FIN HEAD, не стирая предыдущий.
+
+### 16.12. Source register для дальнейших сверок
+
+Главные документы и машиночитаемые реестры, закреплённые исходным HEAD:
+- docs/FIN-CALC-R0-COVERAGE-166-BASELINE.tsv
+- docs/FIN-CALC-R0-FIELD-COVERAGE-794-BASELINE.tsv
+- docs/FIN-CALC154-METRIC-COVERAGE.tsv
+- docs/FIN-CALC154-FORM-STATUS.tsv
+- docs/FIN-CALC154-MODEL-OUTPUT-COVERAGE.tsv
+- docs/FIN-CALC154-METHODOLOGY-OPERATION-GAPS.tsv
+- docs/FIN-CALC4D-154-METHODOLOGY-AUTHORING-BACKLOG.tsv
+- docs/FIN-DATA-CALC-R2-ALL154-FORM-READINESS.tsv
+- docs/FIN-DATA-CALC-R2-CROSS-FORM-OUTPUT-MATRIX.tsv
+- form-library/src/main/resources/catalog/analytics-model-catalog.tsv
+- form-library/src/main/resources/catalog/use-case-catalog-r10.tsv
+- form-library/src/main/resources/catalog/use-case-form-map-r10.tsv
+- form-library/src/main/resources/catalog/calc154-formula-contracts-v1.tsv
+- form-library/src/main/resources/catalog/calc154-mathematical-control-v1.tsv
+
+Подтверждённые архитектурные источники:
+- docs/FIN-CALC-166-SQL-JDBC-JAVA-HYBRID-TZ.md
+- docs/FIN-CALC-R0-INCREMENTAL-CALCULATION-ARCHITECTURE-TZ.md
+- docs/FIN-CALC-4D-EXECUTION-FOUNDATION-AND-METHODOLOGY-REGISTRATION.md
+- docs/FIN-CALC154-METHODOLOGY-COMPLETION-AND-CALC4D5-RUNBOOK.md
+- docs/FIN-KPI-R0-INDICATOR-NAVIGATOR-TZ.md
+- docs/FIN-UX-R1-DECISION-TREE-IMPLEMENTATION.md
+- docs/FIN-DATA-CALC-R2-CROSS-FORM-CALCULATION-ROADMAP.md
+- docs/FIN-CALC-APPS-R0-SIX-APPLICATION-CONTRACTS-AND-ROADMAP.md
+- docs/FIN-CALC-A05-R1-LOAN-CONTRACT-PAYMENT-SCHEDULE-STUDIO-TZ.md
+- docs/FIN-CALC154-C01-C02-EDITORIAL-POLICIES-V2-2026-11-20.md
+- docs/FIN-CALC154-AUTOQUAL-1-STANDARDS-BASED-QUALIFICATION-TZ.md
+- form-library/docs/FIN-R16-FIELD-METRIC-CONTRACT-COMPLETION.md
+- docs/qa/FIN-DATA-CALC-R25-UNIFIED-BROWSER-ACCEPTANCE.md
+
+Все относительные пути выше относятся к:
+https://github.com/alimbetov/fin-analyzer/tree/c8cbb40e773c6d38dc4032149b0c91f7f27acfcd
+
+### 16.13. Gate для следующего Codex-шага
+
+На текущем этапе обновлён ТОЛЬКО текстовый master spec FEngine.
+Следующее содержательное задание: сделать READ-ONLY mapping inventory
+из FIN кода и каталогов в одну утверждаемую таблицу внутри этого файла,
+с учётом разницы 793 vs 794, 840 vs 46, 10 formula candidates vs 42 model descriptors.
+Требуется полный построчный аудит перед заявлением 100% покрытия.
+Никаких новых файлов и разработки до отдельного решения пользователя.
