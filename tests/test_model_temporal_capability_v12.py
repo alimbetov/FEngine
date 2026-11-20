@@ -243,10 +243,11 @@ class TemporalV12Tests(unittest.TestCase):
         b=capm(date(2026,1,15),"2","200",identifier="B")
         self.rejects("TEMPORAL_V12_WEIGHT_PAIR_DUPLICATE",lambda:
                      self.calc(req,[a,b]))
-        altered=run("HC.CAP.01","CAPM_BASE",date(2026,1,15),
-                    a.inputs,a.config,identifier=a.event_id,exposure=100.0)
-        with self.assertRaises(Exception):
-            self.calc(req,[altered])
+        from fengine_hc.reference import CalculationError
+        with self.assertRaises(CalculationError) as error:
+            run("HC.CAP.01","CAPM_BASE",date(2026,1,15),
+                a.inputs,a.config,identifier=a.event_id,exposure=100.0)
+        self.assertEqual(error.exception.code,"BINARY_FLOAT_FORBIDDEN")
 
     def test_pvm_price_volume_mix_three_fixed_baseline_snapshots(self):
         dates=(date(2026,1,31),date(2026,2,28),date(2026,3,31))
