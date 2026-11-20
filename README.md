@@ -4,7 +4,7 @@ FEngine is a specification-first, evidence-driven financial and economic calcula
 
 ## Authoritative branch
 
-**main** is the single integration branch. The former methodology, OPT and GEO-OPT development pull requests have been merged. No new feature branch is the authoritative copy of the specification.
+**main** is the single development and integration branch. The former methodology, OPT, GEO-OPT and flexible-method-variants branches were merged via pull requests; the old feature branch `feat/fengine-flex-method-variants-r1` was retired. Do not develop new work on historical feature branches.
 
 ## Current implemented vs designed scope (20 November 2026)
 
@@ -57,7 +57,13 @@ Independent control tests do not invoke any financial HC calculation implementat
 - [Real Python TASE reference module](tase/reference.py)
 - [TASE reference unit tests](tests/test_tase_reference.py)
 - [Product extensibility/parameter audit tests](tests/test_tase_product_extensions.py)
-- [116-model/417-parameter candidate inventory](catalog/model_parameter_inventory_116_r0.tsv)
+- [Consolidated 116-model / 732-parameter R3 registry (current candidate baseline)](catalog/method_parameter_candidates_116_r3.tsv)
+- [116 method-variant profiles (R3)](catalog/model_variant_profiles_116_r3.tsv)
+- [222 method-variant definitions (R3)](catalog/method_variant_definitions_116_r3.tsv)
+- [R3 integrity tests](tests/test_fengine_consolidated_r3.py)
+- [PR #7 — merged method variants](https://github.com/alimbetov/FEngine/pull/7)
+- [2026-11-20 R3 consolidation CI — 169 tests/97 contract tests on both Python 3.11 and 3.13](https://github.com/alimbetov/FEngine/actions/runs/44722823796)
+- [Historical R0 inventory — 417 parameter candidates, fully included in R3](catalog/model_parameter_inventory_116_r0.tsv)
 - [32 TASE core config parameter candidates](catalog/tase_core_parameter_candidates_r0.tsv)
 - [Current implementation audit and Python→Rust gates](docs/FENGINE-TASE-PY-R01-IMPLEMENTATION-AUDIT.md)
 - [Python 3.11/3.13 reference CI run (131/131 each)](https://github.com/alimbetov/FEngine/actions/runs/44721269472)
@@ -65,6 +71,9 @@ Independent control tests do not invoke any financial HC calculation implementat
 Semantics: FLOW SUM, STOCK LAST_AS_OF and RATIO_OF_SUMS are implemented in the strict reference; qualified time-weighted stock, custom fiscal 4-4-5, full Session/DAG and other complex operations remain future work. Missing interval authority or watermark blocks strict completeness. The 250-case TASE R0.6 suite is **not PASS**; the current confirmed 131 Python reference unittests include 34 TASE-focused test methods and preexisting tests, not all future acceptance scenarios. TASE is a platform capability and does not change the 116 candidate HC model count.
 
 ## Current audit decision
+
+**R3 integration:** 732 parameter/222 variant candidates cover all 116 model codes and preserve the earlier 417 parameter entries. All R3 records remain unapproved financial method candidates, not executable HC methods. `main` is authoritative; the 95-model R2 tables are historical inputs, not the current complete registry.
+
 
 **CONTRACT_FREEZE_BLOCKED** pending methodology and applicability review, pre-freeze typed parameter additions, source-to-field mappings, independent golden examples and full mathematical edge cases (ECL, EIR/GESV, DCF/IRR, VaR/ES, PVM and optimization).
 
