@@ -405,6 +405,20 @@ def _compute_reexecuted(
             dimensions=run.dimensions,
         ) for run, receipt in executed
     ]
+    # A shared effective per-source-period rate and method policy must hold
+    # for the entire requested series, even with include_total=False.
+    per_group: dict[tuple[tuple[str, str], ...], tuple[str, Mapping[str, Any]]] = {}
+    for r, _ in executed:
+        key = r.dimensions
+        rate = format(number(r.inputs["discountRate"]).normalize(), "f")
+        if key in per_group:
+            fixed_rate, fixed_config = per_group[key]
+            if fixed_rate != rate:
+                raise TaseError("TEMPORAL_V11_DISCOUNT_RATE_MISMATCH")
+            if dict(fixed_config) != dict(r.config):
+                raise TaseError("TEMPORAL_V11_METHOD_CONFIG_MISMATCH")
+        else:
+            per_group[key] = rate, r.config
     batch_sha = fingerprint({
         "sourceReceipts": sorted(r.source_window_sha256 for r, _ in executed),
         "modelOutputs": sorted(r.output_sha256 for _, r in executed),
