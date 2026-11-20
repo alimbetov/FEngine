@@ -238,7 +238,7 @@ Every row must carry scoped rowKey, field valueState, sourceRevisionRef/SHA, asO
 
 **Синтетический арифметический эталон:** Var unhedged100, hedged25 => 75% variance reduction.
 
-**Hard gate:** Economic 75% reduction is not automatic IFRS9 hedge-accounting pass; require economic relationship and documentation.
+**Hard gate:** Unhedged variance=0 => UNDEFINED; economic 75% reduction is not automatic IFRS9 hedge-accounting pass.
 
 **Результат:** версионируемый CalculationResponseDTO.results[].rows[].values[] с точным method revision, currency/period/units, source/result SHA, typed INVALID/BLOCKED/UNDEFINED state and reason. No FIN/IFRS approval is implied.
 
@@ -249,7 +249,7 @@ Every row must carry scoped rowKey, field valueState, sourceRevisionRef/SHA, asO
 
 **Варианты/настроечные параметры:** `riskObjective:CODE; lambda:RATIO; capitalBudget:MONEY; positionBounds:STRUCT; solverGap:RATIO; solverTimeoutMs:INTEGER`.
 
-**Синтетический арифметический эталон:** Candidate A worst-case residual30+hedgeCost10=>40, B residual50+cost5=>55; min eligible candidate A.
+**Синтетический арифметический эталон:** With lambda=1, A residual30+hedgeCost10=>40, B residual50+cost5=>55; choose A among two eligible candidates.
 
 **Hard gate:** Test compares two finite choices, not global optimizer proof; liquidity/margin/credit and integrality constraints required.
 
