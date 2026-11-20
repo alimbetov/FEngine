@@ -42,7 +42,7 @@ def ledger(postings=None, *, closing="1140", classification=None):
                 "closingCash": closing, "postings": rows}
     return {
         **snapshot, "sourceRevisionSha256": posted_source_sha256(snapshot),
-        "classificationRules": CLASS_RULES if classification is None else classification,
+        "classificationRules": [dict(rule) for rule in (CLASS_RULES if classification is None else classification)],
     }
 
 
