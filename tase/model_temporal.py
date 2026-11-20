@@ -39,7 +39,7 @@ BINDINGS = frozenset((
 COLUMNS = (
     "modelCode", "variantCode", "outputField", "quantityKind", "timeKind",
     "temporalReducer", "sourceGrains", "outputGrains", "periodBinding",
-    "unitKind", "reviewStatus",
+    "continuityRule", "unitKind", "reviewStatus",
 )
 
 
@@ -85,6 +85,7 @@ class ModelTemporalCapabilityV1:
     source_grains: frozenset[str]
     output_grains: frozenset[str]
     period_binding: str
+    continuity_rule: str
     unit_kind: str
     review_status: str
     capability_sha256: str
@@ -149,6 +150,11 @@ class ModelTemporalRegistry:
                 raise TaseError("TEMPORAL_CAPABILITY_INVALID_GRAINS")
             if kind == "STOCK" and sources != {"AS_OF"}:
                 raise TaseError("TEMPORAL_CAPABILITY_INVALID_GRAINS")
+            expected_rule = ("CASH_BALANCE_CONTINUITY" if model == "HC.CASH.04"
+                             else "STABLE_EVM_BASELINE" if model == "HC.COST.07"
+                             else "NONE")
+            if row["continuityRule"] != expected_rule:
+                raise TaseError("TEMPORAL_CAPABILITY_CONTINUITY_POLICY_MISMATCH")
             if row["unitKind"] != "CURRENCY":
                 raise TaseError("TEMPORAL_CAPABILITY_UNIT_UNSUPPORTED")
             manifest = {k: row[k] for k in COLUMNS}
@@ -157,6 +163,7 @@ class ModelTemporalRegistry:
                 quantity_kind=kind, time_kind=temporal, reducer=reducer,
                 source_grains=sources, output_grains=outputs,
                 period_binding=row["periodBinding"],
+                continuity_rule=row["continuityRule"],
                 unit_kind=row["unitKind"], review_status=row["reviewStatus"],
                 capability_sha256=fingerprint({"schema": SCHEMA, "record": manifest}),
             )
@@ -347,6 +354,7 @@ def calculate_model_temporal(
     engine = ReferenceEngine(registry.root)
     observations = []
     source_receipts = []
+    context_receipts = []
     for run in runs:
         _bind_run(cap, run, request)
         receipt = engine.calculate(
@@ -368,6 +376,11 @@ def calculate_model_temporal(
             source_sha=receipt.output_sha256,
             dimensions=run.dimensions,
         ))
+        context_receipts.append({
+            "start": run.start, "end": run.end, "dimensions": run.dimensions,
+            "source": run.source_window_sha256, "output": receipt.output,
+            "inputs": run.inputs,
+        })
         source_receipts.append({
             "window": [run.start.isoformat(),
                        run.end.isoformat() if run.end is not None else None],
@@ -377,6 +390,26 @@ def calculate_model_temporal(
             "configSha256": receipt.config_sha256,
             "outputSha256": receipt.output_sha256,
         })
+    if cap.continuity_rule == "CASH_BALANCE_CONTINUITY":
+        leaves: dict[tuple[tuple[str, str], ...], list[dict[str, Any]]] = {}
+        for entry in context_receipts:
+            leaves.setdefault(entry["dimensions"], []).append(entry)
+        for leaf in leaves.values():
+            timeline = sorted(leaf, key=lambda item: item["start"])
+            for previous, current in zip(timeline, timeline[1:]):
+                if previous["end"] == current["start"]:
+                    prev_close = number(previous["output"]["closingCash"])
+                    next_open = number(current["output"]["openingCash"])
+                    if prev_close != next_open:
+                        raise TaseError("TEMPORAL_CASH_BALANCE_DISCONTINUITY")
+    if cap.continuity_rule == "STABLE_EVM_BASELINE":
+        baselines: dict[tuple[tuple[str, str], ...], str] = {}
+        for entry in context_receipts:
+            key = entry["dimensions"]
+            baseline = entry["inputs"].get("baselineRevision")
+            if key in baselines and baselines[key] != baseline:
+                raise TaseError("TEMPORAL_EVM_BASELINE_CHANGED")
+            baselines[key] = baseline
     ordered = sorted(source_receipts, key=lambda item: (
         item["window"][0], item["window"][1] or "", item["dimensions"],
         item["outputSha256"],
