@@ -1,6 +1,6 @@
 # FEngine — единая спецификация финансово-экономического аналитического ядра
 
-Версия документа: 0.9 (95 candidate models; pre-freeze R95 methodology audit, independent contract bank; OPT/GEO preserved)
+Версия документа: 0.10 (95 candidate models; METHOD-HARDENING-R1 P0 corrections and 310 parameter proposals; no finance S2)
 Дата: 2026-11-20
 Репозиторий: https://github.com/alimbetov/FEngine
 Статус: DRAFT / синхронизация знаний с FIN на 2026-11-20; архитектурное задание; не является свидетельством реализованных расчётов.
@@ -2014,3 +2014,17 @@ Open ADR: GEO-ADR-01 hierarchy tree versus DAG contract; -02 coordinate/altitude
 **Функциональная граница:** финансовая Python реализация HC **0/95 подтверждено**, независимый финансовый S2 **0/95**, FIN source bindings не проверены, production admission запрещён. GEO-OPT имеет отдельную работающую Python reference-вертикаль; она не заменяет HC Financial Hub.
 
 **Решение:** ДО фиксации неизменяемых Method/Input/Parameter/Output контрактов утвердить типы, допустимые диапазоны, параметры, effective date, политики округления и интерпретации, независимые financial golden и минимум family-specific negatives; затем фиксировать только квалифицированные ревизии по каждой модели. `CONTRACT_FREEZE_BLOCKED` для всех 95 до независимого финансового review.
+
+
+---
+
+## 24. FENGINE-METHOD-HARDENING-R1 — предконтрактные P0-доработки
+
+**Дата:** 2026-11-20 · **Статус:** METHOD_CORRECTIONS_PROPOSED / CONTRACT_FREEZE_BLOCKED / FINANCIAL_S2_HOLD. Сохраняются 95 modelCode и 93 dataset-кандидата; новые модели в текущем этапе не добавляются.
+
+- `docs/FENGINE-METHOD-HARDENING-R1-P0-ADDENDUM.md`: исправления и независимые арифметические контрольные примеры ECL (горизонт события дефолта vs взыскания, survival/marginal PD), LOAN/EIR/ГЭСВ, DCF/IRR multiple/tangent roots, VaR/ES массы на квантиле, MILP integer/solver gap, PRICE/VOLUME/MIX с отдельным `MIX_EFFECT`. Не изменять старый идентификатор метода, если меняется семантика: `W2.COST.03.V2` только предложение нового варианта, не реализован и не допущен.
+- `catalog/method_parameter_candidates_r1.tsv`: **310** отдельных кандидатных typed parameters для всех **95** моделей, включая **18** предлагаемых обязательных P0-параметров. Статусы до методологического review: `domainReview=PENDING`, `financialS2=NOT_APPROVED`, `evidenceStatus=DRAFT_UNQUALIFIED`, `defaultPolicy=NONE`. Более полная текущая матрица рекомендаций — R95 audit matrix (28 CRITICAL, 42 HIGH, 25 MEDIUM).
+- Обязательные ссылки/уточнения нанесены в **17** соответствующих разделов спецификаций W1–W4, без переименования и silent mutation старых контрактах. Исполняемого финансового Python Runtime не появилось.
+- `tests/test_fengine_method_hardening_r1.py`: отдельный банк независимых Decimal-контролей и параметрического lint; workflow `fengine-r95-model-bank.yml` запускает R95 и R1 тесты на Python 3.11/3.13. Только прошедший по конкретному commit CI является доказательством PASS, не факт существования файла.
+
+**Remaining blockers:** SOURCE_FIN_BINDINGS_UNVERIFIED; INDEPENDENT_FINANCIAL_GOLDENS_NOT_APPROVED; 95 method revisions NOT_FROZEN; financial S2 HOLD; PYTHON_FINANCE_HC_RUNTIME_NOT_IMPLEMENTED. Отдельно требуется квалификация статистических backtests, root completeness в живом solver, регуляторных правил и ограничений решателей на настоящих данных. Методические поправки в тексте и smoke-тесты не разрешают production.
