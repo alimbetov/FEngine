@@ -43,6 +43,18 @@ Independent control tests do not invoke any financial HC calculation implementat
 
 **Insurance methodology warning:** earned premiums/combined ratio, Chain Ladder/Bornhuetter–Ferguson, IFRS 17 FCF/RA/CSM and Kazakhstan solvency are distinct regulatory/actuarial scopes. No source-to-field qualification or financial S2 exists for these new candidates. Mortality/life insurance actuarial math remains a separate future wave.
 
+
+## TASE-R0: Product-Extensible Temporal Aggregation & Statistics
+
+**Design only; no Python TASE runtime or functional tests implemented.** A single TASE core can serve FIN, BANK, INSURANCE, LOGISTICS, INDUSTRY and CUSTOM Product Packs with shared versioned temporal, grouping, statistics and comparison operators.
+
+- [Full TASE-R0.1–R0.6 technical specification](docs/FENGINE-TASE-R0-UNIVERSAL-TEMPORAL-STATISTICS-TZ.md)
+- [53 typed operator candidates](catalog/tase_operator_candidates_r0.tsv)
+- [6 signed-pack design candidates](catalog/tase_product_pack_candidates_r0.tsv)
+- [26 typed sample metric semantics](catalog/tase_metric_semantics_candidates_r0.tsv)
+
+Semantics: FLOW SUM, STOCK LAST_AS_OF, qualified time-weighted stocks, RATIO_OF_SUMS with exact numerator/denominator, unit/currency dimensional analysis, fiscal calendars, gaps/overlaps and scope-based dedup. Planned 250 test cases across semantics, products, calendars, stats, comparison, recovery and load are **not PASS** until written and executed in CI. TASE is a platform capability and does not change the 116 candidate HC model count.
+
 ## Current audit decision
 
 **CONTRACT_FREEZE_BLOCKED** pending methodology and applicability review, pre-freeze typed parameter additions, source-to-field mappings, independent golden examples and full mathematical edge cases (ECL, EIR/GESV, DCF/IRR, VaR/ES, PVM and optimization).
