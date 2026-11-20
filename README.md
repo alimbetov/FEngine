@@ -10,14 +10,27 @@ FEngine is a specification-first, evidence-driven financial and economic calcula
 
 | Scope | Verified status |
 |---|---|
-| Financial/economic HC catalogue | **116 candidate model contracts** — W1 14 + W2 42 + W3 27 + W4 12 + W5 21; financial HC still not implemented |
+| Financial/economic HC catalogue | **116 candidate model contracts** — W1 14 + W2 42 + W3 27 + W4 12 + W5 21; bounded Python mathematical reference for 10 model codes (not finance S2) |
 | Input datasets | D01–D114 logical typed DTO candidates, not verified FIN source bindings |
 | Fact catalogue | 235 unique DRAFT source fact definitions |
-| Financial 116-model Python Calculation Hub | **Not implemented**; mathematical, numerical and financial admission gates remain closed |
+| Financial 116-model Python Calculation Hub | **Partial:** 10 model codes with real Python Decimal reference executors; remaining 106 not implemented; financial S2 and durable job gates remain closed |
 | GEO-OPT Python reference | Typed directed graph compiler, Dijkstra, A*, Yen K-shortest paths; **38/38 unittest tests** on Python 3.11 and 3.13 in GitHub Actions |
 | Functional finance E2E / PostgreSQL / Inbox-Outbox | Not implemented, not tested |
 
-Prior 83-model review: 83/83 external synthetic arithmetic and 34/34 external boundary examples (historical). New R95 CI: 34/34 unittest methods on Python 3.11 and 3.13, including 95 specification-level subtests plus independent Decimal invariants. None of these tests import executable financial HC model code, and do not constitute financial S2, regulatory qualification, or functional finance engine acceptance.
+Prior 83-model review: 83/83 external synthetic arithmetic and 34/34 external boundary examples (historical). New R95 CI: 34/34 unittest methods on Python 3.11 and 3.13, including 95 specification-level subtests plus independent Decimal invariants. Historical R95 tests do not import executable financial HC model code; the new HC reference tests do exercise a bounded set of genuine calculations. Neither test suite constitutes financial S2, regulatory qualification, or durable finance engine acceptance.
+
+
+## HC-R0.1 — bounded real mathematical engine (Python reference)
+
+**Executable in-process numerical calculations, not 116 production financial models.** The package fengine_hc contains genuine Decimal reference functions for NPV/XNPV, CAPM/WACC, five depreciation methods, four dated loan schedules, FIFO/moving/periodic WAC, debt ageing and LLCR/PLCR. Explicitly selected variants are validated against the R3 catalogue; unsupported models/variants return typed errors instead of placeholder results.
+
+- [Real Python HC reference implementation](fengine_hc/reference.py)
+- [116-node candidate graph, typed in-memory calculation DAG and strategy graph](fengine_hc/graphs.py)
+- [HC numerical golden and negative tests](tests/test_fengine_hc_reference.py)
+- [Cross-model CAPM → WACC graph execution and cycle tests](tests/test_fengine_hc_graphs.py)
+- [20-family primitive matrix, complete architecture and Rust parity gates](docs/FENGINE-HC-R01-METAMODEL-PRIMITIVE-MATRIX-AND-EXECUTION.md)
+
+**Risk control:** All 222 variants are *candidate method entries*; only the explicitly supported subset runs as PYTHON_REFERENCE_NOT_S2. The reference has no production-grade input source authority, independent financial qualification, PostgreSQL durable job, signed calculation plan or certified Rust parity. Non-reference mode remains blocked. No generic fallback returns 0 or fabricated results.
 
 ## Method hardening R1 (2026-11-20)
 
@@ -72,7 +85,7 @@ Semantics: FLOW SUM, STOCK LAST_AS_OF and RATIO_OF_SUMS are implemented in the s
 
 ## Current audit decision
 
-**R3 integration:** 732 parameter/222 variant candidates cover all 116 model codes and preserve the earlier 417 parameter entries. All R3 records remain unapproved financial method candidates, not executable HC methods. `main` is authoritative; the 95-model R2 tables are historical inputs, not the current complete registry.
+**R3 integration:** 732 parameter/222 variant candidates cover all 116 model codes and preserve the earlier 417 parameter entries. All R3 catalogue entries remain unapproved financial method candidates; a bounded subset now has separately implemented mathematical Python reference executors. `main` is authoritative; the 95-model R2 tables are historical inputs, not the current complete registry.
 
 
 **CONTRACT_FREEZE_BLOCKED** pending methodology and applicability review, pre-freeze typed parameter additions, source-to-field mappings, independent golden examples and full mathematical edge cases (ECL, EIR/GESV, DCF/IRR, VaR/ES, PVM and optimization).
