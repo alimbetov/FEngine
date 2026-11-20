@@ -137,7 +137,7 @@ class NewModelReferenceTests(unittest.TestCase):
         self.fails("NONPOSITIVE_CONTRIBUTION_MARGIN", lambda:
                    self.calc("HC.COST.04", "SINGLE_PRODUCT_BREAKEVEN", inp,
                              {"minimumLotRule": "WHOLE_UNITS"}))
-        self.fails("DECIMAL_STRING_REQUIRED", lambda:
+        self.fails("BINARY_FLOAT_FORBIDDEN", lambda:
                    self.calc("HC.COST.04", "SINGLE_PRODUCT_BREAKEVEN",
                              {**self.single_input(), "fixedCost": 1000.0},
                              {"minimumLotRule": "WHOLE_UNITS"}))
@@ -235,7 +235,7 @@ class NewModelReferenceTests(unittest.TestCase):
                    self.calc("HC.DCF.07", "GORDON_FCFF_TERMINAL",
                              {**inp, "finalForecastFCFF": "-1"},
                              {"terminalMethod": "GORDON_FCFF", "terminalGrowth": "0.01"}))
-        self.fails("INVALID_INTEGER", lambda:
+        self.fails("BINARY_FLOAT_FORBIDDEN", lambda:
                    self.calc("HC.DCF.07", "GORDON_FCFF_TERMINAL",
                              {**inp, "forecastPeriods": 1.5},
                              {"terminalMethod": "GORDON_FCFF", "terminalGrowth": "0.01"}))
@@ -266,10 +266,14 @@ class NewModelReferenceTests(unittest.TestCase):
         self.fails("FINANCIAL_S2_REQUIRED", lambda:
             self.engine.calculate("HC.DCF.07", "GORDON_FCFF_TERMINAL", inp,
                                   {"terminalMethod": "GORDON_FCFF", "terminalGrowth": "0.02"}))
-        self.fails("UNCONSUMED_CONFIGURATION", lambda:
+        self.fails("UNKNOWN_PARAMETER", lambda:
             self.calc("HC.CASH.03", "DETERMINISTIC_RUNWAY", self.runway_input(),
                       {"floorValue": "20", "firstPassageRule": "STRICT_BELOW_FLOOR",
                        "unapproved": "any"}))
+        self.fails("UNCONSUMED_CONFIGURATION", lambda:
+            self.calc("HC.CASH.03", "DETERMINISTIC_RUNWAY", self.runway_input(),
+                      {"floorValue": "20", "firstPassageRule": "STRICT_BELOW_FLOOR",
+                       "horizon": 12}))
 
     def test_result_is_deeply_immutable_and_source_is_not_mutated(self):
         inp = self.runway_input()
