@@ -10,10 +10,10 @@ FEngine is a specification-first, evidence-driven financial and economic calcula
 
 | Scope | Verified status |
 |---|---|
-| Financial/economic HC catalogue | **116 candidate model contracts** — W1 14 + W2 42 + W3 27 + W4 12 + W5 21; bounded Python mathematical reference for 20 model codes (not finance S2) |
+| Financial/economic HC catalogue | **116 candidate model contracts** — W1 14 + W2 42 + W3 27 + W4 12 + W5 21; bounded Python mathematical reference for 24 model codes (not finance S2) |
 | Input datasets | D01–D114 logical typed DTO candidates, not verified FIN source bindings |
 | Fact catalogue | 235 unique DRAFT source fact definitions |
-| Financial 116-model Python Calculation Hub | **Partial:** 20 model codes, 36 named variants with real bounded Python Decimal reference executors; remaining 96 model codes not implemented; financial S2 and durable job gates remain closed |
+| Financial 116-model Python Calculation Hub | **Partial:** 24 model codes, 41 named variants with real bounded Python Decimal reference executors; remaining 92 model codes not implemented; financial S2 and Redis ACK/TTL runtime gates remain closed |
 | GEO-OPT Python reference | Typed directed graph compiler, Dijkstra, A*, Yen K-shortest paths; **38/38 unittest tests** on Python 3.11 and 3.13 in GitHub Actions |
 | Functional finance E2E / ephemeral Redis ACK/TTL session runtime | Not implemented, not tested. PostgreSQL persistence of calculation data is prohibited by current FEngine design |
 
@@ -26,7 +26,7 @@ FEngine is an **ephemeral computation engine**, not a durable source-fact wareho
 
 ## HC-R0.1 — bounded real mathematical engine (Python reference)
 
-**Executable in-process numerical calculations, not 116 production financial models.** HC-R0.2 added IRR/EIR, VaR/ES and ECL reference calculations; HC-R0.3 adds CASH runway, COST break-even, COST EVM and Gordon terminal valuation, giving 20 model codes and 36 named reference variants. All 222 catalogue variants remain financially unapproved. The package fengine_hc contains genuine Decimal reference functions for NPV/XNPV, CAPM/WACC, five depreciation methods, four dated loan schedules, FIFO/moving/periodic WAC, debt ageing and LLCR/PLCR. Explicitly selected variants are validated against the R3 catalogue; unsupported models/variants return typed errors instead of placeholder results.
+**Executable in-process numerical calculations, not 116 production financial models.** HC-R0.2 added IRR/EIR, VaR/ES and ECL reference calculations; HC-R0.3 added CASH runway, COST break-even, COST EVM and Gordon terminal valuation; HC-R0.4 adds indirect CFO, FCFF, EV-to-equity bridge and compound annual cost escalation, giving **24 model codes and 41 named reference variants**. All 222 catalogue variants remain financially unapproved. The package fengine_hc contains genuine Decimal reference functions for NPV/XNPV, CAPM/WACC, five depreciation methods, four dated loan schedules, FIFO/moving/periodic WAC, debt ageing and LLCR/PLCR. Explicitly selected variants are validated against the R3 catalogue; unsupported models/variants return typed errors instead of placeholder results.
 
 - [Real Python HC reference implementation](fengine_hc/reference.py)
 - [116-node candidate graph, typed in-memory calculation DAG and strategy graph](fengine_hc/graphs.py)
@@ -42,6 +42,10 @@ FEngine is an **ephemeral computation engine**, not a durable source-fact wareho
 - [New reference model implementations](fengine_hc/r03_reference.py)
 - [New numerical and boundary tests](tests/test_fengine_hc_r03_reference.py)
 - [Portable golden vectors for seven variants](tests/golden/hc_r03_reference_vectors.json)
+- [HC-R0.4 calculation methods, semantics and evidence](docs/FENGINE-HC-R04-CALCULATIONS-SEMANTICS-AND-TESTS.md)
+- [HC-R0.4 real Python mathematical executors](fengine_hc/r04_reference.py)
+- [HC-R0.4 synthetic portable golden vectors](tests/golden/hc_r04_reference_vectors.json)
+- [HC-R0.4 unique/ambiguous auto-variant selection tests](tests/test_fengine_hc_r04_variant_resolution.py)
 
 **Risk control:** All 222 variants are *candidate method entries*; only the explicitly supported subset runs as PYTHON_REFERENCE_NOT_S2. The reference has no production-grade input source authority, independent financial qualification, Redis ephemeral job/ACK-purge implementation, signed calculation plan or certified Rust parity. Non-reference mode remains blocked. No generic fallback returns 0 or fabricated results.
 
