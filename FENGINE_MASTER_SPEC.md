@@ -1548,7 +1548,7 @@ evidence для P0, затем P1/P2 по бизнес-приоритету. Д�
 
 ---
 
-## 19. HPC Wave-2/Wave-3: все 83 показателя и Python-first комплексная спецификация (v0.5)
+## 18.1. HPC Wave-2/Wave-3: все 83 показателя и Python-first комплексная спецификация (v0.5)
 
 **Дата:** 2026-11-20. **Статус:** REQUIREMENTS_COLLECTION / METHOD_CANDIDATE / NOT_IMPLEMENTED / FINANCIAL_S2_HOLD.
 
