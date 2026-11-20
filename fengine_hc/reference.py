@@ -14,6 +14,7 @@ from dataclasses import dataclass
 from datetime import date
 from decimal import Decimal, InvalidOperation, localcontext
 from pathlib import Path
+from types import MappingProxyType
 from typing import Any, Mapping
 
 
@@ -39,6 +40,19 @@ def _canonical(v: Any) -> Any:
     if v is None or isinstance(v, (str, int, bool)):
         return v
     raise CalculationError("INVALID_INPUT_TYPE", type(v).__name__)
+
+
+def _freeze(v: Any) -> Any:
+    """Deeply immutable result projection, including nested rows."""
+    if isinstance(v, Mapping):
+        return MappingProxyType({k: _freeze(x) for k, x in v.items()})
+    if isinstance(v, (list, tuple)):
+        return tuple(_freeze(x) for x in v)
+    return v
+
+
+NUMERIC_POLICY_ID = "DECIMAL40_ACT365F_REFERENCE_R0"
+IMPLEMENTATION_REVISION = "PY_HC_REFERENCE_R0_1"
 
 
 def fingerprint(v: Any) -> str:
@@ -132,6 +146,8 @@ def xnpv(flows: list[Mapping[str, Any]], rate: Any, origin: Any) -> Decimal:
             if not isinstance(row, Mapping):
                 raise CalculationError("INVALID_DATED_FLOW")
             when, value = _req(row, "date", "amount")
+            if day(when) < d0:
+                raise CalculationError("PREVALUATION_FLOW_REQUIRES_POLICY")
             exponent = Decimal((day(when) - d0).days) / Decimal(365)
             total += number(value) / ((Decimal(1) + r) ** exponent)
         return +total
@@ -386,7 +402,7 @@ class CalculationResult:
     inputs_sha256: str
     config_sha256: str
     output_sha256: str
-    output: dict[str, Any]
+    output: Mapping[str, Any]
 
 
 class ContractRegistry:
@@ -458,7 +474,7 @@ class ReferenceEngine:
                 _keys(config, {"dayCount"})
                 if config.get("dayCount") != "ACT_365_FIXED":
                     raise CalculationError("DAY_COUNT_REQUIRED")
-                if variant not in ("EXACT_DATE_XNPV", "APPROVED_DAYCOUNT_XNPV"):
+                if variant != "EXACT_DATE_XNPV":
                     raise CalculationError("VARIANT_NOT_IMPLEMENTED")
                 flows, rate, origin = _req(inputs, "cashflows", "discountRate", "valuationDate")
                 output = {"xnpv": _money(xnpv(flows, rate, origin))}
@@ -511,6 +527,8 @@ class ReferenceEngine:
                 raise CalculationError("MODEL_NOT_IMPLEMENTED", model)
             inhash, confighash = fingerprint(inputs), fingerprint({"model": model, "variant": variant, "config": config})
             result_hash = fingerprint({"model": model, "variant": variant, "inputs": inhash,
-                                       "config": confighash, "output": output, "class": "PYTHON_REFERENCE_NOT_S2"})
+                                       "config": confighash, "output": output, "class": "PYTHON_REFERENCE_NOT_S2",
+                                       "numericPolicy": NUMERIC_POLICY_ID,
+                                       "implementationRevision": IMPLEMENTATION_REVISION})
             return CalculationResult(model, variant, "PYTHON_REFERENCE_NOT_S2", inhash,
-                                     confighash, result_hash, output)
+                                     confighash, result_hash, _freeze(output))
