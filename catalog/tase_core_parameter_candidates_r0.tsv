@@ -1,0 +1,33 @@
+parameterCode	logicalType	requirednessProposal	minProposal	maxProposal	defaultProposal	applicability	implementationStatus	numericOrFinancialConstraint	reviewState
+scopeRef	REFERENCE	REQUIRED			NONE	ALL	REFERENCE_FIELD	tenant and scope authorized; cannot be inherited across tenants	DESIGN_UNAPPROVED
+productCode	CODE	REQUIRED			NONE	ALL	REFERENCE_FIELD	known Product Pack namespace	DESIGN_UNAPPROVED
+productPackRevision	REFERENCE	REQUIRED			PINNED_FROM_CATALOG	ALL	REFERENCE_RESOLVED	signed manifest future; reference only draft	DESIGN_UNAPPROVED
+metricCode	CODE	REQUIRED			NONE	ALL	REFERENCE_FIELD	registered MetricSemanticDescriptor	DESIGN_UNAPPROVED
+metricSemanticRevision	REFERENCE	REQUIRED			PINNED_FROM_CATALOG	ALL	DESIGN_ONLY	semantic hash must enter execution fingerprint	DESIGN_UNAPPROVED
+operatorCode	CODE	REQUIRED			NONE	ALL	REFERENCE_FIELD	registered allowlisted operation	DESIGN_UNAPPROVED
+operatorRevision	REFERENCE	REQUIRED			PINNED_FROM_CATALOG	ALL	DESIGN_ONLY	artifact sha required for Rust parity	DESIGN_UNAPPROVED
+datasetSha256	HASH	REQUIRED			NONE	ALL	REFERENCE_FIELD	currently supplied by caller; verification future	DESIGN_UNAPPROVED
+calendarGrain	ENUM	REQUIRED			NONE	ALL	REFERENCE_FIELD	restricted by Product Pack and implementation support	DESIGN_UNAPPROVED
+periodStart	LOCAL_DATE	REQUIRED			NONE	ALL	REFERENCE_FIELD	start inclusive	DESIGN_UNAPPROVED
+periodEndExclusive	LOCAL_DATE	REQUIRED			NONE	ALL	REFERENCE_FIELD	end exclusive must be later than start	DESIGN_UNAPPROVED
+timezone	IANA_TIMEZONE	CONDITIONAL			SOURCE_CALENDAR	INSTANT_SOURCES	DESIGN_ONLY	DST policy and region must be versioned	DESIGN_UNAPPROVED
+calendarRevision	REFERENCE	REQUIRED			PINNED_FROM_CALENDAR	ALL	DESIGN_ONLY	fiscal calendar and bucket identity	DESIGN_UNAPPROVED
+fiscalStartMonth	INTEGER	OPTIONAL	1	12	1	FISCAL_GRAINS	REFERENCE_FIELD	Gregorian fiscal month; no 4-4-5 yet	DESIGN_UNAPPROVED
+fiscalPattern	ENUM	CONDITIONAL			GREGORIAN	FISCAL_GRAINS	DESIGN_ONLY	GREGORIAN|FISCAL_445|FISCAL_454|FISCAL_544 require exact implementation	DESIGN_UNAPPROVED
+groupBy	LIST_CODE	OPTIONAL			EMPTY	GROUPED	REFERENCE_FIELD	only authorized registered dimensions	DESIGN_UNAPPROVED
+requireFullCoverage	BOOLEAN	OPTIONAL			true	INTERVAL_AGGREGATIONS	REFERENCE_FIELD	complete input evidence or fail closed	DESIGN_UNAPPROVED
+missingPolicy	ENUM	REQUIRED			REJECT	ALL	REFERENCE_FIXED	MISSING != explicit zero	DESIGN_UNAPPROVED
+maxSnapshotAgeDays	INTEGER	OPTIONAL	0		31	LAST_AS_OF	REFERENCE_FIELD	stale source rejected, no silent latest	DESIGN_UNAPPROVED
+valueSignPolicy	ENUM	CONDITIONAL			SIGNED	METRIC_DEPENDENT	DESIGN_ONLY	FLOW direction and legitimate negatives	DESIGN_UNAPPROVED
+zeroDenominatorPolicy	ENUM	CONDITIONAL			UNDEFINED	RATIO_OR_WEIGHTED	REFERENCE_FIXED	zero never becomes an invented rate	DESIGN_UNAPPROVED
+weightMetricCode	REFERENCE	CONDITIONAL			FROM_SEMANTIC_DESCRIPTOR	WEIGHTED_MEAN	REFERENCE_RESOLVED	matching observation keys/date and nonnegative weights	DESIGN_UNAPPROVED
+weightSignPolicy	ENUM	CONDITIONAL			NONNEGATIVE	WEIGHTED_MEAN	REFERENCE_FIXED	negative weight rejects	DESIGN_UNAPPROVED
+quantileAlpha	RATE	CONDITIONAL	0_EXCLUSIVE	1_EXCLUSIVE	NONE	QUANTILE_EXACT	REFERENCE_FIELD	nearest-rank discrete quantile only	DESIGN_UNAPPROVED
+quantileMethod	ENUM	CONDITIONAL			NEAREST_RANK	QUANTILE_EXACT	REFERENCE_FIXED	no silent interpolation switching	DESIGN_UNAPPROVED
+varianceEstimator	ENUM	CONDITIONAL			FROM_OPERATOR_ID	VAR_OR_STDDEV	REFERENCE_RESOLVED	POP and SAMPLE remain distinct operator IDs	DESIGN_UNAPPROVED
+numericWorkingPrecision	INTEGER	REQUIRED	28	100	50	ALL	REFERENCE_FIXED	intermediate Decimal guard and output rounding	DESIGN_UNAPPROVED
+roundingStage	ENUM	REQUIRED			FINAL_ONLY	ALL	DESIGN_ONLY	no silent repeated period rounding	DESIGN_UNAPPROVED
+resultScale	INTEGER	CONDITIONAL	0	38	METHOD_POLICY	ALL	DESIGN_ONLY	exact money display and statistical precision separated	DESIGN_UNAPPROVED
+maxOutputCells	INTEGER	REQUIRED	1	100000	100000	ALL	REFERENCE_FIXED	group×bucket preflight; future resource profile	DESIGN_UNAPPROVED
+maxRuntimeMs	INTEGER	CONDITIONAL	1		RESOURCE_POLICY	ALL	DESIGN_ONLY	bounded worker deadlines not implemented	DESIGN_UNAPPROVED
+comparisonBaselineRevision	REFERENCE	CONDITIONAL			NONE	PERIOD_DELTA_OR_PLAN_FACT	DESIGN_ONLY	baseline period/budget/scenario must be pinned	DESIGN_UNAPPROVED
