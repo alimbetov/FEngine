@@ -22,5 +22,7 @@ jobs:
           python-version: ${{ matrix.python-version }}
       - name: Compile Python sources
         run: python -m compileall -q geo_opt tase fengine_hc tests
+      - name: Mandatory QUAL-R1 adversarial integrity pattern gate (all 48 HC variants)
+        run: python -m unittest discover -s tests -p 'test_fengine_integrity_pattern_gate.py' -v
       - name: Execute GEO-OPT, TASE and bounded HC reference suites
         run: python -m unittest discover -s tests -v
