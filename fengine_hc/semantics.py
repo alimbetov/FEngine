@@ -8,6 +8,7 @@ result is a non-admitted immutable snapshot, NOT a MethodologyRevision.
 from __future__ import annotations
 
 import csv
+import re
 from dataclasses import dataclass
 from decimal import Decimal
 from pathlib import Path
@@ -51,6 +52,7 @@ class VariantRule:
     required: tuple[str, ...]
     optional: tuple[str, ...] = ()
     enums: tuple[tuple[str, tuple[str, ...]], ...] = ()
+    sha256_references: tuple[str, ...] = ()
 
 
 # No generic permissive fallback: a rule must exist before an R3 variant can
@@ -108,6 +110,32 @@ RULES: dict[tuple[str, str], VariantRule] = {
     ("HC.DCF.07", "GORDON_FCFF_TERMINAL"):
         VariantRule(("terminalMethod", "terminalGrowth"), (),
                     (("terminalMethod", ("GORDON_FCFF",)),)),
+    ("HC.CASH.05", "INDIRECT_CFO_ADJUSTMENT"):
+        VariantRule(("netIncomeBasis", "noncashAdjustment", "workingCapitalSign"), (),
+                    (("netIncomeBasis", ("REPORTED_AFTER_TAX_NET_INCOME",)),
+                     ("noncashAdjustment", ("SIGNED_NONCASH_LINES",)),
+                     ("workingCapitalSign", ("INCREASE_OF_NWC_IS_OUTFLOW",)),)),
+    ("HC.CASH.05", "INDIRECT_CFO_RECONCILED"):
+        VariantRule(("netIncomeBasis", "noncashAdjustment", "workingCapitalSign",
+                     "directIndirectComparisonPolicy"), (),
+                    (("netIncomeBasis", ("REPORTED_AFTER_TAX_NET_INCOME",)),
+                     ("noncashAdjustment", ("SIGNED_NONCASH_LINES",)),
+                     ("workingCapitalSign", ("INCREASE_OF_NWC_IS_OUTFLOW",)),
+                     ("directIndirectComparisonPolicy", ("EXACT_EQUALITY",)),)),
+    ("HC.DCF.05", "FCFF_UNLEVERED"):
+        VariantRule(("taxPolicy", "capitalExpenditurePolicy", "workingCapitalBasis"), (),
+                    (("taxPolicy", ("EBIT_TIMES_EFFECTIVE_TAX_REFERENCE",)),
+                     ("capitalExpenditurePolicy", ("CASH_CAPEX_POSITIVE_OUTFLOW",)),
+                     ("workingCapitalBasis", ("INCREASE_NWC_IS_OUTFLOW",)),)),
+    ("HC.DCF.08", "EV_TO_EQUITY_BRIDGE"):
+        VariantRule(("netDebtDefinition", "minorityInterests", "valuationDate"), (),
+                    (("netDebtDefinition", ("GROSS_DEBT_LESS_UNRESTRICTED_CASH",)),
+                     ("minorityInterests", ("NCI_DEDUCT_FROM_ENTERPRISE",)),)),
+    ("HC.COST.05", "COMPOUND_ESCALATION"):
+        VariantRule(("inflationIndexRev", "compoundingBasis", "contingencyOverlap"), (),
+                    (("compoundingBasis", ("DISCRETE_ANNUAL_END",)),
+                     ("contingencyOverlap", ("NO_CONTINGENCY_DOUBLE_COUNT",)),),
+                    ("inflationIndexRev",)),
 }
 
 
@@ -180,6 +208,9 @@ class ParameterSemantics:
                 if not any(type(value) is type(option) and value == option
                            for option in choices[name]):
                     raise CalculationError("ENUM_OUT_OF_RANGE", name)
+            elif name in rule.sha256_references:
+                if declared != "REFERENCE" or not isinstance(value, str) or re.fullmatch(r"[0-9a-f]{64}", value) is None:
+                    raise CalculationError("PINNED_REFERENCE_SHA_REQUIRED", name)
             elif declared in ("RATE", "MONEY", "DECIMAL", "PERCENTAGE"):
                 value = format(number(value), "f")
                 if declared in ("RATE", "PERCENTAGE") and not (-1 < number(value) < 100):
@@ -211,7 +242,7 @@ class ParameterSemantics:
             cleaned[name] = value
         sha = fingerprint({
             "modelCode": model_code, "variantCode": variant_code,
-            "candidateConfig": cleaned, "referenceContract": "HC_R03_REFERENCE_RULES_V1"
+            "candidateConfig": cleaned, "referenceContract": "HC_R04_REFERENCE_RULES_V1"
         })
         return ResolvedVariant(
             model_code, variant_code, _freeze(cleaned), sha
