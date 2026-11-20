@@ -13,6 +13,8 @@ from datetime import date, timedelta
 from decimal import Decimal, localcontext
 from pathlib import Path
 
+from qualification_r13_precision import independent_decimal_precision
+
 from tase import Catalog, Dataset, Observation, PeriodRequest, TaseError, calculate
 from tase import (
     ModelTemporalRegistryV11, ModelTemporalRegistryV12,
@@ -74,6 +76,7 @@ class QualR13TemporalProperties(unittest.TestCase):
         cls.registry11=ModelTemporalRegistryV11.load(ROOT,reference_mode=True)
         cls.registry12=ModelTemporalRegistryV12.load(ROOT,reference_mode=True)
 
+    @independent_decimal_precision
     def test_120_month_quarter_year_sums_independent_original_atomic_facts(self):
         rng=random.Random(SEED_TEMP)
         count=0
@@ -110,6 +113,7 @@ class QualR13TemporalProperties(unittest.TestCase):
                     count+=1
         self.assertEqual(count,120)
 
+    @independent_decimal_precision
     def test_90_ratio_month_quarter_year_recompute_from_components(self):
         rng=random.Random(SEED_TEMP ^ 0x524154)
         count=0
@@ -154,6 +158,7 @@ class QualR13TemporalProperties(unittest.TestCase):
                     count+=1
         self.assertEqual(count,90)
 
+    @independent_decimal_precision
     def test_50_daily_to_monthly_partitions_including_leap_february(self):
         rng=random.Random(SEED_TEMP ^ 0x444159)
         start=date(2028,2,1)
@@ -197,6 +202,7 @@ class QualR13TemporalProperties(unittest.TestCase):
             count+=1
         self.assertEqual(count,50)
 
+    @independent_decimal_precision
     def test_48_temporal_adapter_npv_and_capm_source_derived_totals(self):
         rng=random.Random(SEED_TEMP ^ 0x414450)
         count=0
@@ -247,6 +253,7 @@ class QualR13TemporalProperties(unittest.TestCase):
             count+=1
         self.assertEqual(count,48)
 
+    @independent_decimal_precision
     def test_24_dated_xnpv_actual_day_exponents_and_same_origin(self):
         rng=random.Random(SEED_TEMP ^ 0x584E50)
         count=0
@@ -279,6 +286,7 @@ class QualR13TemporalProperties(unittest.TestCase):
             count+=1
         self.assertEqual(count,24)
 
+    @independent_decimal_precision
     def test_adversarial_branch_loss_rejected_in_all_year_views(self):
         # No silent incomplete full-year total if branch B is absent in June.
         rows=[]
