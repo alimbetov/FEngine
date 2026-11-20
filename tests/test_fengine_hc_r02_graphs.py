@@ -38,7 +38,7 @@ class ModelPortTests(unittest.TestCase):
 
     def test_unknown_port_pair_rejected_at_compile(self):
         with self.assertRaises(CalculationError) as raised:
-            InMemoryCalculationPlan(self.engine, [self.capm(), self.wacc("costOfDebt")])
+            InMemoryCalculationPlan(self.engine, [self.capm(), self.wacc("nonReviewedRate")])
         self.assertEqual(raised.exception.code, "MODEL_BINDING_NOT_REVIEWED")
 
     def test_plan_deep_snapshot_cannot_be_mutated(self):
