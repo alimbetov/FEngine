@@ -317,3 +317,16 @@ Implementation order R0.1 → R0.2 → R0.3 → R0.4 → R0.5 → R0.6. Freeze o
 ## 10. Decision
 
 **ACCEPT AS DESIGN CANDIDATE.** This task does not create Python finance TASE code, database migrations, qualified financial models, or production permission. Existing 116 candidate model codes, D01–D114 source proposals and separate GEO reference retain their identities. Finalize semantic and numeric policies, independent financial math controls and product applicability before freezing TASE contracts.
+
+
+
+---
+
+## 11. Python reference realization (not completion of TASE R0)
+
+As of 2026-11-20 an in-process Python reference package exists: tase/reference.py and two test_tase_*.py files. It loads candidate Product Packs in explicit reference_mode only; validates all 62 metric/operator typing edges; supports 13 of 53 operators (SUM, LAST_AS_OF, ARITH_MEAN, WEIGHTED_MEAN, VAR_POP/VAR_SAMPLE, STDDEV_POP/STDDEV_SAMPLE, RMS, MIN/MAX, RATIO_OF_SUMS, QUANTILE_EXACT nearest-rank) on Decimal values with strict source interval coverage and watermark. Complete 4-4-5 calendar, independent FIN source attestation, 40 remaining operators, multi-metric DAG and PostgreSQL-backed Execution/Outbox are NOT implemented.
+
+The accepted reference CI run (GEO + TASE + historical tests) is https://github.com/alimbetov/FEngine/actions/runs/44720599167 — 129/129 Python 3.11 and 129/129 Python 3.13. This is not the planned 250-case TASE R0.6 acceptance. 116 model/417 parameter review details, product extension defects corrected and future Rust parity gates are in docs/FENGINE-TASE-PY-R01-IMPLEMENTATION-AUDIT.md. The original document's DESIGN sections remain the target requirements, not completed implementation claims.
+
+**Current admission:** only mathematical Python reference; no financial S2, no production, no Rust.
+
