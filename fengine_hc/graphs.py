@@ -94,9 +94,14 @@ class TypedPort:
 REFERENCE_PORTS: dict[tuple[str, str], TypedPort] = {
     ("HC.CAP.01", "costOfEquity"): TypedPort("HC.CAP.01", "costOfEquity", "DECIMAL_RATE", "PER_ANNUAL"),
     ("HC.CAP.02", "costOfEquity"): TypedPort("HC.CAP.02", "costOfEquity", "DECIMAL_RATE", "PER_ANNUAL"),
+    ("HC.CASH.04", "cashFlowFromOperations"): TypedPort("HC.CASH.04", "cashFlowFromOperations",
+                                                        "DECIMAL_MONEY", "CURRENCY_AND_PERIOD"),
+    ("HC.CASH.05", "directCfo"): TypedPort("HC.CASH.05", "directCfo",
+                                           "DECIMAL_MONEY", "CURRENCY_AND_PERIOD"),
 }
 REFERENCE_EDGE_ALLOWLIST = frozenset({
     ("HC.CAP.01", "costOfEquity", "HC.CAP.02", "costOfEquity"),
+    ("HC.CASH.04", "cashFlowFromOperations", "HC.CASH.05", "directCfo"),
 })
 
 
@@ -109,6 +114,21 @@ def _validate_typed_reference_edge(source: "CalculationJob", target: "Calculatio
     dst = REFERENCE_PORTS.get((target.model_code, binding.target_field))
     if src is None or dst is None or src.value_kind != dst.value_kind or src.unit_semantics != dst.unit_semantics:
         raise CalculationError("MODEL_PORT_TYPE_MISMATCH")
+    # A CFO number from another currency or another reporting period must
+    # never satisfy a numeric port merely because both values are Decimal.
+    # This deliberately supports one explicit reference-mode graph edge.
+    if key == ("HC.CASH.04", "cashFlowFromOperations", "HC.CASH.05", "directCfo"):
+        if (not isinstance(source.inputs.get("currency"), str)
+                or source.inputs.get("currency") != target.inputs.get("currency")):
+            raise CalculationError("MODEL_BINDING_CURRENCY_MISMATCH")
+        if (not isinstance(source.inputs.get("periodStart"), str)
+                or not isinstance(source.inputs.get("periodEnd"), str)
+                or not isinstance(target.inputs.get("periodStart"), str)
+                or source.inputs["periodStart"] != target.inputs["periodStart"]
+                or source.inputs["periodEnd"] != target.inputs.get("asOf")):
+            raise CalculationError("MODEL_BINDING_PERIOD_MISMATCH")
+        if target.variant_code != "INDIRECT_CFO_RECONCILED":
+            raise CalculationError("MODEL_BINDING_VARIANT_MISMATCH")
 
 
 @dataclass(frozen=True)
@@ -158,7 +178,7 @@ class InMemoryCalculationPlan:
             for binding in job.bindings:
                 _validate_typed_reference_edge(self.jobs[binding.source_job], job, binding)
         self.plan_sha256 = fingerprint({
-            "referencePlanContract": "HC_R02C_PORTS_V1",
+            "referencePlanContract": "HC_R05_CFO_REFERENCE_PORTS_V1",
             "jobs": [{
                 "jobId": job_id, "model": self.jobs[job_id].model_code,
                 "variant": self.jobs[job_id].variant_code,
