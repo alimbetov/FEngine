@@ -1,0 +1,173 @@
+{
+  "schema": "FENGINE_HC_R04_GOLDENS_V1",
+  "status": "MATHEMATICAL_REFERENCE_ONLY_NOT_FINANCE_S2",
+  "sourceClassification": "SYNTHETIC_NO_USER_DATA",
+  "numericPolicy": "DECIMAL40_GENERAL_DECIMAL55_ROOT_ACT365F_R02",
+  "vectors": [
+    {
+      "id": "CFO_SIGNED_ADJUSTMENTS",
+      "model": "HC.CASH.05",
+      "variant": "INDIRECT_CFO_ADJUSTMENT",
+      "inputs": {
+        "asOf": "2026-12-31",
+        "currency": "KZT",
+        "sourceRevisionSha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "netIncome": "100",
+        "noncashAdjustments": [
+          {
+            "code": "DEPRECIATION",
+            "amount": "20"
+          },
+          {
+            "code": "GAIN_SALE",
+            "amount": "-5"
+          }
+        ],
+        "deltaOperatingNwc": "15"
+      },
+      "config": {
+        "netIncomeBasis": "REPORTED_AFTER_TAX_NET_INCOME",
+        "noncashAdjustment": "SIGNED_NONCASH_LINES",
+        "workingCapitalSign": "INCREASE_OF_NWC_IS_OUTFLOW"
+      },
+      "expectedDecimal": {
+        "noncashAdjustmentsTotal": "15",
+        "workingCapitalCashEffect": "-15",
+        "cashFlowFromOperations": "100"
+      },
+      "expectedExact": {
+        "adjustmentCount": 2,
+        "sourceRevisionSha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+      },
+      "tolerance": "0"
+    },
+    {
+      "id": "CFO_DIRECT_INDIRECT_RECONCILIATION",
+      "model": "HC.CASH.05",
+      "variant": "INDIRECT_CFO_RECONCILED",
+      "inputs": {
+        "asOf": "2026-12-31",
+        "currency": "KZT",
+        "sourceRevisionSha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "netIncome": "100",
+        "noncashAdjustments": [
+          {
+            "code": "DEPRECIATION",
+            "amount": "20"
+          },
+          {
+            "code": "GAIN_SALE",
+            "amount": "-5"
+          }
+        ],
+        "deltaOperatingNwc": "15",
+        "directCfo": "100"
+      },
+      "config": {
+        "netIncomeBasis": "REPORTED_AFTER_TAX_NET_INCOME",
+        "noncashAdjustment": "SIGNED_NONCASH_LINES",
+        "workingCapitalSign": "INCREASE_OF_NWC_IS_OUTFLOW",
+        "directIndirectComparisonPolicy": "EXACT_EQUALITY"
+      },
+      "expectedDecimal": {
+        "cashFlowFromOperations": "100",
+        "directCfo": "100",
+        "reconciliationDifference": "0"
+      },
+      "expectedExact": {
+        "currency": "KZT"
+      },
+      "tolerance": "0"
+    },
+    {
+      "id": "FCFF_UNLEVERED_NOPAT",
+      "model": "HC.DCF.05",
+      "variant": "FCFF_UNLEVERED",
+      "inputs": {
+        "asOf": "2026-12-31",
+        "currency": "KZT",
+        "sourceRevisionSha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "ebit": "200",
+        "taxRate": "0.25",
+        "noncashOperatingCharges": "30",
+        "cashCapex": "50",
+        "deltaOperatingNwc": "20"
+      },
+      "config": {
+        "taxPolicy": "EBIT_TIMES_EFFECTIVE_TAX_REFERENCE",
+        "capitalExpenditurePolicy": "CASH_CAPEX_POSITIVE_OUTFLOW",
+        "workingCapitalBasis": "INCREASE_NWC_IS_OUTFLOW"
+      },
+      "expectedDecimal": {
+        "taxOnOperatingProfit": "50",
+        "netOperatingProfitAfterTax": "150",
+        "capitalExpenditureCashFlow": "-50",
+        "workingCapitalCashFlow": "-20",
+        "freeCashFlowToFirm": "110"
+      },
+      "expectedExact": {
+        "classification": "SIMPLIFIED_UNLEVERED_REFERENCE_NOT_TAX_S2"
+      },
+      "tolerance": "0"
+    },
+    {
+      "id": "ENTERPRISE_VALUE_TO_EQUITY",
+      "model": "HC.DCF.08",
+      "variant": "EV_TO_EQUITY_BRIDGE",
+      "inputs": {
+        "valuationDate": "2026-12-31",
+        "currency": "KZT",
+        "sourceRevisionSha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "enterpriseValue": "1000",
+        "grossInterestDebt": "300",
+        "unrestrictedCash": "50",
+        "nonOperatingAssets": "20",
+        "nonControllingInterest": "40",
+        "preferredClaims": "10"
+      },
+      "config": {
+        "valuationDate": "2026-12-31",
+        "netDebtDefinition": "GROSS_DEBT_LESS_UNRESTRICTED_CASH",
+        "minorityInterests": "NCI_DEDUCT_FROM_ENTERPRISE"
+      },
+      "expectedDecimal": {
+        "netDebt": "250",
+        "equityValue": "720",
+        "bridgeReconciliation": "0"
+      },
+      "expectedExact": {
+        "valuationDate": "2026-12-31"
+      },
+      "tolerance": "0"
+    },
+    {
+      "id": "COST_COMPOUND_TWO_ANNUAL_STEPS",
+      "model": "HC.COST.05",
+      "variant": "COMPOUND_ESCALATION",
+      "inputs": {
+        "baseCost": "1000",
+        "currency": "KZT",
+        "rateSeriesRevisionSha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "annualRates": [
+          "0.10",
+          "0.05"
+        ]
+      },
+      "config": {
+        "inflationIndexRev": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "compoundingBasis": "DISCRETE_ANNUAL_END",
+        "contingencyOverlap": "NO_CONTINGENCY_DOUBLE_COUNT"
+      },
+      "expectedDecimal": {
+        "baseCost": "1000",
+        "escalatedCost": "1155",
+        "incrementalCost": "155"
+      },
+      "expectedExact": {
+        "currency": "KZT",
+        "rateSeriesRevisionSha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+      },
+      "tolerance": "0"
+    }
+  ]
+}
