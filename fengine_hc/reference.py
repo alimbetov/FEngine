@@ -52,7 +52,7 @@ def _freeze(v: Any) -> Any:
 
 
 NUMERIC_POLICY_ID = "DECIMAL40_GENERAL_DECIMAL55_ROOT_ACT365F_R02"
-IMPLEMENTATION_REVISION = "PY_HC_REFERENCE_R0_4A"
+IMPLEMENTATION_REVISION = "PY_HC_REFERENCE_R0_5A"
 
 
 def fingerprint(v: Any) -> str:
@@ -605,6 +605,13 @@ class ReferenceEngine:
                     output = enterprise_to_equity(inputs, resolved.config)
                 else:
                     output = compound_cost_escalation(inputs, resolved.config)
+            elif model == "HC.CASH.04":
+                from .semantics import ParameterSemantics
+                from .r05_cashflow import direct_cfo
+                resolved = ParameterSemantics(self.root).resolve(
+                    model, variant, config, reference_mode=True
+                )
+                output = direct_cfo(inputs, resolved.config, variant)
             else:
                 raise CalculationError("MODEL_NOT_IMPLEMENTED", model)
             inhash, confighash = fingerprint(inputs), fingerprint({"model": model, "variant": variant, "config": config})
