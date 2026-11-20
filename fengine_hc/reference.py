@@ -52,7 +52,7 @@ def _freeze(v: Any) -> Any:
 
 
 NUMERIC_POLICY_ID = "DECIMAL40_GENERAL_DECIMAL55_ROOT_ACT365F_R02"
-IMPLEMENTATION_REVISION = "PY_HC_REFERENCE_R0_3A"
+IMPLEMENTATION_REVISION = "PY_HC_REFERENCE_R0_4A"
 
 
 def fingerprint(v: Any) -> str:
@@ -590,6 +590,21 @@ class ReferenceEngine:
                     output = evm(inputs, variant, resolved.config)
                 else:
                     output = gordon_terminal(inputs, resolved.config)
+            elif model in ("HC.CASH.05", "HC.DCF.05", "HC.DCF.08", "HC.COST.05"):
+                from .semantics import ParameterSemantics
+                from .r04_reference import (indirect_cfo, unlevered_fcff,
+                                            enterprise_to_equity, compound_cost_escalation)
+                resolved = ParameterSemantics(self.root).resolve(
+                    model, variant, config, reference_mode=True
+                )
+                if model == "HC.CASH.05":
+                    output = indirect_cfo(inputs, variant, resolved.config)
+                elif model == "HC.DCF.05":
+                    output = unlevered_fcff(inputs, resolved.config)
+                elif model == "HC.DCF.08":
+                    output = enterprise_to_equity(inputs, resolved.config)
+                else:
+                    output = compound_cost_escalation(inputs, resolved.config)
             else:
                 raise CalculationError("MODEL_NOT_IMPLEMENTED", model)
             inhash, confighash = fingerprint(inputs), fingerprint({"model": model, "variant": variant, "config": config})
