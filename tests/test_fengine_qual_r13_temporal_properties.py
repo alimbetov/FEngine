@@ -166,14 +166,27 @@ class QualR13TemporalProperties(unittest.TestCase):
             for i in range((end-start).days):
                 begin=start+timedelta(days=i)
                 value=dec(rng.randrange(-10000,10000))/10
-                rows.append(fact("REVENUE",value,begin,begin+timedelta(days=1),"A"))
+                # FIN packs intentionally do NOT admit DAY outputs. Use
+                # reviewed LOGISTICS EVENT_AT distance, which permits both
+                # DAY and MONTH result grains without granting FIN a new
+                # daily aggregation policy.
+                rows.append(Observation(
+                    product="LOGISTICS",metric="DISTANCE_KM",scope=SCOPE,
+                    start=begin,end=None,value=str(value),unit="km",
+                    source_sha="e"*64,dimensions=(("branch","A"),),
+                    observation_id=begin.isoformat(),
+                ))
                 full+=value
             ds=dataset(rows,watermark=end)
-            monthly=calculate(self.catalog,request(
-                "REVENUE","SUM","MONTH",start=start,end=end,source_grain="DAY"
+            monthly=calculate(self.catalog,PeriodRequest(
+                product="LOGISTICS",metric="DISTANCE_KM",operation="SUM",
+                scope=SCOPE,start=start,end=end,grain="MONTH",
+                source_grain="EVENT_AT",include_total=True,
             ),ds)
-            daily=calculate(self.catalog,request(
-                "REVENUE","SUM","DAY",start=start,end=end,source_grain="DAY"
+            daily=calculate(self.catalog,PeriodRequest(
+                product="LOGISTICS",metric="DISTANCE_KM",operation="SUM",
+                scope=SCOPE,start=start,end=end,grain="DAY",
+                source_grain="EVENT_AT",include_total=True,
             ),ds)
             exact(self,monthly.total_rows[0].value,full,
                   scenario=f"leap February {index}")
@@ -280,8 +293,14 @@ class QualR13TemporalProperties(unittest.TestCase):
                     calculate(self.catalog,request(
                         "REVENUE","SUM",grain
                     ),dataset(rows))
-                self.assertEqual(error.exception.code,
-                                 "PARTIAL_COHORT_COVERAGE")
+                # Monthly buckets detect a lost leaf directly. Quarterly
+                # windows still contain that leaf in April/May, but the
+                # per-leaf completeness check detects the June hole.
+                self.assertEqual(
+                    error.exception.code,
+                    "PARTIAL_COHORT_COVERAGE" if grain=="MONTH"
+                    else "PARTIAL_COVERAGE",
+                )
 
 
 if __name__=="__main__":
