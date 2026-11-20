@@ -335,7 +335,7 @@ class QualificationIntegrityPatternGate(unittest.TestCase):
         self.assertEqual(exc.exception.code,"CROSS_SCOPE_DATASET")
 
     def test_all_pattern_categories_are_accounted_for_in_ci_gate(self):
-        self.assertEqual(len(CORE_PATTERNS), 4)
+        self.assertEqual(len(CORE_PATTERNS), 5)
         used = set()
         for model in {("HC."+part+".01") for part in (
             "ASSET","CAP","CASH","COST","DCF","ECL","LOAN",
