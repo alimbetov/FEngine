@@ -27,9 +27,12 @@ def obs(metric, value, start=JAN, end=FEB, *,
                        state=state, observation_id=oid)
 
 
-def ds(*rows, scope="demo", complete=False, watermark=None):
+def ds(*rows, scope="demo", complete=False, watermark=APR, attested=True):
+    # Synthetic fixtures explicitly represent an attested, watermark-complete
+    # source. Real adapters must verify this; they must not simply set True.
     return Dataset(scope=scope, content_sha="b"*64, rows=tuple(rows),
-                   complete_event_stream=complete, watermark=watermark)
+                   complete_event_stream=complete, watermark=watermark,
+                   interval_coverage_attested=attested)
 
 
 def req(metric="REVENUE", operation="SUM", *, product="FIN", grain="QUARTER",
@@ -179,6 +182,19 @@ class TaseReferenceTests(unittest.TestCase):
         self.assertCode("MISSING_OBSERVATION", lambda: calculate(self.cat, req(),
             ds(revenue()[0], obs("REVENUE", None, FEB, MAR, state="MISSING"),
                revenue()[2])))
+
+    def test_source_coverage_must_be_attested(self):
+        self.assertCode("COVERAGE_UNKNOWN", lambda: calculate(self.cat, req(),
+                         ds(*revenue(), attested=False)))
+        self.assertCode("COVERAGE_UNKNOWN", lambda: calculate(self.cat, req(),
+                         ds(*revenue(), watermark=MAR)))
+
+    def test_optional_partial_result_never_mislabeled_complete(self):
+        out = calculate(self.cat, req(require_full_coverage=False),
+                        ds(*revenue(), attested=False, watermark=None))
+        self.assertEqual(out.status, "PARTIAL")
+        self.assertEqual(out.rows[0].status, "PARTIAL")
+        self.assertEqual(out.rows[0].coverage, "UNKNOWN")
 
     def test_overlapping_intervals(self):
         data = ds(obs("REVENUE", "100", JAN, MAR),
