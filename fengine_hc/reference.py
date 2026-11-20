@@ -184,7 +184,7 @@ def depreciation(cost: Any, salvage: Any, periods: int, method: str,
             elif method == "UNITS_OF_PRODUCTION":
                 charge = (c - s) * units[index - 1] / total
             elif method == "SUM_OF_YEARS_DIGITS":
-                charge = (c - s) * (n - index + 1) / (n * (n + 1) / 2)
+                charge = (c - s) * (n - index + 1) / (Decimal(n * (n + 1)) / Decimal(2))
             elif method == "DOUBLE_DECLINING":
                 charge = balance * Decimal(2) / n
             else:
