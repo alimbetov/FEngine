@@ -1,6 +1,6 @@
 # FEngine — единая спецификация финансово-экономического аналитического ядра
 
-Версия документа: 0.5 (83 model contracts, 81 typed dataset DTO candidates, Python-first hub requirements)
+Версия документа: 0.7 (83 model contracts + OPT-R0 universal planning + GEO-OPT-R0 weighted spatial graphs)
 Дата: 2026-11-20
 Репозиторий: https://github.com/alimbetov/FEngine
 Статус: DRAFT / синхронизация знаний с FIN на 2026-11-20; архитектурное задание; не является свидетельством реализованных расчётов.
@@ -1574,3 +1574,366 @@ evidence для P0, затем P1/P2 по бизнес-приоритету. Д�
 **Нормативный источник KZ_GESV:** постановление Правления АРРФР от 3 апреля 2026 №44, зарегистрировано №38333: https://zakon.uchet.kz/rus/docs/V2600038333. Вступление в силу, дата договора, тип организации и историческая редакция закона должны быть проверены для каждого отдельного расчёта. KZ_GESV ≠ IFRS EIR.
 
 **Приоритет дальнейшего design:** формализовать финансовую applicability, actual FIN source-to-field binding и независимые golden cases для P0, затем P1/P2; Python/Rust implementation остаётся STOP до отдельного явного распоряжения.
+
+---
+
+## 19. FEngine OPT-R0 — Universal Mathematical Modeling, Resource Planning & Optimization
+
+**Дата решения:** 2026-11-20. **Статус:** APPROVED_CONCEPT / DESIGN_ONLY / NOT_IMPLEMENTED / NOT_BENCHMARKED / NOT_PRODUCTION_ADMITTED.
+**Цель:** сделать FEngine универсальной, отраслево расширяемой системой математического моделирования, планирования ресурсов и обоснования управленческих решений. «На все случаи жизни» означает единый расширяемый формализм и реестр solver capabilities, а НЕ обещание, что один алгоритм подходит всем задачам или что все перечисленные модели уже работают.
+
+**Ограничение текущего этапа:** канонический обзор расширения фиксируется в FENGINE_MASTER_SPEC.md; детальные приложения в docs допускаются только по отдельному прямому решению пользователя. Никаких новых исходников, Python/Rust сервисов, миграций, внешних зависимостей и фактических solver-тестов без отдельного разрешения. Прежде чем реализовывать, необходимо закрыть модельные контракты и независимые worked examples. Этот раздел не меняет автоматически статус 83 показателей, 166 форм FIN, 42 аналитических моделей и существующих кандидатных HC.*.
+
+### 19.1. Функциональная граница и бизнес-ценность
+
+FEngine отвечает на три разных вопроса:
+1. **Descriptive:** что произошло? Надёжные факты, показатели, формулы, анализ.
+2. **Predictive:** что может произойти? Прогнозы, сценарии, распределения, интервалы неопределённости.
+3. **Prescriptive:** что делать? Решения (decision variables), допустимые ограничения и математически оптимальные/приближённые варианты.
+
+Виды сущностей не смешиваются: FACT ≠ ASSUMPTION ≠ DECISION ≠ SOLVER_RESULT ≠ BUSINESS_APPROVAL. Результат оптимизатора является предложением плана, но не новой финансовой проводкой/фактом и не автоматически утверждённой стратегией. Финансовые показатели из Metric Graph могут задавать коэффициенты, цели или ограничения; обратная связь план → прогноз формирует отдельный scenario output, а не меняет исходный FactSet.
+
+Основные отраслевые шаблоны: производство/BOM, мощность оборудования, персонал и смены, закупки/запасы, транспорт/склады/маршруты, бюджет и cashflow, CAPEX-портфель, энергетика и накопители, стройка/проектная сетка, торговый ассортимент и цены, банковский капитал/ликвидность, агро/земля/вода, healthcare/сервисные расписания, госбюджет/социальная инфраструктура. Шаблон — набор типизированных параметров и правил, не отдельный движок. Разрешено подключать новые отрасли без изменения core DSL.
+
+### 19.2. Универсальная модель OPT
+
+Канонический OptimizationModelRevision включает:
+- modelCode, modelRevision, schemaRevision, modelClass, domainTags, descriptive purpose, ownerScope, tenantRef, applicable profiles, approval status, effective dates, immutable modelSha256;
+- decisionVariables[]: code, domain (CONTINUOUS/INTEGER/BINARY/SEMICONTINUOUS при поддержке solver), indexed dimensions, bounds, unit/currency, time basis, integrality and optional initial guess;
+- parameters[]: typed sources (FactSet revision/Metric revision/assumption revision), values, units, scenario overrides, provenance, missing/null/NA semantics;
+- objectiveTerms[]: MIN/MAX, scalar expression, multiple weighted/lexicographic/Pareto objectives with fully pinned priority and weights; optimisationDirection;
+- constraints[]: linear rows, equalities, upper/lower bounds, indicator constraints, piecewise constraints, network/precedence/cumulative constraints only for declared solver capability; hard/soft, penalty, name, business explanation and numeric tolerance policy;
+- coefficientTensor: dense or sparse COO/CSR, dimension names/keys (product/site/period/etc.), row/column alignment, declared precision, canonical coordinate ordering, immutable tensor content SHA;
+- timeHorizon: periodStart/periodEnd, calendar/timezone and bucket policy, initial conditions, terminal policy; event-time vs period-time not interchangeable;
+- uncertaintyModel: deterministic/scenario-tree/distribution/uncertainty sets, scenario probabilities, correlation and seed provenance, nonanticipativity by information stage;
+- solverPolicyRevision: algorithm class, candidate backends, required capabilities, time/memory/node budgets, mipGap/optimality/feasibility tolerances, deterministic settings, parallelism and stop conditions;
+- outputContractRevision: required result shape, decision rows, resource utilization, objective values, feasibility diagnostics, scenario comparison and reporting units;
+- compilation references: dependency graph / model AST version / source SHA / scenario SHA / numeric policy SHA / solver artifact and library versions.
+
+**Нет произвольного eval/exec, SQL или пользовательских Python-скриптов внутри модели.** Только безопасный, типизированный DSL/AST с валидацией и белым списком операторов. Символьные expression/constraint AST независимы от Python, Rust и конкретного solver. Сложные nonlinear/custom models не считаются допустимыми, пока их конкретная capability не реализована и не прошла gate.
+
+Типовые условные семейства выражений: CONST, REF, ADD, SUB, MUL_CONSTANT, SUM, DOT, MATMUL, MIN/MAX_REFORMULATION при проверенной линейной редукции, ABS_LINEARIZATION, IF/THEN только для поддерживаемых indicator constraints, TIME_SHIFT, BALANCE, INDEX_FILTER, GROUP_SUM. Нелинейное произведение двух decision variables запрещено в LP и требует QP/NLP capability. Величины без совместимых единиц, валют, периода и scope отклоняются компилятором; FX/единицы требуют версионированную операцию приведения.
+
+### 19.3. Классы математических задач, а не отдельные сервисы
+
+| Family | Solver semantics / пример | Первый статус |
+|---|---|---|
+| LA | матрицы, разложение, системы линейных уравнений и балансы | CANDIDATE |
+| LP | simplex/dual simplex/interior point, оптимальный ресурсный план | PILOT_TARGET |
+| MILP | бинарный выбор, партии, смены, проектный портфель | CANDIDATE |
+| QP/MIQP | квадратичные затраты/риски с проверенной выпуклостью | RESEARCH |
+| NLP/MINLP | нелинейные функции, локальные/глобальные решения с явными гарантиями | RESEARCH |
+| NETWORK | min-cost flow, assignment, matching, многоскладские перевозки | CANDIDATE |
+| CP/SCHEDULE | технологические зависимости, календари, расписания и мощности | CANDIDATE |
+| DYNAMIC | multi-period balances, rolling horizon, stock/flow propagation | PILOT_TARGET |
+| STOCHASTIC | scenario tree, expected value, chance constraints, CVaR | RESEARCH |
+| ROBUST | worst-case planning, uncertainty sets, bounds | RESEARCH |
+| SIMULATION | Monte Carlo/discrete events/queue simulation для оценки политик | RESEARCH |
+| MULTIOBJECTIVE | weighted/lexicographic, Pareto frontier and trade-offs | CANDIDATE |
+| INPUT_OUTPUT | межотраслевой баланс, матрица Леонтьева (I-A)x=d, устойчивость и проверка невырожденности | CANDIDATE |
+| HEURISTIC | маршрутизация/большие сложные задачи, явный gap/unknown guarantee | RESEARCH |
+
+Каждый solver plugin публикует версионированный CapabilityDescriptor: supported variable types, expressions, constraint classes, objective modes, batch sizes, max dimensions, feasible/optimality guarantees, license/deployment, precision and output diagnostics. Preflight отклоняет неподдерживаемую модель с UNSUPPORTED_CAPABILITY; **никаких тихих замен MILP → LP или nonlinear → linear**, и «решение найдено» не эквивалентно «оптимальность доказана».
+
+Рекомендуемый будущий стек: Python reference — NumPy/SciPy/HiGHS для LA/LP/MILP, OR-Tools для некоторых routing/CP-SAT/assignment (раздельные адаптеры); алгоритмы и API закрепляются по версиям. Rust — только для подтверждённо выгодных numerical kernels, не обязательный rewrite независимого solver. Сложные mixed-integer solver могут оставаться специализированной библиотекой под единым Python Calculation Hub. Окончательный выбор зависит от capability review, лицензий и E2E benchmarking. Пока никакая зависимость не установлена.
+
+### 19.4. Связь с существующим Calculation Hub, Metric Graph и FIN
+
+Использовать один существующий control/data protocol из разделов 17–18 и документа FENGINE-PY-R0:
+- InputContractDTO / DatasetManifestDTO / immutable SessionRevision → typed coefficient/constraint/parameter datasets;
+- CalculationPlanDTO → точные methodRevisionRef, paramsRevisionRef, solverPolicyRevision, dataset and model SHA, artifact SHA, taskCode, result shape, admission class;
+- CalculationResponseDTO остаётся тем же root: results[] → CalculationResultSetDTO.rows[] → CalculatedRowDTO.values[]. Новые **типизированные result shapes** включают DECISION_VECTOR, RESOURCE_SLACKS, OBJECTIVE_BREAKDOWN, OPTIMIZATION_DIAGNOSTICS, SENSITIVITY_MATRIX, SCENARIO_COMPARISON, TIME_SERIES_PLAN; исключения и статусы — отдельные документированные поля существующих status/value-state contracts либо следующей их версией, но не второй response envelope.
+- ScenarioRevision ссылается на неизменяемую base Session и только permitted overrides. Изменение любого оптимизируемого параметра означает новый execution binding и новый job/idempotency identity; base dataset chunks могут повторно использоваться по SHA.
+- Result lineage связывает solution rows → variable/constraint/source metric revisions, scenario, solver policy, actual solver+library+build artifact, logs and validation certificate.
+- FIN fin_intake/fin_fact остаются в своём trusted bounded context. FEngine не пишет туда напрямую. Экспорт финального плана/прогноза — отдельный reviewed adapter/approval workflow. Производственный уровень допуска требует отдельного финансового S2, где применимо.
+
+OptimizationPlan не обязан быть частью финансового DAG на уровне внутренних переменных: **один оптимизационный solver-узел** является атомарным исполняемым узлом DAG, а зависимость между периодами и переменными решается внутри его формальной модели. Это предотвращает ошибочное представление круговых ограничений как недопустимых циклов Metric Graph.
+
+### 19.5. Кандидатные taskCode и reuse существующих HC.*
+
+| taskCode | Семейство | Результат | Связь |
+|---|---|---|---|
+| OPT.MATRIX.BALANCE.V1 | LA / input-output | MATRIX_RESULT | ECO-03, HC.COST.02 |
+| OPT.LP.RESOURCE.V1 | LP | OPTIMIZATION_PLAN | HC.PLAN.04, HC.COST.04 |
+| OPT.LP.TRANSPORT.V1 | NETWORK/LP | OPTIMIZATION_PLAN | ECO-09 |
+| OPT.MILP.CAPACITY.V1 | MILP | OPTIMIZATION_PLAN | HC.PLAN.04 |
+| OPT.MILP.SHIFT.V1 | MILP/CP | SCHEDULE_PLAN | HC.PLAN.06 |
+| OPT.MILP.CAPEX.V1 | MILP | PROJECT_PORTFOLIO | HC.PLAN.08 |
+| OPT.DYNAMIC.INVENTORY.V1 | DYNAMIC | TIME_SERIES_PLAN | HC.PLAN.03 |
+| OPT.DYNAMIC.CASH.V1 | DYNAMIC/LP | CASH_PLAN | HC.PLAN.01/07 |
+| OPT.SCENARIO.SENSITIVITY.V1 | SCENARIO | SENSITIVITY_MATRIX | HC.DCF.09 |
+| OPT.STOCHASTIC.PORTFOLIO.V1 | STOCHASTIC | SCENARIO_COMPARISON | HC.RISK.01/03 |
+| OPT.NETWORK.ROUTE.V1 | NETWORK/HEURISTIC | ROUTE_PLAN | ECO-09 |
+| OPT.CP.PROJECT.V1 | CP/SCHEDULE | SCHEDULE_PLAN | HC.PLAN.05 |
+
+Это **кандидатные taskCode**, не заявленные реализации, не новая серия финансовых форм и не дубликаты HC.PLAN.01–08. Одна математическая модель может применяться несколькими отраслевыми taskCode при одинаковом exact typed contract; каждый taskCode должен иметь методику, golden fixture, capability preflight и допустимый result shape. До qualification все — DESIGN_ONLY.
+
+### 19.6. Базовая формальная постановка
+
+Для детерминированной LP:
+  maximize/minimize c^T x + c0;
+  subject to L <= A x <= U; l <= x <= u.
+Скалярная цель, типы x, единицы c и A, размерности [m×n], порядок индексов, совместимость валют и политика округления фиксируются. Нельзя приводить MONEY/DECIMAL к float64 как бухгалтерскую истину: для численного solver допустимо контролируемое scaling → numerical solve → high-precision residual/postsolve verification against original decimal inputs. При выходе за допуски — NUMERICAL_INVALID, не тихий SUCCESS. Не обещать битовой идентичности решений разных версий и алгоритмов при равных оптимумах; поддерживать canonical tie-breaker только когда явно задан.
+
+Многопериодные инварианты:
+  inventory[t] = inventory[t-1] + arrivals[t] + production[t] - demand[t] - scrap[t];
+  cash[t] = cash[t-1] + inflows[t] - outflows[t];
+  capacityUse[resource,t] <= capacityAvailable[resource,t].
+Учитывать lead time, перенос остатков, дискретность закупок, отсутствие будущей информации при решениях прошлого периода (nonanticipativity), праздники/календари, границы горизонта, единицы измерения и отрицательные запасы только если явно разрешены моделью.
+
+Для multiobjective: лексикографический приоритет, target constraints или нормированные веса; выбор и нормировка зафиксированы в modelRevision. Для сценариев: baseline, optimist/pessimist/stress — пользовательские метки, а не факты; сравнение требует одинаковой финансовой и временной базы. Для stochastic: нормированные вероятности, источник распределения/корреляций, seed, confidence interval и ограничения информации по стадиям.
+
+### 19.7. Результаты и объяснимость
+
+Минимальный OptimizationResultDTO (логическая схема внутри CalculationResponseDTO):
+- executionId, taskCode, modelRevisionRef, scenarioRevisionRef, resultSchemaRevision, immutableResultSha, exact input lineage;
+- solverStatus: OPTIMAL / FEASIBLE_NOT_PROVEN / INFEASIBLE / UNBOUNDED / TIME_LIMIT_NO_FEASIBLE / NUMERICAL_INVALID / UNSUPPORTED_CAPABILITY / CANCELLED / SYSTEM_ERROR;
+- certifiedObjectiveValue (если валиден), objectiveBound (если solver вернул), abs/relative optimality gap, feasibility tolerance and max constraint residual, runtime, solver library/build/version/options, deterministic seed when used;
+- variableValues[]: variableCode + full dimension keys + value/unit; constraintDiagnostics[]: constraintCode, LHS, bound, slack/violation/unit, binding state;
+- dualValues/reducedCosts **только для поддерживаемой непрерывной LP и valid solver basis**, не для произвольного MILP/CP; basis/sensitivity ranges только при доказанной solver support;
+- warnings, limitation/assumption refs, expected vs actual guarantees, reproducibility receipt;
+- decision alternatives, scenario comparisons and mathematical sensitivity with explicit uncertainty.
+Ни INFEASIBLE, ни UNBOUNDED не должны давать fabricated zero plan. Время исполнения и наличие feasible solution не гарантируют proof of global optimum.
+
+### 19.8. Форматы данных, безопасность и экономика исполнения
+
+Tensor input хранит dimension IDs, stable sort order, unit, exact source revision и content hash; поддерживает sparse storage для больших моделей. Наличие отсутствующих coefficients запрещено интерпретировать как 0 без явной sparse-zero policy. Validation: shape, unique axis keys, finite numerical range, dimension-conformity, empty sets, over/under-determined constraints, duplicates, bound contradictions, negative prices/quantities where forbidden, and independent feasibility checks.
+
+Runtime constraints per tenant and request: max model vars/constraints/nonzero entries/bytes, solver CPU seconds and wall timeout, memory cap, parallel solve quota, session permissions, cancellation, bounded logs and safe cleanup. Solver plugin executes without arbitrary network/filesystem/system calls from user expressions, with restricted inputs and reviewed artifact versions. Admission logic fail-closed; idempotent replay binds exact model+scenario+solverPolicy+dataset hashes; stale result forbidden. Independent recheck of all hard constraints after solver, no overwrite of immutable result.
+
+Caching: reuse compiled model only when structure+axis schema+solver version+numeric policy match; reuse numerical solution only when **all** coefficient data/objectives/bounds/scenario/permissions and solver policy hashes match. Warm-start is advisory, never proof of correctness. One Calculation Session may run multiple what-if jobs; each run gets a distinct key when its binding differs.
+
+### 19.9. Planning Studio (future UI)
+
+Excel-like model grid with typed dimensions, copy/paste/CSV import, pivot and sparse-matrix preview; custom variables/objectives/constraints with validation hints; resource capacity bars, time-series charts, Gantt-like schedule, bottleneck map, dual-price table where supported. Editable DRAFT scenario → server-side validation → sealed immutable revision → async solve → readonly result + downloadable proof/lineage + scenario comparison. Scenario editor never rewrites FactSet. Show OPTIMAL vs FEASIBLE_NOT_PROVEN prominently; surface INFEASIBLE with constraint conflict hints and model assumptions. Visual parameters cannot bypass schema/unit/S2/security gates.
+
+### 19.10. Независимые контрольные примеры (обязательные перед кодом)
+
+| ID | Постановка / эталон | Проверки |
+|---|---|---|
+| OPT-G01 | max 40a+50b, a+2b<=100, 3a+b<=120, a,b>=0. Эталон: a=28, b=36, Z=2920 | Ax<=b, exact objective, LP optimality |
+| OPT-G02 | dual G01: resource shadow prices 22/hour and 6/kg, dual objective 22*100+6*120=2920 | strong duality, dual feasibility/complementary slackness |
+| OPT-G03 | MILP max 3x+4y, 2x+3y<=7, integer x,y>=0. Эталон x=2,y=1,Z=10; continuous optimum 10.5 | integrality, LP relaxation not substituted |
+| OPT-G04 | x>=10 and x<=5 | INFEASIBLE, no fictitious solution |
+| OPT-G05 | max x, x>=0, without finite upper bound | UNBOUNDED |
+| OPT-G06 | inventory0=10, period1 production0/demand7→inventory1=3, period2 production9/demand11→inventory2=1 | time balance and boundary conditions |
+| OPT-G07 | model money in KZT, consumption in kg, foreign USD input without pinned FX | reject dimensional/currency mismatch |
+| OPT-G08 | same idempotency key with changed RHS of a constraint | conflict, not cached success |
+| OPT-G09 | same objective with two equal optima | valid objective and feasibility; no forced identical basis without tie-breaker |
+| OPT-G10 | timeout with valid incumbent but unclosed gap | FEASIBLE_NOT_PROVEN, bound/gap if available |
+| OPT-G11 | scenario branch with decision depending on future unknown demand | reject nonanticipativity violation |
+| OPT-G12 | solver returns violating rounded decision or NaN | NUMERICAL_INVALID/no admission |
+| OPT-G13 | different tenants, same mathematical data/model | no cross-tenant reads or cache authorization bypass |
+| OPT-G14 | unsupported nonlinear multiplication in LP | UNSUPPORTED_CAPABILITY at preflight |
+| OPT-G15 | model changes while another execution is in flight | immutable old result, new revision/job, no stale commit |
+| OPT-G16 | solver crash/worker lease expired/replay | at-least-once execution, one fenced committed outcome and archived receipt |
+
+Test strategy: golden independent analytical solutions; property/metamorphic (row permutations, scaling with checked units, extra redundant constraints, increased nonbinding capacity cannot worsen valid maximization); LP primal/dual residuals, MILP integrality and gap; solver-version pinned regression; PostgreSQL crash/idempotency/tenant checks when implementation is authorized. Actual PASS status is NOT CLAIMED.
+
+### 19.11. Delivery roadmap with explicit qualification gates
+
+| Stage | Artifact | Gate |
+|---|---|---|
+| OPT-R0.0 | этот дизайн, coverage taxonomy, ownership boundaries | architecture review |
+| OPT-R0.1 | typed OptimizationModel DSL/AST and solver CapabilityDescriptor, exact SHA canonicalization, DTO shapes | schema/negative tests |
+| OPT-R0.2 | independent goldens G01–G16; Python reference LA + LP resource problem | math proof + numerical residual acceptance |
+| OPT-R0.3 | MILP, min-cost flow, infeasible/unbounded explanations | integer/capability correctness |
+| OPT-R0.4 | multi-period balances and scenario revision binding | temporal/information-set correctness |
+| OPT-R0.5 | Planning Studio editable draft/immutable execution, diagrams, scenario comparison | end-to-end browser qualification |
+| OPT-R0.6 | industry templates: manufacturing, logistics, CAPEX, personnel, energy | each scenario independently qualified |
+| OPT-R1+ | specialized CP, QP, nonlinear, stochastic/robust, simulation where justified | capability-specific reviews, performance and mathematical validity |
+
+**Первый E2E vertical slice после отдельного разрешения:** fact-backed source inputs → typed A,b,c model → immutable scenario → LP solve → numerical verification → single OPTIMIZATION_PLAN ResultSet → reliable archival/ACK and UI scenario comparison. No new central optimizer service; reuse Calculation Hub jobs, session, leases/fencing, admission and results. No unconditional Rust conversion.
+
+### 19.12. Design decisions / открытые ADR
+
+- OPT-ADR-01: exact serialization/canonicalization for sparse tensor, unit and dimension IDs.
+- OPT-ADR-02: separate mathematical model immutability vs scenario overrides and rights.
+- OPT-ADR-03: LP postsolve high-precision check and signed financial/solver numeric policy.
+- OPT-ADR-04: licensed/OSS solver matrix and deterministic acceptable outcome guarantees.
+- OPT-ADR-05: design of time-indexed graph and scenario-tree information sets.
+- OPT-ADR-06: solver logs, sensitivity limits, infeasibility explanation and what may be audited.
+- OPT-ADR-07: production approval of a plan vs execution of an optimization vs writeback to FIN.
+- OPT-ADR-08: maximum instance sizes, synchronous previews vs async jobs and SLO benchmarks.
+- OPT-ADR-09: how to integrate OPT outputs into dashboards/financial reports without creating fake financial facts.
+
+**Release boundary:** DESIGN_ONLY. «Все случаи» достигаются расширяемыми моделями, capabilities и отраслевыми templates, а не универсальным непроверяемым algorithm switch. Начинаем с одной доказанной LP вертикали и расширяем по отдельным квалификационным gate.
+
+---
+
+## 20. FEngine GEO-OPT-R0 — Universal Weighted Spatial Graph Engine
+
+**Решение:** расширить FEngine OPT пространственными взвешенными графами; единый пространственный слой служит маршрутизации, иерархической оптимизации, потокам, размещению ресурсов, территориальному покрытию и проектированию сетей.
+**Дата:** 2026-11-20.
+**Статус:** APPROVED_CONCEPT / DESIGN_ONLY / NOT_IMPLEMENTED / NOT_TESTED / NOT_PRODUCTION_ADMITTED.
+**Связь:** OPT-R0 (§19), Metric Graph / CalcPlan / Calculation Session (§§4,7,17–19), существующие HC.PLAN.01–08 (§18); GEO-OPT не создаёт второй calculation engine, второй финансовый FactSet или новую FIN-форму.
+**Scope:** сейчас дополнение к единому FENGINE_MASTER_SPEC.md. Договор на будущий исходный код, SQL/PostGIS-миграции, UI и рабочий solver требует отдельного согласования и приёмки.
+
+### 20.1. Концептуальная модель: hierarchy != routing != flow
+
+Вход: центральная точка ROOT и иерархические дочерние/внучатые узлы; ветви могут иметь 20–60 уровней (не путать с 20–60 узлами на одном уровне). Модели должны одинаково корректно описывать географическую сеть дорог и абстрактную инфраструктуру (электрические, кабельные, трубопроводные, логистические и внутренние инженерные сети).
+
+Обязательное логическое разделение:
+1. **HierarchyGraph:** parent-child, depth, subtree, branch ownership. Для строгого дерева один parent на узел и отсутствие циклов; опциональная DAG-hierarchy допускается только с явным контрактом множественных родителей и дедупликацией при агрегации.
+2. **RoutingGraph:** разрешённые directed/undirected переходы между узлами; независимые межветвевые и обходные связи; географическая близость не создаёт физический переход автоматически.
+3. **FlowNetwork:** ёмкости, баланс потоков, supply/demand и потери на рёбрах/узлах; маршрут движения и структура потоков необязательно совпадают.
+4. **SpatialGeometry:** координаты точек, геометрия полилиний, полигоны/зоны и CRS; граф является топологией, геометрия не определяет право прохода.
+5. **TemporalScenario:** immutable snapshot графа + применимые в конкретный момент веса/ограничения/доступность, без мутации historical revision.
+
+Иерархические рёбра сами по себе НЕ ROUTABLE. Три альтернативы из чистого дерева по единственному пути невозможны; добавлять фиктивные маршруты запрещено. K=3 означает **до трёх реально существующих допустимых путей**.
+
+### 20.2. Версионируемый доменный контракт
+
+| Entity / DTO | Обязательная семантика |
+|---|---|
+| GeoGraphDefinition / GeoGraphRevision | tenant/scope, graphId, graphKind, graphRevision, schemaVersion, CRS policy, topologySha256, applicable dates, source provenance, state, immutable revision |
+| GeoNode / GeoNodeRevision | stable nodeId, nodeType, coordinates (optional for abstract graph), geofenceRef, altitude/level if applicable, status, attributes with typed units, source revision |
+| GeoHierarchyRelation | relationId, parentId, childId, relationKind, active version, optional branchId, depth semantics; no implicit routing edge |
+| GeoEdge / GeoEdgeRevision | edgeId, fromId, toId, direction, edgeType, optional line geometry, network datasource, transition policy, capacity and closure state |
+| GeoZone / GeoZoneRevision | polygon/multipolygon, CRS, access/coverage restrictions, effective window, allowed node/vehicle types |
+| GeoWeightDefinition / GeoWeightProfileRevision | weightCode, subject NODE/EDGE/BRANCH/ZONE, semanticKind, unit, valueType, orderDirection, aggregationPolicy, timeSemantics, currency/basis, source and policy revision |
+| GeoWeightValue / GeoWeightValueRevision | subjectId, weightDefinitionRef, typed value/valueState, unit, currency, validFrom/validTo, source dataset/metric/assumption reference, exact content hash |
+| GeoRouteScenarioRevision | immutable graphRevision, source/targets/waypoints, time and horizon, transport/policy mode, allowed/blocked types, weight overrides and applied source SHA, solver policy |
+| GeoRouteRequest / GeoRouteResult | taskCode, k, objectives/constraints, selection/distinctness policies, ordered reachable paths, results+diagnostics+lineage via common CalculationResponseDTO |
+| GeoBranchAggregateRevision | aggregation of specifically declared additive or non-additive weights over descendant set, dedup policy, aggregate SHA, source versions |
+| GeoNetworkOptimizationPlan | versioned location/flow/coverage/network design model for existing FEngine OPT model DSL, not an independent optimizer |
+
+Stable IDs must be separate from coordinates, display labels, order in UI, and parent path. Deleting a node produces new graphRevision; old sealed revisions remain reproducible. Topology and source geometry may change independently but are resolved together into one exact execution binding.
+
+**Coordinates:** for geographic input use WGS84 geographic SRID 4326, with explicit latitude [-90,90] / longitude [-180,180], precision, axis order and date/CRS provenance. Geodesic distance is not equal to planar length in degrees. Meter-based operations require geography geodesic model or an appropriate explicitly selected projection. Indoor/engineering local XYZ, floor/altitude, vertical datum, 3D and mixed CRS require explicit transform or UNSUPPORTED_CRS; no silent assumptions. Coordinates may be absent for valid logical graph nodes, but map routing requires a geometric data source. Edge's straight line is only visualization; it does not establish road/drone/pipe/cable feasibility. Road routes additionally require a verified road-network source and applicable permissions/vehicle policy.
+
+### 20.3. Weight semantics — не один числовой score
+
+Три базовые области: NODE_WEIGHT, EDGE_WEIGHT, BRANCH_AGGREGATE; дополнительно ZONE_WEIGHT and SCENARIO_WEIGHT_POLICY. Вес может быть положительной стоимостью, полезностью, ограничением, ёмкостью, demand, вектором риска, вероятностью, порядковым приоритетом или измеренным состоянием — **не всё является слагаемым суммарной стоимости**.
+
+| Семейство | Кандидатные weightCode | Как использовать |
+|---|---|---|
+| DISTANCE/TIME | edge.length, edge.travelTime, node.serviceTime | стоимость перехода и обслуживания с учётом transportMode |
+| COST | edge.moneyCost, node.serviceCost, branch.maintenanceCost | целевая стоимость после проверки валюты/даты |
+| SUPPLY/DEMAND | node.supply, node.demand, branch.totalDemand | ограничения баланса и capacity |
+| CAPACITY/LOAD | node.capacity, edge.capacity, node.currentLoad, edge.currentFlow | ограничения (не «плюс к стоимости») |
+| PRIORITY/REWARD | node.priority, node.visitReward, node.mandatoryFlag | обязательное посещение, штраф за пропуск, prize collecting |
+| RISK/RELIABILITY | edge.risk, node.failureProbability, branch.reliability | явно нормированная целевая функция или надежностное ограничение |
+| ACCESS/TYPE | node.accessClass, edge.allowedNodeTypes, edge.allowedModes | жёсткая допустимость, не скалярный штраф по умолчанию |
+| ENERGY/ENVIRONMENT | edge.energyConsumption, node.powerDemand, edge.emissions | ресурсы, суммарные бюджеты, ограничения |
+| RESILIENCE/STATE | node.available, edge.closed, node.backupRole | маршрутизация/резервирование и scenario state |
+| TEMPORAL | trafficWeight(t), demand(t), capacity(t), serviceWindow(t) | временно-зависимый поиск и оптимизация |
+| SPATIAL/ZONE | altitude, slope, zone.penalty, zone.forbidden | геометрически обусловленные ограничения, только с доказуемой моделью |
+
+GeoWeightDefinition требует:
+weightCode, semanticKind (COST/REWARD/CAPACITY/DEMAND/RISK/PRIORITY/FLAG/MEASURE), subjectKind, typed unit, currencyPolicy, timeSemantics (INSTANT/INTERVAL/FUNCTION), aggregationOperator (SUM/MIN/MAX/WEIGHTED_AVG/PRODUCT/CUSTOM_TYPED/NONE), direction/validRange, null/NA/zero policy, allowed source/override policy, modelRevision and immutable SHA.
+Профиль может содержать много кодов, но не динамический untyped map. Изменение ставки/веса/периода = новая ревизия профиля или scenario override с SHA. Неизвестный вес/нормировка = explicit validation error, не молчаливое значение 0. Нормализация и коэффициенты целей фиксируются в objective policy. Приоритеты, запреты и минимальные гарантии должны по умолчанию быть ограничениями/лексикографическими правилами, а не спрятанными внутри суммы.
+
+**Стоимость посещения узла:** модель явно задаёт chargePolicy = EACH_ENTRY / ONCE_PER_PATH / ONCE_PER_SERVICE / EXCLUDE_TERMINALS; стоимость входа и обслуживания нельзя посчитать дважды из node и edge без documented decomposition. Для маршрута P при аддитивной стоимости C(P)=sum(edgeCost(e) for traversed edges)+sum(nodeCost(v) for counted visits), где transit, service and start/end policies pinned. Если есть отрицательные награды, не превращать их в отрицательные Dijkstra/Yen edge costs: использовать capability для orienteering/prize-collecting или иной корректной постановки.
+
+**Агрегация ветвей:** subtreeDemand(v)=localDemand(v)+sum(child subtreeDemand) только в строгом дереве и для SUM-совместимой величины. В DAG/графе дедуплицировать descendant node IDs по явно заданной области; cross-routing edges не являются descendants. Надёжность/риски требуют отдельной модели зависимости отказов; вероятность и priority нельзя просто суммировать. Для depth=60 и более — итеративный traversal с visited/stack, bounded memory и проверкой циклов; не генерировать весь набор возможных потомков как экспоненциальный декартов продукт.
+
+### 20.4. Solver families, multi-route and quality rules
+
+| GEO family / taskCode candidate | Задачи | Алгоритм/capability |
+|---|---|---|
+| GEO.GRAPH.REACHABILITY.V1 | достижимость с типами, запретами, глубиной | BFS/DFS + policy gate |
+| GEO.GRAPH.SUBTREE_AGGREGATE.V1 | веса ветви, критическая нагрузка | tree/DAG aggregation with dedup |
+| GEO.ROUTE.SHORTEST.V1 | один минимально затратный допустимый маршрут | Dijkstra/A* if nonnegative additive edge cost |
+| GEO.ROUTE.TOP_K.V1 | до K loopless shortest путей, default K=3 | Yen K-shortest with nonnegative costs + deterministic tie rule |
+| GEO.ROUTE.DIVERSE_TOP_K.V1 | до 3 существенно разных допустимых маршрутов | candidate generation + typed overlap/diversity constraints, feasibility and ranking |
+| GEO.ROUTE.MULTIOBJECTIVE.V1 | маршрут по стоимости, времени и риску | pinned separate policy objectives / lexicographic / Pareto |
+| GEO.ROUTE.TIME_DEPENDENT.V1 | трафик, временные окна, доступность | time-dependent routing with FIFO property validation or specialized time-expanded model |
+| GEO.NETWORK.FLOW.V1 | материальные/энергетические потоки и bottlenecks | max-flow/min-cost-flow, typed flow conservation |
+| GEO.NETWORK.DESIGN.V1 | сеть соединений между множеством узлов | MST/Steiner/MILP subject to network conditions |
+| GEO.LOCATION.ALLOCATION.V1 | размещение складов/подстанций/филиалов | facility location, p-median/p-center, MILP |
+| GEO.COVERAGE.V1 | покрытие, набор сервисных зон | set cover/max coverage, geofences and resource caps |
+| GEO.VRP.SERVICE.V1 | многоточка, груз, смены, временные окна | VRP/OR-Tools specialized solver |
+| GEO.NETWORK.RESILIENCE.V1 | резервные пути, критические мосты/узлы | bridges, articulation points, edge/node-disjoint routes |
+| GEO.CLUSTER.TERRITORY.V1 | группировка, деление территории на районы | spatial clustering + balanced allocation |
+| GEO.SIMULATION.WEIGHT_SHOCK.V1 | перегрузка/отказ/временное изменение весов | immutable scenario comparison / future simulation module |
+| GEO.GRAPH.CENTRALITY.V1 | центральные, наиболее критичные узлы | typed centrality metrics with definition/policy |
+
+Первые кандидаты к квалификации: REACHABILITY → SUBTREE_AGGREGATE → SHORTEST → TOP_K (K=3) → DIVERSE_TOP_K; остальные — DESIGN_ONLY / CAPABILITY_DEPENDENT.
+
+**Три разных смысловых запроса, не смешивать:**
+1. TOP_K по ОДНОЙ стоимости: первые K (обычно 3) допустимых простых путей с canonical tie-breaker.
+2. DIVERSE_TOP_K: K кандидатов с ограничением сходства, например maxSharedEdgeRatio с явно зафиксированным знаменателем (по количеству или длине) и допустимостью.
+3. MULTIOBJECTIVE: отдельные оптимумы по времени/стоимости/риску или Pareto alternatives; нельзя выдавать три весовые комбинации за доказанный глобальный Pareto frontier без проверки.
+
+Если доступно только 1–2 маршрута, вернуть actualPathCount=1/2, shortageReason=NO_ADDITIONAL_FEASIBLE_PATH; **не дорисовывать** третий путь. Если нет пути, status=UNREACHABLE with validated constraints and diagnostics. При disjoint-required, искать независимые пути подходящим max-flow/disjoint-path solver; если таких путей нет, не подменять их просто «разными» маршрутами. В чистом дереве маршруты root→leaf являются единственными по топологии.
+
+Алгоритм указывается через GEO SolverCapabilityDescriptor: supported graph orientation, negative/nonnegative costs, node vs edge cost policies, time dependence, FIFO compliance, capacity, constraints, exactness, K/diversity, max graph size, CRS, numeric semantics and solver artifact versions. A* heuristic must be admissible (and consistency policy explicit for chosen implementation). Dijkstra/Yen запрещены при отрицательных приведённых стоимостях; негативные цены/награды требуют отдельного solver. Time-dependent FIFO assumption must be checked or explicitly unsupported; naive static weights with changing travel time prohibited. Graph route with direction violation, forbidden node or insufficient flow capacity is invalid even when shortest.
+
+### 20.5. Data-plane, compilation and execution
+
+Общая архитектура: Geo Inputs (points/edges/relations/zones) → type/CRS/topology/weight validation → immutable GeoGraphRevision + GeoWeightProfileRevision → GeoScenarioRevision → GEO-OPT compiler → OPT SolverCapabilityDescriptor → ONE standard Calculation Job → immutable GEO typed ResultSet → report/map projections.
+
+- **Control plane:** existing CalculationPlanDTO/Calculation Session/InputContractDTO; GEO taskCode registered in shared dispatcher. Separate GeoGraphRevision and GeoWeightProfileRevision are referenced by exact content SHA.
+- **Graph storage future option:** PostgreSQL + PostGIS spatial indexes and efficient spatial predicates, optionally pgRouting for road/network shortest paths; alternative in-memory adjacency lists for small abstract graphs; not a mandatory extra database/service.
+- **Routing source:** explicit road/indoor/custom graph reference; no automatic promise of real road path or travel time merely from coordinates. If geodata includes provider/OSM licenses, trace source/license and allowable derivative storage/reuse.
+- **Graph compiler:** validate stable IDs, duplicate edges/axes, missing endpoint, self-loop policy, graph orientation, hierarchy cycles, dimensionality, CRS, spatial accuracy, validFrom/validTo, disconnected components, forbidden types, null weight state, node/edge capacity, negative costs, and solver supported capability.
+- **Shape:** immutable typed GeoGraphDatasetDTO (NODE_TABLE, EDGE_TABLE, HIERARCHY_TABLE, GEOMETRY_DATA, WEIGHT_TABLE, ZONE_TABLE, TIME_PROFILE) in versioned DatasetManifest; batch/chunk immutable manifests for large data. No unbounded embedded JSON graphs.
+- **Execution binding:** graph SHA + geometry SHA + weightDefinition/profile SHA + scenario revision/SHA + source/target and constraint set + objective normalization/weight policy SHA + solver capability, numeric policy, solver artifact build and input dataset SHA, tenant/scope + idempotency. Changed weight/time/location must produce a new job/binding, while unchanged input batches can be shared with permission checks.
+- **Results:** preserve standard CalculationResponseDTO root results[]; specific OutputSchemaRevision for GEO_ROUTE_PATH_SET/GEO_WEIGHT_AGGREGATE/GEO_NETWORK_FLOW/GEO_LOCATION_PLAN (candidates). Each path includes ordered nodeIds/edgeIds, measures by unit, objective component breakdown, travel/service time, type-policy feasibility, constraint residuals, overlap vs peer paths, optional trusted geometry ref and exact source lineage.
+- **Execution:** durable jobs, lease/fencing, replay-safe result commit, rights isolation, archive/ACK and retention from Python Hub contract. No uncontrolled dynamic Python eval, JS eval, arbitrary user SQL or free-form solver plugin.
+- **Postsolve verifier:** independently recompute path connectivity, direction, allowed node/edge types, all hard constraints, node-visit charging, resource sums, metric/currency/time semantics and claimed objective. Solver result that violates any becomes INVALID_RESULT / blocked admission.
+- **No user-facing distance/time claims** until actual datasource and routing policy provide grounded metrics; geometric straight-line distance may be shown only as labeled estimate, not driving distance.
+
+### 20.6. Performance, large hierarchy and dynamic weights
+
+Performance is bounded by **actual V/E, graph sparsity, geometry complexity, candidate path count and solver class**, not just '60 levels'. Не разворачивать все возможные пути и комбинации: глубина 60 при branching factor 3 порождает потенциально экспоненциальное число потомков/путей. Использовать индексированные adjacency, lazy traversal, pruning, spatial index, bounded priority queues, maxPaths/maxCandidates/maxDepth/maxVisitedNodes/maxWorkUnits/maxRuntime/maxMemory and cancellation. Heavy tasks run asynchronously; prioritize common Hub tenant quotas and workload admissions, not unbounded per-request parallelism.
+
+Dynamic values: eventTime / effectiveTime / observedAt / ingestedAt with source validity; traffic, capacity, shutdowns and demand are exact scenario snapshots (or versioned functions). Hot data cannot silently mutate an in-flight sealed execution. A later update invalidates derived cache via dependency closure / new scenario revision. Cache key includes all relevant source and algorithm revisions; cross-tenant cache retrieval always rechecks access. Route planning can use different model time (departAt, arriveBy, timetable), with declared timezone/calendar and time-dependent edge profiles.
+
+No committed p95/p99, capacity claim or Rust speedup until benchmarked on realistic synthetic and permitted datasets. Dedicated Rust graph kernels, specialized routing database, OR-Tools, H3/other indexing may be evaluated after reference correctness and end-to-end measurement; they are NOT new mandatory services.
+
+### 20.7. Golden fixtures and negative acceptance (design requirements only)
+
+| Case | Input | Required outcome |
+|---|---|---|
+| GEO-G01 | directed ROOT→A(2)→T(3), ROOT→B(3)→T(4), ROOT→C(4)→T(5) | TOP_K(3) has paths A/B/C with objective costs 5,7,9 |
+| GEO-G02 | GEO-G01 + disallow node B | exactly two paths A/C, costs 5/9, no invented third |
+| GEO-G03 | strict hierarchy ROOT→A→A1, 60-deep parent chain, no cross-route edges | max depth=60, unique ancestor/path, bounded traversal |
+| GEO-G04 | GEO-G01 add node A visit fee 4, EACH_ENTRY | A path cost 9, B path 7, C path 9; deterministic tie rule |
+| GEO-G05 | branch A local demand 4 and child A1 demand 2 | additive subtreeDemand(A)=6; no route-edge double count |
+| GEO-G06 | DAG two parents share one descendant of demand 5 | each eligible aggregate counts descendant once per declared scope |
+| GEO-G07 | negative transformed routing edge cost under Dijkstra-only capability | unsupported/blocked, not success |
+| GEO-G08 | disconnected target or forbidden path type | UNREACHABLE, no fake path |
+| GEO-G09 | reverse-only directed edge | cannot traverse forward |
+| GEO-G10 | node/edge capacity lower than demand | infeasible route/flow, explain bottleneck |
+| GEO-G11 | WGS84 latitude 95 or CRS mixed without transform | invalid geographic input |
+| GEO-G12 | first run graph A, then change edge weight in B | old immutable result stable, distinct new binding/cache key |
+| GEO-G13 | same idempotency key but changed scenario RHS or weight | conflict, never return cached old result |
+| GEO-G14 | two tenants identical graph content | tenant read/cached route isolation and ACL checks |
+| GEO-G15 | stale worker after lease/fencing, crash/restart | at-most-one committed immutable outcome per scoped key |
+| GEO-G16 | K=3 with disjoint-required but only 2 edge-disjoint routes | return 2 with shortage reason, no overlap fraud |
+| GEO-G17 | dynamic route violates time-dependence/FIFO policy | unsupported or verified specialized solver, never static shortest misrepresentation |
+| GEO-G18 | graph has cycle plus valid hierarchy/tree contract | invalid hierarchy (routing cycle independently allowed) |
+| GEO-G19 | null demand versus explicit zero demand | different states, no silent zero substitution |
+| GEO-G20 | 2D geographic edge in degrees treated as meter length | unit/CRS violation |
+| GEO-G21 | two alternatives share all but trivial terminal edge, min-diversity ratio configured | filtered or reported, not called independent |
+| GEO-G22 | concurrent hotspot weight updates during sealed job | exact snapshot consistency / immutable result and revised next job |
+
+Independent reference examples, baseline path enumerator for small graphs, deterministic edge-order permutations, numeric objective re-evaluation and negative/property tests are mandatory before any status=TECHNICALLY_VERIFIED. Status PASS is **not claimed** by this document.
+
+### 20.8. Product projection: Universal Weighted Spatial Graph Studio (future)
+
+Two synchronized views on one sealed graph:
+- hierarchical tree/branch panel: ROOT/children/descendants, depth 20–60 via virtualized lazy expansion, aggregated weights and branch bottlenecks;
+- map/engineering canvas: GPS/indoor map, typed nodes, edges, restricted zones, route highlights and altitude/floor layers if supported.
+
+Editor (DRAFT only) handles import CSV/GeoJSON/typed network datasets, manual placement, node/edge weight matrix, temporal overrides, dimension and unit validators. Users can request (a) Top 3 cheapest, (b) Top 3 diverse, (c) min time / min cost / min risk, (d) capacity allocation / coverage / flow. Sealing produces immutable graph/scenario revisions, job runs asynchronously and result becomes read-only; edits create new revisions. A path card must show objective, traversal edges, node charges, capacity and policy checks, overlap/difference and reproducibility hash. Map drawing does not qualify solver result.
+
+### 20.9. Milestones and ADR
+
+| Stage | Deliverable | Evidence gate |
+|---|---|---|
+| GEO-R0.0 | This design and OPT-R0 integration boundary | documented architecture, DESIGN_ONLY |
+| GEO-R0.1 | Typed GeoNode, GeoEdge, HierarchyRelation, CRS and WeightDefinition/Profile, schema and hashing | formal DTO/negative schema cases |
+| GEO-R0.2 | Graph compiler, hierarchy validation, subtree aggregate and reachability | golden fixtures, cycle, scale and reuse tests |
+| GEO-R0.3 | Single shortest path with independent postsolve verifier | Dijkstra/A* gates, unit and type correctness |
+| GEO-R0.4 | Top 3 loopless, diverse/disjoint route policies and diagnostics | G01–G22, no fake 3rd result |
+| GEO-R0.5 | Calculation Hub job/session integration, graph snapshots, lease/tenant/idempotency | PostgreSQL + crash and isolation E2E |
+| GEO-R0.6 | Multi-criteria, flow/capacity, coverage, location/allocation, time-dependent models | per-solver qualified examples |
+| GEO-R0.7 | Graph Studio map/tree UI, scenario comparisons, 20–60 hierarchy virtualization | browser end-to-end, benchmark, UX |
+| GEO-R1+ | VRP, project/utility network design, failure simulation, high scale | workload-specific benchmarks and independent approval |
+
+Open ADR: GEO-ADR-01 hierarchy tree versus DAG contract; -02 coordinate/altitude CRS and local engineering transforms; -03 weight aggregation and missing states; -04 road data source/licensing and topology ownership; -05 negative costs / node reward formulation; -06 path diversity and tie policy; -07 temporal FIFO/non-FIFO capability; -08 data volume and solve SLO; -09 visibility/security of sensitive critical infrastructure; -10 integration with FIN project planning and production S2.
+
+**First future executable vertical slice (only after separate authorization):** import 1 ROOT + 3 child branches + 1 target, 6 directed routing edges with weights; create sealed ScenarioRevision; run GEO.ROUTE.TOP_K.V1 (K=3) on existing Hub; independently verify costs 5/7/9; return immutable typed route result + evidence; then change one node weight to prove new revision and no stale cache. No new microservice or financial writer.
