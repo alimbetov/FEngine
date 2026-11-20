@@ -46,6 +46,27 @@ class R02MathTests(unittest.TestCase):
         self.assertEqual(len(simple), 1)
         self.assertLess(abs(simple[0] - Decimal("0.1")), Decimal("1e-20"))
 
+    def test_single_if_unambiguous_real_positive_reference_and_source_perturbation(self):
+        # QUAL-R1.1: this variant formerly had only a negative ambiguity test.
+        cfg = {"rootDomain": {"minRate": "-0.9", "maxRate": "5"},
+               "rootCompletenessPolicy": "CERTIFIED_ALL"}
+        inp = {"cashflows": ["-100", "110"]}
+        result = self.calc("HC.DCF.03", "SINGLE_IF_UNAMBIGUOUS", inp, cfg)
+        self.assertEqual(result.output["rootCount"], 1)
+        self.assertLess(
+            abs(Decimal(result.output["roots"][0]) - Decimal("0.1")),
+            Decimal("1e-20"),
+        )
+        changed = self.calc("HC.DCF.03", "SINGLE_IF_UNAMBIGUOUS",
+                            {"cashflows": ["-100", "121"]}, cfg)
+        self.assertEqual(changed.output["rootCount"], 1)
+        self.assertLess(
+            abs(Decimal(changed.output["roots"][0]) - Decimal("0.21")),
+            Decimal("1e-20"),
+        )
+        self.assertNotEqual(result.inputs_sha256, changed.inputs_sha256)
+        self.assertNotEqual(result.output_sha256, changed.output_sha256)
+
     def test_no_irr_root_and_invalid_domain(self):
         self.err("IRR_REQUIRES_OPPOSING_SIGNS", lambda:
                  all_periodic_irr(["1", "2"], "-0.9", "5"))
