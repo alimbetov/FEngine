@@ -12,7 +12,10 @@ ROOT = Path(__file__).resolve().parents[1] / "catalog"
 
 def read_catalog(name: str):
     with (ROOT / name).open(encoding="utf-8", newline="") as f:
-        rows = list(csv.DictReader(f, delimiter="\t"))
+        # Catalogue files may have a leading provenance/comment line.
+        # Ignore comments only; do not bypass malformed data rows.
+        data_lines = (line for line in f if line.strip() and not line.lstrip().startswith("#"))
+        rows = list(csv.DictReader(data_lines, delimiter="\t"))
     if not rows or any(None in row or any(v is None for v in row.values()) for row in rows):
         raise AssertionError("bad TSV data " + name)
     return rows
