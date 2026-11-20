@@ -62,8 +62,12 @@ def indirect_cfo(inputs: Mapping[str, Any], variant: str,
     base = {"asOf", "currency", "netIncome", "noncashAdjustments",
             "deltaOperatingNwc", "sourceRevisionSha256"}
     required = base | ({"directCfo"} if variant == "INDIRECT_CFO_RECONCILED" else set())
+    if "periodStart" in inputs:
+        required.add("periodStart")
     _schema(inputs, required, "CFO_INPUT_SCHEMA")
     as_of, currency = _finance_context(inputs)
+    if "periodStart" in inputs and day(inputs["periodStart"]) > as_of:
+        raise CalculationError("CFO_INVALID_PERIOD")
     source = _rev(inputs["sourceRevisionSha256"])
     if config["netIncomeBasis"] != "REPORTED_AFTER_TAX_NET_INCOME":
         raise CalculationError("CFO_NET_INCOME_BASIS_NOT_SUPPORTED")
