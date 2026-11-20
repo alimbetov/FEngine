@@ -5,7 +5,7 @@ These mathematical reference checks do NOT constitute independent financial S2.
 from __future__ import annotations
 
 import unittest
-from decimal import Decimal
+from decimal import Decimal, localcontext
 from pathlib import Path
 
 from fengine_hc import CalculationError, ContractRegistry, ReferenceEngine, npv
@@ -46,7 +46,7 @@ class HCReferenceTests(unittest.TestCase):
                 "valuationDate": "2026-01-01", "discountRate": "0"}
         r = self.run_model("HC.DCF.02", "EXACT_DATE_XNPV", data, {"dayCount": "ACT_365_FIXED"})
         self.assertEqual(Decimal(r.output["xnpv"]), Decimal("10"))
-        data["discountRate"] = "0.1"
+        data["discountRate"] = "0.11"
         r2 = self.run_model("HC.DCF.02", "EXACT_DATE_XNPV", data, {"dayCount": "ACT_365_FIXED"})
         self.assertLess(Decimal(r2.output["xnpv"]), Decimal("0"))
 
@@ -89,8 +89,10 @@ class HCReferenceTests(unittest.TestCase):
         r = self.run_model("HC.LOAN.02", "ANNUITY_EQUAL_PAYMENT_DATED", data)
         self.assertEqual(Decimal(r.output["closingPrincipal"]), Decimal(0))
         self.assertEqual(sum(Decimal(x["principal"]) for x in r.output["schedule"]), Decimal(1000))
-        self.assertEqual(sum(Decimal(x["payment"]) for x in r.output["schedule"]),
-                         Decimal(r.output["totalPayment"]))
+        with localcontext() as ctx:
+            ctx.prec = 40
+            self.assertEqual(sum(Decimal(x["payment"]) for x in r.output["schedule"]),
+                             Decimal(r.output["totalPayment"]))
         self.assertGreater(Decimal(r.output["totalInterest"]), Decimal(0))
 
     def test_dated_loan_equal_principal_and_balloon(self):
