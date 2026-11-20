@@ -52,7 +52,7 @@ def _freeze(v: Any) -> Any:
 
 
 NUMERIC_POLICY_ID = "DECIMAL40_GENERAL_DECIMAL55_ROOT_ACT365F_R02"
-IMPLEMENTATION_REVISION = "PY_HC_REFERENCE_R0_2B"
+IMPLEMENTATION_REVISION = "PY_HC_REFERENCE_R0_3A"
 
 
 def fingerprint(v: Any) -> str:
@@ -576,6 +576,20 @@ class ReferenceEngine:
                     events, origin, annual_eir = _req(inputs, "events", "asOf", "annualEir")
                     output = expected_loss(events, origin, annual_eir,
                                            lifetime=(model == "HC.ECL.03"))
+            elif model in ("HC.CASH.03", "HC.COST.04", "HC.COST.07", "HC.DCF.07"):
+                from .semantics import ParameterSemantics
+                from .r03_reference import cash_runway, break_even, evm, gordon_terminal
+                resolved = ParameterSemantics(self.root).resolve(
+                    model, variant, config, reference_mode=True
+                )
+                if model == "HC.CASH.03":
+                    output = cash_runway(inputs, variant, resolved.config)
+                elif model == "HC.COST.04":
+                    output = break_even(inputs, variant, resolved.config)
+                elif model == "HC.COST.07":
+                    output = evm(inputs, variant, resolved.config)
+                else:
+                    output = gordon_terminal(inputs, resolved.config)
             else:
                 raise CalculationError("MODEL_NOT_IMPLEMENTED", model)
             inhash, confighash = fingerprint(inputs), fingerprint({"model": model, "variant": variant, "config": config})
