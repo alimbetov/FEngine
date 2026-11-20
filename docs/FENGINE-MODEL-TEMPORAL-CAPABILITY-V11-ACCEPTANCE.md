@@ -42,9 +42,9 @@ Current mathematical reference capability coverage after V1.1:
 |---|---:|---|
 | V1 SUM/LAST_AS_OF | 9 | HC.CASH.04, HC.CASH.05, HC.DCF.05, HC.DCF.06, HC.COST.07 |
 | V1.1 component recompute / full-window reexecute | 4 | HC.COST.07, HC.DCF.01 |
-| **Combined** | **13** | **7 distinct model codes of 116** |
+| **Combined** | **13** | **6 distinct model codes of 116** |
 
-The total of 27 previously implemented Python-reference model codes is unchanged; new support is temporal execution/admission only. A further 109 HC model codes do not yet have reviewed declarations. Non-admitted nonlinear or output fields fail closed.
+The total of 27 previously implemented Python-reference model codes is unchanged; new support is temporal execution/admission only. A further 110 HC model codes do not yet have reviewed declarations. Non-admitted nonlinear or output fields fail closed.
 
 ## EVM CPI — components, not average ratios
 
