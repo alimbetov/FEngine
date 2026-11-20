@@ -293,7 +293,10 @@ def stock_cost(events: Any, variant: str) -> dict[str, str]:
             raise CalculationError("INVALID_STOCK_EVENT")
         unit = positive(row["unitCost"]) if qty > 0 else None
         data.append((day(when), event_id, qty, unit))
-    if len({(x[0], x[1]) for x in data}) != len(data):
+    # A source event ID identifies one immutable inventory posting across
+    # the entire replay. Checking (date, id) admits a replayed posting if its
+    # date changes, silently adding or issuing stock a second time.
+    if len({x[1] for x in data}) != len(data):
         raise CalculationError("DUPLICATE_STOCK_EVENT_ID")
     data.sort(key=lambda r: (r[0], r[1]))
     with localcontext() as ctx:
