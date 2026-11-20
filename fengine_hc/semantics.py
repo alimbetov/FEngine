@@ -104,7 +104,7 @@ RULES: dict[tuple[str, str], VariantRule] = {
     ("HC.COST.07", "EVM_EAC_FORECAST"):
         VariantRule(("earnedValueRule", "eacFormula"), (),
                     (("earnedValueRule", ("EXTERNALLY_SUPPLIED_EV",)),
-                     ("eacFormula", ("AC_PLUS_ETC_CPI",)),)),
+                     ("eacFormula", ("AC_PLUS_REMAINING_AT_BUDGET",)),)),
     ("HC.DCF.07", "GORDON_FCFF_TERMINAL"):
         VariantRule(("terminalMethod", "terminalGrowth"), (),
                     (("terminalMethod", ("GORDON_FCFF",)),)),
