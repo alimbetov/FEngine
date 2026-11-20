@@ -67,7 +67,7 @@ def _poly_real_roots_in_domain(coefs: tuple[Decimal, ...],
     for c in cuts:
         # Tiny *relative* residual allows stationary/tangent roots at Decimal
         # bisection limits. A separate independent golden must validate cases.
-        if abs(f(c)) <= scale * Decimal("1e-26"):
+        if abs(f(c)) <= scale * Decimal("1e-45"):
             roots.append(c)
     for a, b in zip(cuts, cuts[1:]):
         if a < b and f(a) * f(b) < 0:
@@ -81,8 +81,12 @@ def _poly_real_roots_in_domain(coefs: tuple[Decimal, ...],
 
 
 def all_periodic_irr(cashflows: Any, min_rate: Any, max_rate: Any) -> tuple[Decimal, ...]:
-    if not isinstance(cashflows, (list, tuple)) or len(cashflows) < 2 or len(cashflows) > 32:
+    if not isinstance(cashflows, (list, tuple)) or len(cashflows) < 2:
         raise CalculationError("IRR_CASHFLOW_LENGTH_OUT_OF_RANGE")
+    # Higher-degree financial root completeness requires independent, certified
+    # algebraic isolation; never claim it from numerical sampling alone.
+    if len(cashflows) > 4:
+        raise CalculationError("IRR_DEGREE_REQUIRES_CERTIFIED_SOLVER")
     vals = [number(v) for v in cashflows]
     if not any(x < 0 for x in vals) or not any(x > 0 for x in vals):
         raise CalculationError("IRR_REQUIRES_OPPOSING_SIGNS")
