@@ -267,6 +267,8 @@ Every result includes lineage and exact period/calendar/semantic policy. No Prod
 
 TestCaseDTO fields: caseId, testClass, productPackRevision, sourceSha, scope+calendarRevision, metricSemanticRevision, operatorRevision, paramsSha, exact input rows/manifestRef, expected typed output/status/reasonCode, error tolerance, independent reviewer, sourceFinancialBasis and evidenceRef. Financial and regulatory testcases require independent domain-specific S2 rather than relying on core arithmetic tests.
 
+**Формализованные кандидаты приёмки:** catalog/tase_golden_and_negative_candidates_r0.tsv — 42 сценария, из них 36 описывают ожидаемые математические/семантические ответы или блокировки и 6 — будущие проверки runtime/безопасности/восстановления. Это составная начальная спецификация банка из 250 тестов, **не** 42 исполненных теста. В случае строгой политики FULL_REQUIRED отсутствие источника expected observations выдаёт BLOCKED/COVERAGE_UNKNOWN, а не фиктивный COMPLETE.
+
 ### 7.2. Performance and recovery
 
 Benchmark suites with rows 10k, 100k, 1m; metric count 10,100,1000 and group counts 10,1000,100k where resource quotas permit; 4 calendar grains, dynamic output windows and BASIC/EXTENDED profiles. Estimate bounded output cells before executing; if requested combinations explode, BLOCKED_RESOURCE_BUDGET instead of exhausting memory. Limit maxGroups, maxBuckets, maxOperators, maxOutputCells, maxStatsSampleSize, maxRuntime and memory.
