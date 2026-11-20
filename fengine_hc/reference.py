@@ -52,7 +52,7 @@ def _freeze(v: Any) -> Any:
 
 
 NUMERIC_POLICY_ID = "DECIMAL40_ACT365F_REFERENCE_R0"
-IMPLEMENTATION_REVISION = "PY_HC_REFERENCE_R0_1"
+IMPLEMENTATION_REVISION = "PY_HC_REFERENCE_R0_2B"
 
 
 def fingerprint(v: Any) -> str:
@@ -444,6 +444,7 @@ class ContractRegistry:
 class ReferenceEngine:
     """Explicit opt-in mathematical reference; all unimplemented contracts fail closed."""
     def __init__(self, root: Path):
+        self.root = root
         self.registry = ContractRegistry(root)
 
     def calculate(self, model: str, variant: str, inputs: Mapping[str, Any],
@@ -534,6 +535,47 @@ class ReferenceEngine:
                 _keys(config, set())
                 flows, rate, debt, loan_periods = _req(inputs, "cfads", "discountRate", "outstandingDebt", "loanPeriods")
                 output = {"coverageRatio": _money(pf_coverage(flows, rate, debt, variant, loan_periods))}
+            elif model in ("HC.DCF.03", "HC.LOAN.03", "HC.RISK.02",
+                           "HC.RISK.03", "HC.ECL.02", "HC.ECL.03"):
+                from .semantics import ParameterSemantics
+                from .r02_math import (all_periodic_irr, dated_eir_single_sign_change,
+                                       empirical_var, empirical_es, expected_loss)
+                ParameterSemantics(self.root).resolve(model, variant, config, reference_mode=True)
+                if model == "HC.DCF.03":
+                    _keys(inputs, {"cashflows"}, error="UNCONSUMED_INPUT")
+                    flows, = _req(inputs, "cashflows")
+                    bounds = config["rootDomain"]
+                    roots = all_periodic_irr(flows, bounds["minRate"], bounds["maxRate"])
+                    if not roots:
+                        raise CalculationError("NO_IRR_ROOT_IN_DOMAIN")
+                    if variant == "SINGLE_IF_UNAMBIGUOUS" and len(roots) != 1:
+                        raise CalculationError("MULTIPLE_IRR_ROOTS")
+                    output = {"roots": [_money(x) for x in roots],
+                              "rootCount": len(roots),
+                              "domain": bounds,
+                              "completeness": "FINITE_INTERVAL_CERTIFIED_REFERENCE"}
+                elif model == "HC.LOAN.03":
+                    _keys(inputs, {"cashflows"}, error="UNCONSUMED_INPUT")
+                    flows, = _req(inputs, "cashflows")
+                    output = {"effectiveRate": _money(dated_eir_single_sign_change(
+                        flows, config["discountOrigin"])),
+                        "classification": "CASHFLOW_ROOT_REFERENCE_NOT_IFRS_EIR"}
+                elif model == "HC.RISK.02":
+                    _keys(inputs, {"losses"}, error="UNCONSUMED_INPUT")
+                    losses, = _req(inputs, "losses")
+                    output = {"valueAtRisk": _money(empirical_var(losses, config["alpha"])),
+                              "quantileMethod": "NEAREST_RANK_UPPER_LOSS"}
+                elif model == "HC.RISK.03":
+                    _keys(inputs, {"losses"}, error="UNCONSUMED_INPUT")
+                    losses, = _req(inputs, "losses")
+                    output = {"expectedShortfall": _money(empirical_es(
+                        losses, config["confidenceAlpha"])),
+                        "tailMassMethod": "QUANTILE_INTEGRAL_FRACTIONAL_ATOM"}
+                else:
+                    _keys(inputs, {"events", "asOf", "annualEir"}, error="UNCONSUMED_INPUT")
+                    events, origin, annual_eir = _req(inputs, "events", "asOf", "annualEir")
+                    output = expected_loss(events, origin, annual_eir,
+                                           lifetime=(model == "HC.ECL.03"))
             else:
                 raise CalculationError("MODEL_NOT_IMPLEMENTED", model)
             inhash, confighash = fingerprint(inputs), fingerprint({"model": model, "variant": variant, "config": config})
