@@ -26,6 +26,14 @@ Prior 83-model review: 83/83 external synthetic arithmetic and 34/34 external bo
 
 See [universal temporal extension contract](docs/FENGINE-TEMPORAL-SERIES-EXTENSION-V1.md), [TASE reference](tase/reference.py) and [cross-product/day-month/total tests](tests/test_tase_universal_temporal_extension.py).
 
+## ModelTemporalCapabilityV1 — model-by-model admission to shared intervals
+
+The [universal temporal extension](docs/FENGINE-TEMPORAL-SERIES-EXTENSION-V1.md) now has a **declarative, fail-closed HC model adapter**, [ModelTemporalCapabilityV1](tase/model_temporal.py), driven by a [versioned capability registry](catalog/model_temporal_capabilities_v1.tsv). It executes the **actual model** for each dated input interval, checks source revision SHA, currency and exact input date binding, then passes the selected output to the **one existing TASE calendar and semantic reducer**. Interval results and the full-range total are returned together.
+
+**Current limited reference scope: 9 model+variant+output bindings across 5 of 116 HC model codes** (direct/indirect CFO, FCFF, undiscounted FCFE and as-of EVM estimate at completion). Source SUM is **not** granted to discounted FCFE PV, PVM, ratios or nonlinear models. Posted CFO enforces consecutive opening/closing cash continuity; EVM snapshots enforce a stable baseline. Undeclared model outputs and calendar grains fail closed, while scalar execution remains unchanged. This is **reference only, not financial S2 or FIN FactSet admission**, and does not implement Redis sessions.
+
+[ModelTemporalCapabilityV1 implementation and limitations](docs/FENGINE-MODEL-TEMPORAL-CAPABILITY-V1-ACCEPTANCE.md) · [Real HC-to-TASE E2E tests](tests/test_model_temporal_capability_v1.py).
+
 ## Current user-data retention policy (supersedes historical PostgreSQL proposals)
 
 FEngine is an **ephemeral computation engine**, not a durable source-fact warehouse. Runtime calculation inputs, intermediate state and results must be stored **only in Redis** for an absolute maximum of **3 hours (10,800 seconds)**. On explicit authenticated successful consumer ACK, the entire calculation session and results must be **atomically deleted immediately**. Reading or retrying must not renew the absolute expiration. No calculation user data may persist in PostgreSQL, Redis RDB/AOF, logs or backups. The Redis implementation and ACK/TTL cleanup acceptance remain **NOT IMPLEMENTED**; current Python functions are stateless in-process references and do not claim production data lifecycle compliance. Static algorithms and synthetic test fixtures may remain versioned in Git.
