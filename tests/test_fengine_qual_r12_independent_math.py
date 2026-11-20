@@ -36,6 +36,20 @@ class IndependentMathematicsR12(unittest.TestCase):
         ) as stream:
             inventory = list(csv.DictReader(stream, delimiter="\t"))
         declared = {(r["modelCode"], r["variantCode"]) for r in inventory}
+        for entry in inventory:
+            self.assertEqual(
+                entry["r12NumericalOracleEvidence"],
+                "tests/test_fengine_qual_r12_independent_math.py",
+            )
+            self.assertEqual(
+                entry["r12DomainDenialEvidence"],
+                "tests/test_fengine_qual_r12_domain_denials.py",
+            )
+            self.assertEqual(
+                entry["r12QualificationStatus"],
+                "R12_REFERENCE_GOLDEN_AND_NEGATIVE_NOT_S2",
+            )
+            self.assertEqual(entry["financialS2"], "CLOSED")
         self.assertEqual(len(inventory), 48)
         self.assertEqual(len(self.cases), 48)
         self.assertEqual(set(self.cases), declared)
