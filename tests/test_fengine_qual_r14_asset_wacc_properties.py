@@ -45,7 +45,7 @@ def independent_depreciation(cost,residual,n,variant,production):
             elif variant=="DOUBLE_DECLINING":
                 expected=balance*d(2)/n
             elif variant=="SUM_OF_YEARS_DIGITS":
-                expected=basis*d(n-k)/d(n*(n+1)/2)
+                expected=basis*d(n-k)/d(n*(n+1)//2)
             else:
                 expected=basis*production[k]/total_units
             expected=max(d(0),min(expected,balance-residual))
