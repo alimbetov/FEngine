@@ -138,6 +138,28 @@ class ProductExtensibilityTests(unittest.TestCase):
         self.assertEqual(out.rows[0].value, "3")
         self.assertEqual(out.rows[0].unit, "kWh/unit")
 
+    def test_operator_reference_implementation_status_is_truthful(self):
+        from tase.reference import SUPPORTED_OPERATORS
+        catalog = Catalog.load(ROOT, reference_mode=True)
+        self.assertEqual(len(SUPPORTED_OPERATORS), 13)
+        self.assertEqual(len(catalog.operators), 53)
+        for code, op in catalog.operators.items():
+            expected = ("PYTHON_REFERENCE_IMPLEMENTED_NOT_S2" if code in SUPPORTED_OPERATORS
+                        else "DRAFT_NOT_IMPLEMENTED")
+            self.assertEqual(op.status, expected)
+
+    def test_tase_core_parameter_envelope_is_typed_and_unapproved(self):
+        path = ROOT / "catalog" / "tase_core_parameter_candidates_r0.tsv"
+        with path.open(encoding="utf-8", newline="") as fp:
+            rows = list(csv.DictReader(fp, delimiter="\t"))
+        self.assertEqual(len(rows), 32)
+        self.assertEqual(len({r["parameterCode"] for r in rows}), 32)
+        self.assertEqual(sum(r["implementationStatus"] == "DESIGN_ONLY"
+                             for r in rows), 10)
+        self.assertTrue(all(r["reviewState"] == "DESIGN_UNAPPROVED" for r in rows))
+        self.assertTrue(all(r["requirednessProposal"]
+                            in {"REQUIRED", "OPTIONAL", "CONDITIONAL"} for r in rows))
+
     def test_parameter_inventory_116_417_candidates_not_approved(self):
         path = ROOT / "catalog" / "model_parameter_inventory_116_r0.tsv"
         with path.open(encoding="utf-8", newline="") as fp:
