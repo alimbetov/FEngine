@@ -26,5 +26,10 @@ jobs:
         run: python -m unittest discover -s tests -p 'test_fengine_integrity_pattern_gate.py' -v
       - name: Mandatory QUAL-R1.1 independent per-variant execution and adversarial replay (48 variants)
         run: python -m unittest discover -s tests -p 'test_fengine_qual_r11_per_variant_adversarial.py' -v
+      - name: Verify independent high-precision HC goldens without shared test import order
+        run: |
+          python -m unittest discover -s tests -p 'test_fengine_hc_reference.py' -v
+          python -m unittest discover -s tests -p 'test_fengine_hc_r03_reference.py' -v
+          python -m unittest discover -s tests -p 'test_fengine_hc_r06_fcfe.py' -v
       - name: Execute GEO-OPT, TASE and bounded HC reference suites
         run: python -m unittest discover -s tests -v
