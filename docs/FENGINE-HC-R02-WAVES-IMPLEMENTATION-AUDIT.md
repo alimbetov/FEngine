@@ -22,31 +22,31 @@ All historical R3 catalogues remain untouched. 732 are **occurrences**, not inde
 
 ## R0.2A — parameter semantics
 
-- \`fengine_hc/semantics.py\`: actual 732-row scanner, consistent global candidate identities, exact five-collision baseline, per-model bindings, logical types and fail-closed variant resolver.
-- Canonical \`CAND.<type>.<parameterName>\` is not a financially approved SemanticParameterId.
-- Bounded explicit variant rules for DCF.01/.02/.03, LOAN.03, RISK.02/.03, ECL.02/.03; all unreviewed rules reject with \`VARIANT_RULE_NOT_IMPLEMENTED\`.
-- All resolved configs carry deterministic SHA and immutable top-level config; \`reference_mode=True\` required.
+- `fengine_hc/semantics.py`: actual 732-row scanner, consistent global candidate identities, exact five-collision baseline, per-model bindings, logical types and fail-closed variant resolver.
+- Canonical `CAND.<type>.<parameterName>` is not a financially approved SemanticParameterId.
+- Bounded explicit variant rules for DCF.01/.02/.03, LOAN.03, RISK.02/.03, ECL.02/.03; all unreviewed rules reject with `VARIANT_RULE_NOT_IMPLEMENTED`.
+- All resolved configs carry deterministic SHA and immutable top-level config; `reference_mode=True` required.
 - The 222 named templates are **not derivable from the current R3 fields alone**: missing reviewed full predicate DSL, financial applicability, conditional requiredness, source bindings and some enums. Do not claim automatically generated 222 combinations.
 
 ## R0.2B — genuinely computed math
 
-\`fengine_hc/r02_math.py\`, \`ReferenceEngine.calculate\` and the portable golden bank:
-- \`HC.DCF.03\`: polynomial cashflow IRR in the **explicit finite rate interval** via derivative critical points and monotonic bisection. Two-root, tangent-root and no-root tests; degree above 3 rejected until certified solver. No global/all-real-roots claim outside bounds. Only true numerical roots returned.
-- \`HC.LOAN.03\`: dated cashflow root for one initial negative outflow and positive future receipts; ACT/365 fixed, explicit origin and fixed bounded search. Contractual fee eligibility, original/modified IFRS EIR and Kazakhstan GESV NOT reviewed.
-- \`HC.RISK.02\`: exact nearest-rank empirical VaR of positive loss samples; no unqualified normal approximation or return/P&L sign conversion.
-- \`HC.RISK.03\`: empirical quantile-integral Expected Shortfall; fractional mass on tied/terminal quantile handled. Weighted ES remains not implemented.
-- \`HC.ECL.02\`: probability-weighted discounted losses from eligible first-year *default events*, including later loss settlement.
-- \`HC.ECL.03\`: survival recursion from conditional period PD; no summing conditional default probabilities directly.
+`fengine_hc/r02_math.py`, `ReferenceEngine.calculate` and the portable golden bank:
+- `HC.DCF.03`: polynomial cashflow IRR in the **explicit finite rate interval** via derivative critical points and monotonic bisection. Two-root, tangent-root and no-root tests; degree above 3 rejected until certified solver. No global/all-real-roots claim outside bounds. Only true numerical roots returned.
+- `HC.LOAN.03`: dated cashflow root for one initial negative outflow and positive future receipts; ACT/365 fixed, explicit origin and fixed bounded search. Contractual fee eligibility, original/modified IFRS EIR and Kazakhstan GESV NOT reviewed.
+- `HC.RISK.02`: exact nearest-rank empirical VaR of positive loss samples; no unqualified normal approximation or return/P&L sign conversion.
+- `HC.RISK.03`: empirical quantile-integral Expected Shortfall; fractional mass on tied/terminal quantile handled. Weighted ES remains not implemented.
+- `HC.ECL.02`: probability-weighted discounted losses from eligible first-year *default events*, including later loss settlement.
+- `HC.ECL.03`: survival recursion from conditional period PD; no summing conditional default probabilities directly.
 - Every unsupported model/variant is rejected. No “return 0”, “pass” or synthetic numerical admission.
 - Real mathematical ECL is NOT automatically IFRS 9 ECL: need stage/SICR, scenario macro calibration, PD/EAD/LGD source checks, multiple recoveries, original EIR, credit-impaired/POCI and full cash shortfall definition.
 
-Golden input/output JSON: \`tests/golden/hc_r02_reference_vectors.json\`. The independent checks in \`tests/test_fengine_hc_r02_math.py\` and \`tests/test_fengine_hc_r02_portable_golden.py\` compare Decimal values and error reasons. Baseline for future Rust, **not Rust parity PASS**.
+Golden input/output JSON: `tests/golden/hc_r02_reference_vectors.json`. The independent checks in `tests/test_fengine_hc_r02_math.py` and `tests/test_fengine_hc_r02_portable_golden.py` compare Decimal values and error reasons. Baseline for future Rust, **not Rust parity PASS**.
 
 ## R0.2C — typed cross-model executable plan
 
-- \`fengine_hc/graphs.py\`: model-level candidate DAG remains 116 nodes and 55 unqualified candidate edges.
-- InMemoryCalculationPlan now deep-snapshots inputs/config, pins an immutable \`plan_sha256\`, rejects cycles, unknown graph jobs, input collisions and *unreviewed cross-model field bindings*.
-- First explicit typed port-edge allowlist: \`HC.CAP.01.costOfEquity (DECIMAL_RATE, PER_ANNUAL) → HC.CAP.02.costOfEquity (DECIMAL_RATE, PER_ANNUAL)\`; runtime bound values must be canonical Decimal strings. The test runs both executors end-to-end.
+- `fengine_hc/graphs.py`: model-level candidate DAG remains 116 nodes and 55 unqualified candidate edges.
+- InMemoryCalculationPlan now deep-snapshots inputs/config, pins an immutable `plan_sha256`, rejects cycles, unknown graph jobs, input collisions and *unreviewed cross-model field bindings*.
+- First explicit typed port-edge allowlist: `HC.CAP.01.costOfEquity (DECIMAL_RATE, PER_ANNUAL) → HC.CAP.02.costOfEquity (DECIMAL_RATE, PER_ANNUAL)`; runtime bound values must be canonical Decimal strings. The test runs both executors end-to-end.
 - The other 54 candidate edges are **not executable by implication**. Future model port contracts must include unit, currency, period, scope, schema revision, as-of, type and source lineage to become qualified.
 - This plan is **in-process and immutable-in-memory**, not persisted. Its SHA is not a signed immutable PostgreSQL transaction receipt; job retries, fencing and outbox still absent.
 
@@ -65,8 +65,8 @@ PV, ROOT, SCHED, AGG, PROB, FX, EVENT, OPT, NUM. Numerically implemented coverag
 
 ### Required verification
 
-\`\`\`bash
+```bash
 python -m unittest discover -s tests -v
-\`\`\`
+```
 
 Run Python 3.11 and 3.13. Claim PASS counts only from the current HEAD's completed GitHub Action, not from historical results. Financial production remains blocked until independent S2 with exact artefact bindings.
