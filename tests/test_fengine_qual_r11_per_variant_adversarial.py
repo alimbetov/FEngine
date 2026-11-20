@@ -80,7 +80,7 @@ def successful_variant_fixtures(inventory):
         outcome = original(self, model, variant, inputs, config,
                            reference_mode=reference_mode)
         key = (model, variant)
-        if reference_mode and key in inventory and key not in collected:
+        if reference_mode and key not in collected:
             collected[key] = (copy.deepcopy(inputs), copy.deepcopy(config))
         return outcome
 
@@ -115,7 +115,10 @@ class PerVariantAdversarialQualification(unittest.TestCase):
 
     def test_every_variant_has_an_observed_successful_real_mathematical_execution(self):
         missing = sorted(self.inventory - self.samples.keys())
+        unexpected = sorted(self.samples.keys() - self.inventory)
         self.assertEqual(missing, [], msg=f"NO_SUCCESSFUL_MODEL_EXECUTION: {missing}")
+        self.assertEqual(unexpected, [],
+                         msg=f"SUCCESSFUL_VARIANT_NOT_DECLARED_IN_QUALIFICATION_INVENTORY: {unexpected}")
         self.assertEqual(len(self.samples), 48)
         self.assertGreater(self.existing_test_count, 50)
 
