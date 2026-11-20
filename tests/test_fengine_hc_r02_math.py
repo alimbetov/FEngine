@@ -49,7 +49,7 @@ class R02MathTests(unittest.TestCase):
     def test_no_irr_root_and_invalid_domain(self):
         self.err("IRR_REQUIRES_OPPOSING_SIGNS", lambda:
                  all_periodic_irr(["1", "2"], "-0.9", "5"))
-        self.err("INVALID_ROOT_DOMAIN", lambda:
+        self.err("RATE_OUT_OF_DOMAIN", lambda:
                  all_periodic_irr(["-100", "110"], "-1", "5"))
         self.err("NO_IRR_ROOT_IN_DOMAIN", lambda:
                  self.calc("HC.DCF.03", "ALL_REAL_IRR_ROOTS",
