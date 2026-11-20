@@ -60,9 +60,9 @@ Independent control tests do not invoke any financial HC calculation implementat
 - [116-model/417-parameter candidate inventory](catalog/model_parameter_inventory_116_r0.tsv)
 - [32 TASE core config parameter candidates](catalog/tase_core_parameter_candidates_r0.tsv)
 - [Current implementation audit and Python→Rust gates](docs/FENGINE-TASE-PY-R01-IMPLEMENTATION-AUDIT.md)
-- [Python 3.11/3.13 reference CI run (129/129 each)](https://github.com/alimbetov/FEngine/actions/runs/44720599167)
+- [Python 3.11/3.13 reference CI run (131/131 each)](https://github.com/alimbetov/FEngine/actions/runs/44721269472)
 
-Semantics: FLOW SUM, STOCK LAST_AS_OF and RATIO_OF_SUMS are implemented in the strict reference; qualified time-weighted stock, custom fiscal 4-4-5, full Session/DAG and other complex operations remain future work. Missing interval authority or watermark blocks strict completeness. The 250-case TASE R0.6 suite is **not PASS**; the current confirmed 129 Python reference unittests include 32 TASE-focused test methods and preexisting tests, not all future acceptance scenarios. TASE is a platform capability and does not change the 116 candidate HC model count.
+Semantics: FLOW SUM, STOCK LAST_AS_OF and RATIO_OF_SUMS are implemented in the strict reference; qualified time-weighted stock, custom fiscal 4-4-5, full Session/DAG and other complex operations remain future work. Missing interval authority or watermark blocks strict completeness. The 250-case TASE R0.6 suite is **not PASS**; the current confirmed 131 Python reference unittests include 34 TASE-focused test methods and preexisting tests, not all future acceptance scenarios. TASE is a platform capability and does not change the 116 candidate HC model count.
 
 ## Current audit decision
 
