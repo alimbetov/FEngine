@@ -208,6 +208,14 @@ class TemporalV11Tests(unittest.TestCase):
         self.rejects("TEMPORAL_V11_DISCOUNT_RATE_MISMATCH",
                      lambda:self.calculate(req,data))
 
+    def test_mixed_period_rate_is_rejected_even_when_total_is_disabled(self):
+        data=[npv(JAN,FEB,"-100","0.1"),
+              npv(FEB,MAR,"121","0.2")]
+        req=request("HC.DCF.01","PERIOD_END_NPV","npv",
+                    end=MAR,include_total=False)
+        self.rejects("TEMPORAL_V11_DISCOUNT_RATE_MISMATCH",
+                     lambda:self.calculate(req,data))
+
     def test_npv_rejects_missing_month_and_double_entry(self):
         req=request("HC.DCF.01","PERIOD_END_NPV","npv")
         data=[npv(JAN,FEB,"-100"),npv(MAR,APR,"121")]
