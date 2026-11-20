@@ -118,7 +118,7 @@ class ParameterRegistryQualification(unittest.TestCase):
                 self.assertEqual(row["evidenceStatus"], "DRAFT_UNQUALIFIED")
                 self.assertIn(row["requirednessProposal"], {"REQUIRED","REVIEW_PENDING"})
                 self.assertTrue(row["parameterCode"])
-        self.assertEqual(sum(r["requirednessProposal"] == "REQUIRED" for r in rows), 17)
+        self.assertEqual(sum(r["requirednessProposal"] == "REQUIRED" for r in rows), 18)
 
     def test_p0_parameter_guards_are_in_candidate_catalogue(self):
         rows = {(r["modelCode"],r["parameterCode"]):r for r in
