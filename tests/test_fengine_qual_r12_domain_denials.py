@@ -113,7 +113,10 @@ def invalid_case(model, variant, inputs, config):
         c["ageingBucketEdges"]=[60,30]
         return i,c,"OVERLAPPING_AGE_BUCKETS"
     if model=="HC.STOCK.01" or model=="HC.STOCK.02":
-        i["events"]=[{"date":"2026-01-01","id":"BAD","quantity":"-1"}]
+        i["events"]=[
+            {"date":"2026-01-01","id":"LOT","quantity":"1","unitCost":"10"},
+            {"date":"2026-01-02","id":"BAD","quantity":"-2"},
+        ]
         return i,c,"NEGATIVE_INVENTORY"
     raise AssertionError(f"NO_DOMAIN_NEGATIVE_CASE_FOR_MODEL_{model}")
 
