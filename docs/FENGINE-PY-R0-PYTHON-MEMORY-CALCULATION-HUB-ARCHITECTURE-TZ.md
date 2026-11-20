@@ -304,3 +304,14 @@ Result shape v2 allowlist adds SCENARIO_MATRIX, DISTRIBUTION and OPTIMIZATION_PL
 **Session reuse:** one sealed immutable input Session can feed multiple TaskCodes with separate scoped idempotencyKeys. DAG edges pin upstream committed result SHA, never speculative cache entry. Cache backend local/Redis/Rust does not change finance result or metadata state.
 
 **Financial/statistical hard-stop:** candidate documents provide synthetic worked examples only. Production requires verified source bindings, independent arithmetic goldens, finance S2 where relevant, calibrated risk assumptions and cross-language parity. No code generation, no tests, no data ingestion into FIN and no server deployment at this phase.
+
+
+---
+
+## 15. TASE-R0 product-extensible temporal/statistics integration (design only)
+
+**Design document:** docs/FENGINE-TASE-R0-UNIVERSAL-TEMPORAL-STATISTICS-TZ.md; shared operator/product/metric candidate catalogs in catalog/tase_*.tsv. This extension does not add another execution service. TASE uses existing InputBatchDTO, DatasetManifest, sealed CalculationSession, scoped idempotency, CalcPlan immutable graph, Python worker, typed results/outbox/archive.
+
+ProductPackRevision is pinned in the immutable ExecutionBindingSha along with MetricSemanticRevision, OperatorRevision, CalendarProfileRevision, Scope/DimensionRevision, NumericPolicyRevision and source DatasetSha. Changing a product pack creates a new plan/immutable revision; a pack cannot introduce new arbitrary Python algorithms or override financial and security admission rules. Use core 53 proposed typed operators and shared dataset algebra. TASE R0.6 250-case bank is planned, not completed.
+
+**Important:** previous chapter 14 historically describes the initial 83 HC requirements; as of 2026-11-20 master covers **116** candidate business models and dataset candidates D01–D114. TASE operates across products without adding a new HC model count or changing historical W1–W5 identifiers. Financial HC Python runtime remains unimplemented; GEO reference has its own tests.
