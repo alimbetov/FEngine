@@ -112,10 +112,10 @@ def _req(v: Mapping[str, Any], *names: str) -> tuple[Any, ...]:
     return tuple(v[k] for k in names)
 
 
-def _keys(v: Mapping[str, Any], names: set[str]) -> None:
+def _keys(v: Mapping[str, Any], names: set[str], *, error: str = "UNCONSUMED_CONFIGURATION") -> None:
     unknown = set(v) - names
     if unknown:
-        raise CalculationError("UNCONSUMED_CONFIGURATION", ",".join(sorted(unknown)))
+        raise CalculationError(error, ",".join(sorted(unknown)))
 
 
 def _money(x: Decimal) -> str:
@@ -192,6 +192,8 @@ def depreciation(cost: Any, salvage: Any, periods: int, method: str,
                 raise CalculationError("TRUE_UP_POLICY_REQUIRED")
         elif method in ("STRAIGHT_LINE", "DOUBLE_DECLINING", "SUM_OF_YEARS_DIGITS"):
             _keys(params, {"residualValue", "usefulLifePeriods"})
+        if method != "UNITS_OF_PRODUCTION" and production is not None:
+            raise CalculationError("UNCONSUMED_INPUT", "production")
         else:
             raise CalculationError("VARIANT_NOT_IMPLEMENTED", method)
         for index in range(1, n + 1):
@@ -462,6 +464,7 @@ class ReferenceEngine:
         with localcontext() as ctx:
             ctx.prec = 40
             if model == "HC.DCF.01":
+                _keys(inputs, {"cashflows", "discountRate"}, error="UNCONSUMED_INPUT")
                 _keys(config, {"timingConvention"})
                 if variant not in ("PERIOD_END_NPV", "MIDPERIOD_NPV"):
                     raise CalculationError("VARIANT_NOT_IMPLEMENTED")
@@ -471,6 +474,7 @@ class ReferenceEngine:
                 flows, rate = _req(inputs, "cashflows", "discountRate")
                 output = {"npv": _money(npv(flows, rate, midperiod=timing == "MIDPERIOD"))}
             elif model == "HC.DCF.02":
+                _keys(inputs, {"cashflows", "discountRate", "valuationDate"}, error="UNCONSUMED_INPUT")
                 _keys(config, {"dayCount"})
                 if config.get("dayCount") != "ACT_365_FIXED":
                     raise CalculationError("DAY_COUNT_REQUIRED")
@@ -479,12 +483,14 @@ class ReferenceEngine:
                 flows, rate, origin = _req(inputs, "cashflows", "discountRate", "valuationDate")
                 output = {"xnpv": _money(xnpv(flows, rate, origin))}
             elif model == "HC.CAP.01":
+                _keys(inputs, {"riskFreeRate", "beta", "marketRiskPremium"}, error="UNCONSUMED_INPUT")
                 _keys(config, set())
                 if variant != "CAPM_BASE":
                     raise CalculationError("VARIANT_NOT_IMPLEMENTED")
                 rf, beta, premium = _req(inputs, "riskFreeRate", "beta", "marketRiskPremium")
                 output = {"costOfEquity": _money(capm(rf, beta, premium))}
             elif model == "HC.CAP.02":
+                _keys(inputs, {"equityValue", "debtValue", "costOfEquity", "costOfDebt", "taxRate"}, error="UNCONSUMED_INPUT")
                 _keys(config, set())
                 if variant not in ("MARKET_VALUE_WACC", "TARGET_WEIGHT_WACC"):
                     raise CalculationError("VARIANT_NOT_IMPLEMENTED")
@@ -492,15 +498,18 @@ class ReferenceEngine:
                                               "costOfDebt", "taxRate")
                 output = {"wacc": _money(wacc(eq, debt, ke, kd, tax))}
             elif model == "HC.ASSET.01":
+                _keys(inputs, {"cost", "production"}, error="UNCONSUMED_INPUT")
                 cost, = _req(inputs, "cost")
                 s, n = _req(config, "residualValue", "usefulLifePeriods")
                 output = depreciation(cost, s, n, variant, config, inputs.get("production"))
             elif model == "HC.LOAN.02":
+                _keys(inputs, {"principal", "annualRate", "startDate", "paymentDates", "dayCount"}, error="UNCONSUMED_INPUT")
                 _keys(config, set())
                 principal, rate, start, dates, basis = _req(inputs, "principal", "annualRate", "startDate",
                                                             "paymentDates", "dayCount")
                 output = loan_schedule(principal, rate, start, dates, variant, basis)
             elif model in ("HC.STOCK.01", "HC.STOCK.02"):
+                _keys(inputs, {"events"}, error="UNCONSUMED_INPUT")
                 _keys(config, set())
                 events, = _req(inputs, "events")
                 permitted = ("FIFO_LOT_REPLAY",) if model.endswith(".01") else ("MOVING_WAC", "PERIODIC_WAC")
@@ -508,6 +517,7 @@ class ReferenceEngine:
                     raise CalculationError("VARIANT_NOT_IMPLEMENTED")
                 output = stock_cost(events, variant)
             elif model == "HC.SET.03":
+                _keys(inputs, {"obligations", "asOf"}, error="UNCONSUMED_INPUT")
                 _keys(config, {"graceDays", "ageingBucketEdges"})
                 if variant not in ("DUE_DATE_AGING", "GRACE_ADJUSTED_AGING"):
                     raise CalculationError("VARIANT_NOT_IMPLEMENTED")
@@ -520,6 +530,7 @@ class ReferenceEngine:
                 edges, = _req(config, "ageingBucketEdges")
                 output = ageing(items, at, grace, edges)
             elif model == "HC.PF.01":
+                _keys(inputs, {"cfads", "discountRate", "outstandingDebt", "loanPeriods"}, error="UNCONSUMED_INPUT")
                 _keys(config, set())
                 flows, rate, debt, loan_periods = _req(inputs, "cfads", "discountRate", "outstandingDebt", "loanPeriods")
                 output = {"coverageRatio": _money(pf_coverage(flows, rate, debt, variant, loan_periods))}
