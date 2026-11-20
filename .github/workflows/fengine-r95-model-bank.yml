@@ -1,0 +1,39 @@
+name: FEngine R95 model contract bank
+on:
+  pull_request:
+    paths:
+      - "FENGINE_MASTER_SPEC.md"
+      - "catalog/model_extensions_r1.tsv"
+      - "docs/FENGINE-R83-CONTRACT-HARDENING-MATRIX-2026-11-20.tsv"
+      - "docs/FENGINE-R95-PREFREEZE-AUDIT-MATRIX-2026-11-20.tsv"
+      - "docs/FENGINE-HPC-WAVE*-TZ.md"
+      - "docs/FENGINE-HPC-WAVE*-METHOD-DTO-RESULT-TZ.md"
+      - "docs/FENGINE-HPC-WAVE*-STATISTICAL-METHOD-DTO-TZ.md"
+      - "docs/FENGINE-HPC-WAVE1-14-CALCULATION-CONTRACTS-TZ.md"
+      - "docs/FENGINE-HPC-WAVE2-P1-42-METHOD-DTO-RESULT-TZ.md"
+      - "docs/FENGINE-HPC-WAVE3-P2-27-STATISTICAL-METHOD-DTO-TZ.md"
+      - "docs/FENGINE-MODEL-EXT-R1-WAVE4-12-CONTRACTS-TZ.md"
+      - "tests/test_fengine_model_contract_bank.py"
+      - ".github/workflows/fengine-r95-model-bank.yml"
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  model-contract-bank:
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ["3.11", "3.13"]
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+      - name: Independent model specification bank (NOT financial engine E2E)
+        run: python -m unittest discover -s tests -p 'test_fengine_model_contract_bank.py' -v
