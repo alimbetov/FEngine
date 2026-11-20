@@ -1,5 +1,7 @@
 # FEngine HC-R0.2 — wave implementation audit and Python-first qualification
 
+> **Architecture override (2026-11-20):** Any historical proposal in this document to persist calculation facts, plans, results or receipts to PostgreSQL has been superseded. Current FEngine runtime policy is **Redis-only, absolute TTL ≤10,800 seconds, immediate delete on authenticated consumer ACK, no durable user-data copies**. See [HC-R0.3 ephemeral policy](FENGINE-HC-R03-DECIMAL-CALCULATIONS-AND-EPHEMERAL-POLICY.md). This policy is documented; the Redis runtime itself is not implemented yet.
+
 **2026-11-20 · main · Status: MATHEMATICAL_PYTHON_REFERENCE_PARTIAL / FINANCIAL_S2_HOLD**
 
 ## Truth table: catalogue versus executable coverage
