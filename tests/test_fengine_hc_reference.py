@@ -34,8 +34,10 @@ class HCReferenceTests(unittest.TestCase):
     def test_npv_golden_and_midperiod(self):
         inputs = {"cashflows": ["-1000", "600", "600"], "discountRate": "0.10"}
         result = self.run_model("HC.DCF.01", "PERIOD_END_NPV", inputs)
-        expected = Decimal("-1000") + Decimal(600) / Decimal("1.1") + Decimal(600) / Decimal("1.21")
-        self.assertLess(abs(Decimal(result.output["npv"]) - expected), Decimal("1e-30"))
+        with localcontext() as ctx:
+            ctx.prec = 50
+            expected = Decimal("-1000") + Decimal(600) / Decimal("1.1") + Decimal(600) / Decimal("1.21")
+            self.assertLess(abs(Decimal(result.output["npv"]) - expected), Decimal("1e-30"))
         mid = self.run_model("HC.DCF.01", "MIDPERIOD_NPV", inputs)
         self.assertGreater(Decimal(mid.output["npv"]), Decimal(result.output["npv"]))
         self.assertEqual(result.execution_class, "PYTHON_REFERENCE_NOT_S2")
