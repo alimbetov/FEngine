@@ -171,7 +171,7 @@ instrumentKey:REF!; asOf:LOCAL_DATE!; riskFactorCode:CODE!; factorValue:DECIMAL!
 | Contract item | Specification |
 |---|---|
 | Typed input arrays | D55 PD_HAZARD_OBSERVATION; D81 risk score when model calibrated; D21 scenarios |
-| Explicit parameters and variants | hazardEstimator=BINOMIAL_MLE | SURVIVAL_MODEL, censoringPolicyRef, cohortSegmentation, smoothing, scenarioProbabilityPolicy; immutable policy/sha, numeric precision, calendar, unit/currency, scope from Wave-1 |
+| Explicit parameters and variants | hazardEstimator=BINOMIAL_MLE \| SURVIVAL_MODEL, censoringPolicyRef, cohortSegmentation, smoothing, scenarioProbabilityPolicy; immutable policy/sha, numeric precision, calendar, unit/currency, scope from Wave-1 |
 | Mathematical method / applicability | For elementary uncensored period q_t=defaults_t/atRisk_t; S_t=Π_(j≤t)(1−q_j); marginalPD_t=S_(t−1)q_t; cumulativePD_t=1−S_t. Model with censoring/competing risks requires separate estimation variant |
 | Output values in common results[].rows[].values[] | CONDITIONAL_PD:RATE, MARGINAL_PD:RATE, CUMULATIVE_PD:RATE, SURVIVAL:RATE; TIME_SERIES |
 | Independently checkable synthetic arithmetic | q1=0.10 and q2=0.20 ⇒ survival at 2=0.9×0.8=0.72; cumulative PD=0.28 |
@@ -235,7 +235,7 @@ instrumentKey:REF!; asOf:LOCAL_DATE!; riskFactorCode:CODE!; factorValue:DECIMAL!
 | Contract item | Specification |
 |---|---|
 | Typed input arrays | D80 contract dated borrower/bank disbursements+all legally included fees; D06 exact contract/legal entity type |
-| Explicit parameters and variants | regulationId=KZ-ARRFR-2026-04-03-N44, effectiveDate, borrowerType=LEGAL_PERSON | NATURAL_PERSON, includedCommissionRulesRev, dateBase, rootTolerance, solverDomain, resultRounding=2_DECIMAL_PERCENT_PLACES; immutable policy/sha, numeric precision, calendar, unit/currency, scope from Wave-1 |
+| Explicit parameters and variants | regulationId=KZ-ARRFR-2026-04-03-N44, effectiveDate, borrowerType=LEGAL_PERSON \| NATURAL_PERSON, includedCommissionRulesRev, dateBase, rootTolerance, solverDomain, resultRounding=2_DECIMAL_PERCENT_PLACES; immutable policy/sha, numeric precision, calendar, unit/currency, scope from Wave-1 |
 | Mathematical method / applicability | For dated eligible cash flows solve present value of borrower disbursements net initial eligible fees equal PV of eligible borrower repayments/fees on legally specified day basis, following exact law/p11 formula and amendments as of calculation date. Never use IFRS9 EIR fee eligibility instead. Report rate as fraction and separately display % rounded under p23 |
 | Output values in common results[].rows[].values[] | KZ_GESV:RATE, KZ_GESV_DISPLAY:PERCENT, NPV_RESIDUAL:MONEY, INCLUDED_FEE_TOTAL:MONEY, RULE_VERSION:CODE; AGGREGATE |
 | Independently checkable synthetic arithmetic | Simplified 365-day loan D=100 KZT, initial eligible fee k=2 KZT, one client repayment P=110 KZT exactly day365: net98, effective annual r=110/98−1≈0.1224489796 (12.24% displayed to hundredths) under stated simple facts |
@@ -315,7 +315,7 @@ instrumentKey:REF!; asOf:LOCAL_DATE!; riskFactorCode:CODE!; factorValue:DECIMAL!
 | Contract item | Specification |
 |---|---|
 | Typed input arrays | D63 inventory position, demand and safety stock; D70 distribution if probability model chosen |
-| Explicit parameters and variants | reorderPolicy=ROP | SERVICE_LEVEL, lotSizing=CONTINUOUS | MOQ, leadTime, serviceLevel, capacityConstraint, inventoryPositionDefinition; immutable policy/sha, numeric precision, calendar, unit/currency, scope from Wave-1 |
+| Explicit parameters and variants | reorderPolicy=ROP \| SERVICE_LEVEL, lotSizing=CONTINUOUS \| MOQ, leadTime, serviceLevel, capacityConstraint, inventoryPositionDefinition; immutable policy/sha, numeric precision, calendar, unit/currency, scope from Wave-1 |
 | Mathematical method / applicability | ROP=expected demand during lead time+safety stock; inventoryPosition=onHand+eligibleOnOrder−reservedQty; proposedReplenishment=max(0,ROP−inventoryPosition), adjust MOQ and capacity through feasible optimization |
 | Output values in common results[].rows[].values[] | REORDER_POINT:QUANTITY, REPLENISHMENT_QTY:QUANTITY, FEASIBILITY:CODE, EXPECTED_SHORTFALL:QUANTITY; OPTIMIZATION_PLAN |
 | Independently checkable synthetic arithmetic | ROP70 units, onHand30,onOrder10,reserved0 ⇒ recommended order30 units, no MOQ/capacity restrictions |
@@ -363,7 +363,7 @@ instrumentKey:REF!; asOf:LOCAL_DATE!; riskFactorCode:CODE!; factorValue:DECIMAL!
 | Contract item | Specification |
 |---|---|
 | Typed input arrays | D66 service intervals/cost, approved life-cycle policy, D41 funded commitments optional |
-| Explicit parameters and variants | maintenanceStrategy=TIME_BASED | HOURS_BASED, degradationModelRef, businessCalendarRef, planningHorizon, sparePartsConstraint; immutable policy/sha, numeric precision, calendar, unit/currency, scope from Wave-1 |
+| Explicit parameters and variants | maintenanceStrategy=TIME_BASED \| HOURS_BASED, degradationModelRef, businessCalendarRef, planningHorizon, sparePartsConstraint; immutable policy/sha, numeric precision, calendar, unit/currency, scope from Wave-1 |
 | Mathematical method / applicability | Deterministic version: nextScheduledService = lastServiceDate+serviceIntervalDays; build event-dated planned maintenance costs across horizon; probabilistic failure hazard requires evidence and another method variant |
 | Output values in common results[].rows[].values[] | NEXT_SERVICE_DATE:LOCAL_DATE, PLANNED_MAINTENANCE_COST:MONEY, LATE_BY_DAYS:INTEGER; TIME_SERIES |
 | Independently checkable synthetic arithmetic | Last service 2026-01-01, interval100 days → next due 2026-04-11; one planned service cost20 KZT |
@@ -395,7 +395,7 @@ instrumentKey:REF!; asOf:LOCAL_DATE!; riskFactorCode:CODE!; factorValue:DECIMAL!
 | Contract item | Specification |
 |---|---|
 | Typed input arrays | D68 time-based cost curve and approved index, project risk/scenario optional |
-| Explicit parameters and variants | priceIndexVariant=FIXED_RATE | EXTERNAL_INDEX, compoundingPeriod, contingencyPolicyRef, baseDate, excludedTax; immutable policy/sha, numeric precision, calendar, unit/currency, scope from Wave-1 |
+| Explicit parameters and variants | priceIndexVariant=FIXED_RATE \| EXTERNAL_INDEX, compoundingPeriod, contingencyPolicyRef, baseDate, excludedTax; immutable policy/sha, numeric precision, calendar, unit/currency, scope from Wave-1 |
 | Mathematical method / applicability | EscalatedCost=baseCost×(1+escalationRate)^periods for stated fixed periodic rate. Contingency cost is separate approved fixed or probability-based provision, never automatically lumped with price escalation |
 | Output values in common results[].rows[].values[] | ESCALATED_COST:MONEY, ESCALATION_DELTA:MONEY, CONTINGENCY:MONEY, TOTAL_IF_INCLUDED:MONEY; TIME_SERIES |
 | Independently checkable synthetic arithmetic | Base100, annual escalation5%, two years ⇒ escalated110.25 KZT, increase10.25 |
@@ -411,7 +411,7 @@ instrumentKey:REF!; asOf:LOCAL_DATE!; riskFactorCode:CODE!; factorValue:DECIMAL!
 | Contract item | Specification |
 |---|---|
 | Typed input arrays | D69 demand history and season markers, D63 stockouts and D75 optional distribution inputs |
-| Explicit parameters and variants | forecastMethod=SEASONAL_NAIVE | MULTIPLICATIVE_INDEX | STATE_SPACE, horizon, leakagePolicy, missingPeriods, outlierPolicy, hierarchyReconciliation; immutable policy/sha, numeric precision, calendar, unit/currency, scope from Wave-1 |
+| Explicit parameters and variants | forecastMethod=SEASONAL_NAIVE \| MULTIPLICATIVE_INDEX \| STATE_SPACE, horizon, leakagePolicy, missingPeriods, outlierPolicy, hierarchyReconciliation; immutable policy/sha, numeric precision, calendar, unit/currency, scope from Wave-1 |
 | Mathematical method / applicability | Simple model forecast_demand = qualified deseasonalized baseline×seasonal index, with future index measured only from training periods. Report actual-vs-predicted, interval only if calibrated errors available |
 | Output values in common results[].rows[].values[] | DEMAND_FORECAST:QUANTITY, FORECAST_ERROR:QUANTITY, PI_LOWER/UPPER:QUANTITY?; TIME_SERIES |
 | Independently checkable synthetic arithmetic | Baseline forecast100 units, independently estimated next-season multiplier1.2 ⇒ predicted120 units |
@@ -427,7 +427,7 @@ instrumentKey:REF!; asOf:LOCAL_DATE!; riskFactorCode:CODE!; factorValue:DECIMAL!
 | Contract item | Specification |
 |---|---|
 | Typed input arrays | D70 daily demand distribution and lead time; D63 policy position |
-| Explicit parameters and variants | distribution=NORMAL_APPROX | EMPIRICAL, zQuantileMethod, leadTimeVariancePolicy, serviceMetric=CYCLE_SERVICE | FILL_RATE; immutable policy/sha, numeric precision, calendar, unit/currency, scope from Wave-1 |
+| Explicit parameters and variants | distribution=NORMAL_APPROX \| EMPIRICAL, zQuantileMethod, leadTimeVariancePolicy, serviceMetric=CYCLE_SERVICE \| FILL_RATE; immutable policy/sha, numeric precision, calendar, unit/currency, scope from Wave-1 |
 | Mathematical method / applicability | For constant lead time L and iid daily demand with σd, approximate safetyStock=z×σd×sqrt(L); ROP=μd×L+safetyStock. Stochastic lead time requires additional variance/covariance terms and cannot reuse simple formula |
 | Output values in common results[].rows[].values[] | SAFETY_STOCK:QUANTITY, REORDER_POINT:QUANTITY, SERVICE_TARGET:RATE, MODEL_WARNINGS:CODE; AGGREGATE |
 | Independently checkable synthetic arithmetic | μd10/day, σd2/day, L4 days, assumed z1.65 → safety6.6≈7 units (round up), reorder point47 units |
@@ -443,7 +443,7 @@ instrumentKey:REF!; asOf:LOCAL_DATE!; riskFactorCode:CODE!; factorValue:DECIMAL!
 | Contract item | Specification |
 |---|---|
 | Typed input arrays | D71 resource calendar slots/skills/tasks and workload durations |
-| Explicit parameters and variants | capacityScope, calendarHolidays, objective=MIN_OVERTIME | MAX_THROUGHPUT, skillCompatibility, taskPrecedence; immutable policy/sha, numeric precision, calendar, unit/currency, scope from Wave-1 |
+| Explicit parameters and variants | capacityScope, calendarHolidays, objective=MIN_OVERTIME \| MAX_THROUGHPUT, skillCompatibility, taskPrecedence; immutable policy/sha, numeric precision, calendar, unit/currency, scope from Wave-1 |
 | Mathematical method / applicability | Solve assignment/scheduling satisfying resource availability and skill constraints; total load>capacity indicates unavoidable overtime or unmet workload unless alternate resources. Return feasible allocation or infeasibility certificate |
 | Output values in common results[].rows[].values[] | CAPACITY_UTILIZATION:RATIO, UNALLOCATED_HOURS:QUANTITY, RESOURCE_ASSIGNMENTS:STRUCT[], FEASIBILITY:CODE; OPTIMIZATION_PLAN |
 | Independently checkable synthetic arithmetic | 2 resources×8h×5days=80 available hours; 100 qualified hours required ⇒ at least20 unallocated/overtime hours |
@@ -523,7 +523,7 @@ instrumentKey:REF!; asOf:LOCAL_DATE!; riskFactorCode:CODE!; factorValue:DECIMAL!
 | Contract item | Specification |
 |---|---|
 | Typed input arrays | D76 loss observations or committed scenario result distribution, sample weights/time horizon |
-| Explicit parameters and variants | confidenceAlpha, horizon, lossSignConvention, estimator=EMPIRICAL_NEAREST_RANK | MODEL_BASED, sampleWindow, quantileDefinition; immutable policy/sha, numeric precision, calendar, unit/currency, scope from Wave-1 |
+| Explicit parameters and variants | confidenceAlpha, horizon, lossSignConvention, estimator=EMPIRICAL_NEAREST_RANK \| MODEL_BASED, sampleWindow, quantileDefinition; immutable policy/sha, numeric precision, calendar, unit/currency, scope from Wave-1 |
 | Mathematical method / applicability | For loss variable L, VaR_α=inf{x:F_L(x)≥α}. Empirical unweighted nearest-rank at α: sorted losses index ceil(αN), with explicit sign and horizon. VaR is a loss quantile, not maximum possible loss |
 | Output values in common results[].rows[].values[] | VAR_LOSS:MONEY, QUANTILE_ALPHA:RATE, SAMPLE_COUNT:INTEGER, ESTIMATION_STATE:CODE; AGGREGATE |
 | Independently checkable synthetic arithmetic | Observed losses [0,10,20,30] KZT, α=0.75, nearest-rank empirical VaR=20 KZT |
@@ -540,7 +540,7 @@ instrumentKey:REF!; asOf:LOCAL_DATE!; riskFactorCode:CODE!; factorValue:DECIMAL!
 |---|---|
 | Typed input arrays | D76 same observed loss distribution/weights and quantile method as VaR |
 | Explicit parameters and variants | alpha, estimator=QUANTILE_INTEGRAL, tailMassTreatment, weightedSamplePolicy, horizon, zeroTailRule; immutable policy/sha, numeric precision, calendar, unit/currency, scope from Wave-1 |
-| Mathematical method / applicability | ES_α=(1/(1−α))∫_α^1 VaR_u du. For discrete distributions integrate quantile mass correctly, not simply E[L|L>VaR] when there is probability at VaR |
+| Mathematical method / applicability | ES_α=(1/(1−α))∫_α^1 VaR_u du. For discrete distributions integrate quantile mass correctly, not simply E[L\|L>VaR] when there is probability at VaR |
 | Output values in common results[].rows[].values[] | EXPECTED_SHORTFALL:MONEY, TAIL_LOSS_DISTRIBUTION:STRUCT[], VAR_REFERENCE:MONEY; AGGREGATE |
 | Independently checkable synthetic arithmetic | Losses [0,10,20,30] KZT equally weighted, α=.75 → upper quarter is loss30; ES30 KZT |
 | Negative cases / hard gates | ties at quantile; naive conditional above threshold; weighted losses ignored; tail sample too small |
