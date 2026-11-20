@@ -176,6 +176,58 @@ class ParameterSemantics:
         self.typed_candidate_ids = frozenset(
             b.semantic_candidate_id for b in self.bindings.values()
         )
+        # Every reference-mode rule must be a real catalog entry with typed
+        # model-scoped bindings. A rule never implies financial S2 admission.
+        for (model, variant), rule in RULES.items():
+            if (model, variant) not in self.registry.variants:
+                raise CalculationError("VARIANT_RULE_MISSING_FROM_CATALOG", model + ":" + variant)
+            declared_names = (*rule.required, *rule.optional)
+            if len(declared_names) != len(set(declared_names)):
+                raise CalculationError("VARIANT_RULE_DUPLICATE_PARAMETER")
+            for name in declared_names:
+                if (model, name) not in self.bindings:
+                    raise CalculationError("VARIANT_RULE_UNBOUND_PARAMETER", model + ":" + name)
+            for name, allowed in rule.enums:
+                if name not in declared_names or not allowed:
+                    raise CalculationError("VARIANT_RULE_INVALID_ENUM", name)
+                if self.bindings[(model, name)].logical_type not in (
+                    "REFERENCE", "CODE", "ENUM", "BOOLEAN"
+                ):
+                    raise CalculationError("VARIANT_RULE_ENUM_TYPE_MISMATCH", name)
+            for name in rule.sha256_references:
+                if name not in declared_names or name in dict(rule.enums):
+                    raise CalculationError("VARIANT_RULE_INVALID_SHA_REFERENCE", name)
+                if self.bindings[(model, name)].logical_type != "REFERENCE":
+                    raise CalculationError("VARIANT_RULE_SHA_TYPE_MISMATCH", name)
+
+    def resolve_unique(self, model_code: str, config: Mapping[str, Any],
+                       *, reference_mode: bool = False) -> ResolvedVariant:
+        """Automatically select exactly one executable candidate rule.
+
+        Ambiguous or unmatched configurations never choose a default variant.
+        This is not financial method qualification and does not create any new
+        catalog variant; unreviewed catalog templates stay blocked.
+        """
+        if not reference_mode:
+            raise CalculationError("FINANCIAL_S2_REQUIRED")
+        if model_code not in self.registry.models:
+            raise CalculationError("UNKNOWN_MODEL", model_code)
+        if not isinstance(config, Mapping):
+            raise CalculationError("INVALID_CONFIGURATION")
+        matches = []
+        for model, variant in RULES:
+            if model != model_code:
+                continue
+            try:
+                matches.append(self.resolve(model, variant, config, reference_mode=True))
+            except CalculationError:
+                pass
+        if not matches:
+            raise CalculationError("NO_COMPATIBLE_VARIANT", model_code)
+        if len(matches) != 1:
+            raise CalculationError("AMBIGUOUS_VARIANT", ",".join(
+                sorted(result.variant_code for result in matches)))
+        return matches[0]
 
     def resolve(self, model_code: str, variant_code: str,
                 config: Mapping[str, Any], *, reference_mode: bool = False) -> ResolvedVariant:
