@@ -1,0 +1,246 @@
+{
+  "schema": "FENGINE_HC_R06_R07_GOLDEN_V1",
+  "status": "MATHEMATICAL_REFERENCE_NOT_FINANCIAL_S2",
+  "provenance": "SYNTHETIC_NO_CUSTOMER_DATA",
+  "numericPolicy": "DECIMAL40_GENERAL_DECIMAL55_ROOT_ACT365F_R02",
+  "vectors": [
+    {
+      "id": "FCFE_FROM_POST_INTEREST_CFO",
+      "model": "HC.DCF.06",
+      "variant": "FCFE_LEVERED",
+      "inputs": {
+        "asOf": "2026-12-31",
+        "currency": "KZT",
+        "costOfEquityRate": "0.10",
+        "costOfEquityRevisionSha256": "31891b190235fa646462c10c717dc8c8a7354735d52f7e9be76d25a1aff9f349",
+        "periodIndex": 1,
+        "cashCapex": "50",
+        "grossDebtDrawdowns": "40",
+        "principalRepayments": "15",
+        "operatingCashFlowAfterInterest": "110",
+        "sourceRevisionSha256": "00cd6175350adcd0b85d2abe9b4c5007e24646bd83c85e13780749a45405b1ee"
+      },
+      "config": {
+        "debtFlowPolicy": "GROSS_DRAWDOWN_LESS_PRINCIPAL",
+        "costOfEquityRef": "31891b190235fa646462c10c717dc8c8a7354735d52f7e9be76d25a1aff9f349",
+        "cashflowToEquityPolicy": "NO_INTEREST_READD",
+        "netBorrowingMethod": "DRAWDOWNS_MINUS_PRINCIPAL_REPAYMENTS",
+        "taxShieldEligibility": "NO_EXTRA_TAX_SHIELD",
+        "equityCashflowBasis": "POST_INTEREST_OPERATING_CFO"
+      },
+      "expectedDecimal": {
+        "netBorrowing": "25",
+        "freeCashFlowToEquity": "85",
+        "operatingCashFlowAfterInterest": "110",
+        "presentValueOfFcfe": "77.27272727272727272727272727272727272727"
+      },
+      "expectedExact": {
+        "currency": "KZT",
+        "periodIndex": 1,
+        "cashflowBasis": "POST_INTEREST_OPERATING_CFO"
+      },
+      "tolerance": "1e-36"
+    },
+    {
+      "id": "FCFE_FROM_NET_INCOME_BRIDGE",
+      "model": "HC.DCF.06",
+      "variant": "FCFE_NORMALIZED",
+      "inputs": {
+        "asOf": "2026-12-31",
+        "currency": "KZT",
+        "costOfEquityRate": "0.10",
+        "costOfEquityRevisionSha256": "31891b190235fa646462c10c717dc8c8a7354735d52f7e9be76d25a1aff9f349",
+        "periodIndex": 1,
+        "cashCapex": "50",
+        "grossDebtDrawdowns": "40",
+        "principalRepayments": "15",
+        "netIncome": "100",
+        "noncashOperatingCharges": "30",
+        "deltaOperatingNwc": "20",
+        "sourceRevisionSha256": "3a5e1551c4f58d50ca49554842b9731379c56465825b012bef19d61c7b276424"
+      },
+      "config": {
+        "debtFlowPolicy": "GROSS_DRAWDOWN_LESS_PRINCIPAL",
+        "costOfEquityRef": "31891b190235fa646462c10c717dc8c8a7354735d52f7e9be76d25a1aff9f349",
+        "cashflowToEquityPolicy": "NO_INTEREST_READD",
+        "netBorrowingMethod": "DRAWDOWNS_MINUS_PRINCIPAL_REPAYMENTS",
+        "taxShieldEligibility": "NO_EXTRA_TAX_SHIELD",
+        "equityCashflowBasis": "POST_INTEREST_NET_INCOME_BRIDGE"
+      },
+      "expectedDecimal": {
+        "netBorrowing": "25",
+        "freeCashFlowToEquity": "85",
+        "operatingCashFlowAfterInterest": "110",
+        "presentValueOfFcfe": "77.27272727272727272727272727272727272727"
+      },
+      "expectedExact": {
+        "currency": "KZT",
+        "periodIndex": 1,
+        "cashflowBasis": "POST_INTEREST_NET_INCOME_BRIDGE"
+      },
+      "tolerance": "1e-36"
+    },
+    {
+      "id": "PVM_COST_PRICE_VARIANCE",
+      "model": "HC.COST.08",
+      "variant": "PRICE_VARIANCE",
+      "inputs": {
+        "baselinePeriod": "2025-12-31",
+        "actualPeriod": "2026-12-31",
+        "currency": "KZT",
+        "quantityUnit": "PCS",
+        "rows": [
+          {
+            "sku": "A",
+            "baselineQuantity": "60",
+            "actualQuantity": "50",
+            "baselineUnitCost": "10",
+            "actualUnitCost": "11"
+          },
+          {
+            "sku": "B",
+            "baselineQuantity": "40",
+            "actualQuantity": "60",
+            "baselineUnitCost": "20",
+            "actualUnitCost": "18"
+          }
+        ],
+        "baselineRevisionSha256": "c792c3d1ff65834960156eb2aad323f160e3b511b9e6e902a913205d4b1847c9",
+        "actualRevisionSha256": "08fb5c2f7bee363af23602e9d9e9b0fa8b9b82c4dc2f9d934f2b61735899d157"
+      },
+      "config": {
+        "standardCostVintage": "a7107b2da3d6b884e03e9241fa2bda494c27a9e39e390d584291dabd87fe8fc2",
+        "volumeBaseline": "42e8f82a264210c1c81416a9e40df96a61cd280d55bbff06939bef8767f3bb44",
+        "interactionAllocation": "SEQUENTIAL_BASELINE_MIX_ACTUAL_QUANTITY_PRICE"
+      },
+      "expectedDecimal": {
+        "baselineQuantity": "100",
+        "actualQuantity": "110",
+        "baselineTotalCost": "1400",
+        "actualTotalCost": "1630",
+        "baselineUnitCostAtActualQuantities": "1700",
+        "priceVariance": "-70",
+        "quantityVariance": "140",
+        "mixVariance": "160",
+        "totalCostVariance": "230",
+        "reconciliationDifference": "0",
+        "selectedVariance": "-70"
+      },
+      "expectedExact": {
+        "selectedFactor": "PRICE",
+        "currency": "KZT",
+        "quantityUnit": "PCS",
+        "allocation": "SEQUENTIAL_BASELINE_MIX_ACTUAL_QUANTITY_PRICE"
+      },
+      "tolerance": "0"
+    },
+    {
+      "id": "PVM_COST_QUANTITY_VARIANCE",
+      "model": "HC.COST.08",
+      "variant": "QUANTITY_VARIANCE",
+      "inputs": {
+        "baselinePeriod": "2025-12-31",
+        "actualPeriod": "2026-12-31",
+        "currency": "KZT",
+        "quantityUnit": "PCS",
+        "rows": [
+          {
+            "sku": "A",
+            "baselineQuantity": "60",
+            "actualQuantity": "50",
+            "baselineUnitCost": "10",
+            "actualUnitCost": "11"
+          },
+          {
+            "sku": "B",
+            "baselineQuantity": "40",
+            "actualQuantity": "60",
+            "baselineUnitCost": "20",
+            "actualUnitCost": "18"
+          }
+        ],
+        "baselineRevisionSha256": "c792c3d1ff65834960156eb2aad323f160e3b511b9e6e902a913205d4b1847c9",
+        "actualRevisionSha256": "08fb5c2f7bee363af23602e9d9e9b0fa8b9b82c4dc2f9d934f2b61735899d157"
+      },
+      "config": {
+        "standardCostVintage": "a7107b2da3d6b884e03e9241fa2bda494c27a9e39e390d584291dabd87fe8fc2",
+        "volumeBaseline": "42e8f82a264210c1c81416a9e40df96a61cd280d55bbff06939bef8767f3bb44",
+        "interactionAllocation": "SEQUENTIAL_BASELINE_MIX_ACTUAL_QUANTITY_PRICE"
+      },
+      "expectedDecimal": {
+        "baselineQuantity": "100",
+        "actualQuantity": "110",
+        "baselineTotalCost": "1400",
+        "actualTotalCost": "1630",
+        "baselineUnitCostAtActualQuantities": "1700",
+        "priceVariance": "-70",
+        "quantityVariance": "140",
+        "mixVariance": "160",
+        "totalCostVariance": "230",
+        "reconciliationDifference": "0",
+        "selectedVariance": "140"
+      },
+      "expectedExact": {
+        "selectedFactor": "TOTAL_VOLUME",
+        "currency": "KZT",
+        "quantityUnit": "PCS",
+        "allocation": "SEQUENTIAL_BASELINE_MIX_ACTUAL_QUANTITY_PRICE"
+      },
+      "tolerance": "0"
+    },
+    {
+      "id": "PVM_COST_MIX_VARIANCE",
+      "model": "HC.COST.08",
+      "variant": "MIX_VARIANCE",
+      "inputs": {
+        "baselinePeriod": "2025-12-31",
+        "actualPeriod": "2026-12-31",
+        "currency": "KZT",
+        "quantityUnit": "PCS",
+        "rows": [
+          {
+            "sku": "A",
+            "baselineQuantity": "60",
+            "actualQuantity": "50",
+            "baselineUnitCost": "10",
+            "actualUnitCost": "11"
+          },
+          {
+            "sku": "B",
+            "baselineQuantity": "40",
+            "actualQuantity": "60",
+            "baselineUnitCost": "20",
+            "actualUnitCost": "18"
+          }
+        ],
+        "baselineRevisionSha256": "c792c3d1ff65834960156eb2aad323f160e3b511b9e6e902a913205d4b1847c9",
+        "actualRevisionSha256": "08fb5c2f7bee363af23602e9d9e9b0fa8b9b82c4dc2f9d934f2b61735899d157"
+      },
+      "config": {
+        "standardCostVintage": "a7107b2da3d6b884e03e9241fa2bda494c27a9e39e390d584291dabd87fe8fc2",
+        "volumeBaseline": "42e8f82a264210c1c81416a9e40df96a61cd280d55bbff06939bef8767f3bb44",
+        "interactionAllocation": "SEQUENTIAL_BASELINE_MIX_ACTUAL_QUANTITY_PRICE"
+      },
+      "expectedDecimal": {
+        "baselineQuantity": "100",
+        "actualQuantity": "110",
+        "baselineTotalCost": "1400",
+        "actualTotalCost": "1630",
+        "baselineUnitCostAtActualQuantities": "1700",
+        "priceVariance": "-70",
+        "quantityVariance": "140",
+        "mixVariance": "160",
+        "totalCostVariance": "230",
+        "reconciliationDifference": "0",
+        "selectedVariance": "160"
+      },
+      "expectedExact": {
+        "selectedFactor": "MIX",
+        "currency": "KZT",
+        "quantityUnit": "PCS",
+        "allocation": "SEQUENTIAL_BASELINE_MIX_ACTUAL_QUANTITY_PRICE"
+      },
+      "tolerance": "0"
+    }
+  ]
+}
