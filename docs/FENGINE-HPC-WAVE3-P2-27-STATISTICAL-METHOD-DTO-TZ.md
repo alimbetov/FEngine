@@ -647,3 +647,46 @@ Every 27 methods needs:
 - Mathematical ES discrete quantile-integral/ties: https://danpele.github.io/MFM/web/ch7.html
 
 **Release decision:** REQUIREMENTS_ONLY — all 27 P2 indicators specified with input arrays, typed numeric/period/parameter requirements, formula/estimation rules, output metrics, synthetic arithmetic vectors, statistical/financial failure conditions and dependencies. No Python/Rust code, no schema migrations, no running calculator.
+
+
+## 8. Typed MethodParameter Schema Matrix (W3/P2, проектная типизация)
+
+**Требование:** ParameterValueDTO = {parameterCode, logicalType, value, unitCode?, valueState, policyRevisionRef, sourceEvidenceRef?, effectiveRange?}. Каждое имя параметра в §3 имеет указанную ниже логическую типизацию; один параметр может быть REQUIRED или CONDITIONAL по точной MethodVariantRevision. Здесь типы **кандидатны**, не заменяют будущий однозначный IDL/S2. Неизвестный параметр либо изменённый тип запрещён до новой schema revision.
+
+| FEngine code | Все объявленные параметры, типы и единицы |
+|---|---|
+| HC.ECL.04 | hazardEstimator:CODE; censoringPolicyRef:REFERENCE; cohortSegmentation:CODE; smoothing:STRUCT{estimatorCode:CODE,parameter:DECIMAL}; scenarioProbabilityPolicy:CODE |
+| HC.ECL.05 | recoveryEligibility:CODE; recoveryCostTreatment:CODE; recoveryDiscountOrigin:LOCAL_DATE; discountRateSource:REFERENCE; collateralSeniority:CODE; noRecoveryState:CODE |
+| HC.ECL.06 | ccfRevision:REFERENCE; exposureDate:LOCAL_DATE; expectedRepaymentPolicy:CODE; drawableEligibility:CODE; undrawnCommitmentState:CODE; collateralNettingPolicy:CODE |
+| HC.ECL.07 | stageTransitionPolicyRev:REFERENCE; SICRRuleRevision:REFERENCE; POCIClassification:CODE; forwardScenarios:LIST<REFERENCE>; reconciliationPolicy:CODE |
+| HC.LOAN.08 | regulationId:CODE; effectiveDate:LOCAL_DATE; borrowerType:CODE; includedCommissionRulesRev:REFERENCE; dateBase:CODE; rootTolerance:RATE; solverDomain:STRUCT{minRate:RATE,maxRate:RATE}; resultRounding:STRUCT{percentScale:INTEGER,mode:CODE} |
+| HC.ACC.03 | functionalCurrency:ISO4217; presentationCurrency:ISO4217; closingVsTransactionRatePolicy:CODE; averageRateEligibility:CODE; hyperinflationGate:CODE; CTAclassificationRef:REFERENCE |
+| HC.ACC.05 | taxJurisdiction:CODE; deferredTaxRateRev:REFERENCE; carryforwardEligibility:CODE; initialRecognitionExceptions:CODE; offsetEligibility:CODE; recoveryDatePolicy:CODE |
+| HC.ACC.07 | profitOrOCIClassification:CODE; dividendsPayableVsPaidPolicy:CODE; restatementRevision:REFERENCE; ownershipNCIAllocation:CODE; asOf:LOCAL_DATE |
+| HC.STOCK.05 | ageBucketBoundaries:LIST<INTEGER[DAYS]>; lastMovementVsReceiptAge:CODE; slowMovingPolicy:CODE; nrvEvidencePolicy:CODE; asOf:LOCAL_DATE |
+| HC.STOCK.07 | reorderPolicy:CODE; lotSizing:CODE; leadTime:INTEGER[DAYS]; serviceLevel:RATE[0..1]; capacityConstraint:STRUCT; inventoryPositionDefinition:CODE |
+| HC.ASSET.03 | cashflowHorizon:INTEGER[PERIODS]; terminalPolicy:CODE; discountRateConsistency:CODE; VIU_RiskAdjustmentPolicy:CODE; recoverableAmountMethod:CODE; impairmentAllocationOrder:CODE |
+| HC.ASSET.05 | disposalRecognitionPolicy:CODE; transactionCostsEligibility:CODE; saleLeasebackGate:CODE; derecognitionDate:LOCAL_DATE |
+| HC.ASSET.06 | maintenanceStrategy:CODE; degradationModelRef:REFERENCE; businessCalendarRef:REFERENCE; planningHorizon:INTEGER[PERIODS]; sparePartsConstraint:CODE |
+| HC.COST.04 | mixDefinition:CODE; discreteBatchRule:CODE; productContributionPolicy:CODE; taxFixedTreatment:CODE; feasibilityConstraints:STRUCT |
+| HC.COST.05 | priceIndexVariant:CODE; compoundingPeriod:PERIOD; contingencyPolicyRef:REFERENCE; baseDate:LOCAL_DATE; excludedTax:BOOLEAN |
+| HC.PLAN.02 | forecastMethod:CODE; horizon:INTEGER[PERIODS]; leakagePolicy:CODE; missingPeriods:PERIOD; outlierPolicy:CODE; hierarchyReconciliation:CODE |
+| HC.PLAN.03 | distribution:CODE; zQuantileMethod:CODE; leadTimeVariancePolicy:CODE; serviceMetric:CODE |
+| HC.PLAN.04 | capacityScope:CODE; calendarHolidays:REFERENCE; objective:CODE; skillCompatibility:CODE; taskPrecedence:CODE |
+| HC.PLAN.05 | graphType:CODE; lagPolicy:CODE; startDate:LOCAL_DATE; durationPrecision:CODE; activityCalendarRevision:REFERENCE; criticalityThreshold:CODE |
+| HC.PLAN.06 | grossVsNetPay:CODE; payrollTaxPolicyRef:REFERENCE; partMonthProration:CODE; employerCostScope:CODE; benefitsRateRef:REFERENCE; costCenterAllocation:CODE |
+| HC.PLAN.08 | objective:CODE; indivisibility:CODE; budgetPeriods:LIST<PERIOD>; dependencyConstraints:STRUCT; discountPolicy:CODE; solverGapTolerance:DECIMAL[RATIO] |
+| HC.RISK.01 | distributionRevision:REFERENCE; prngAlgorithm:CODE; seed:INT64; samplingScheme:CODE; sampleCount:INTEGER[COUNT]; scenarioCorrelation:REFERENCE; statisticalErrorEstimate:CODE |
+| HC.RISK.02 | confidenceAlpha:RATE(0..1); horizon:INTEGER[PERIODS]; lossSignConvention:CODE; estimator:CODE; sampleWindow:PERIOD; quantileDefinition:CODE |
+| HC.RISK.03 | alpha:RATE(0..1); estimator:CODE; tailMassTreatment:CODE; weightedSamplePolicy:CODE; horizon:INTEGER[PERIODS]; zeroTailRule:CODE |
+| HC.RISK.05 | macroTransformRevision:REFERENCE; scenarioWeights:LIST<RATE>[sum≈1]; sensitivityMeasure:CODE; calibrationEvidence:REFERENCE; pdLgdeAdRecalibration:CODE |
+| HC.RISK.06 | breachRule:CODE; horizon:INTEGER[PERIODS]; pathWeightPolicy:CODE; confidenceIntervalMethod:CODE; simulationStoppingPolicy:CODE |
+| HC.RISK.07 | shockCorrelationRev:REFERENCE; orderOfOperations:CODE; scenarioVectorRev:REFERENCE; mappingPolicy:CODE; currencyAndRealNominalCompatibility:ISO4217 |
+
+**Type aliases and validation rules:**
+- CODE = versioned allowlisted ENUM; REFERENCE = immutable scoped ID with required SHA/source evidence; HASH = canonical SHA-256 hex.
+- RATE = Decimal fraction with dimension ONE (0.10 means 10%), unless separately constrained > −1 for rate-root domain; probability RATE is [0,1]; RATIO distinct but shares physical dimension ONE.
+- MONEY = Decimal string with ISO4217 currency, time and accounting basis; DATE = LOCAL_DATE; INTEGER[DAYS]/[PERIODS]/[COUNT] has explicit unit; MONEY_PER_UNIT in dataset schemas = struct{money:Decimal,currency:ISO4217,denominatorUnit:CODE}.
+- STRUCT / LIST<...> demand their own exact nested versioned schema. Free-form maps, arbitrary Python names or expressions are prohibited.
+- Parameters with type CODE but carrying a numerical value by a future methodology decision MUST be revised to a numeric logical type prior to implementation; no silent coercion. Source authorization, effective param values and their SHA belong to the immutable execution binding.
+- These assignments are architectural **initial type candidates**, not final finance-approved method metadata.
