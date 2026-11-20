@@ -1,6 +1,6 @@
 # FEngine — единая спецификация финансово-экономического аналитического ядра
 
-Версия документа: 0.8 (83 baseline contracts + 12 W4 candidates; R83 review, OPT-R0 and GEO-OPT-R0 preserved)
+Версия документа: 0.9 (95 candidate models; pre-freeze R95 methodology audit, independent contract bank; OPT/GEO preserved)
 Дата: 2026-11-20
 Репозиторий: https://github.com/alimbetov/FEngine
 Статус: DRAFT / синхронизация знаний с FIN на 2026-11-20; архитектурное задание; не является свидетельством реализованных расчётов.
@@ -1998,3 +1998,19 @@ Open ADR: GEO-ADR-01 hierarchy tree versus DAG contract; -02 coordinate/altitude
 **No automatic production admission:** все W4 договоры остаются неизменяемыми *после будущей методологической квалификации*, а до неё являются только кандидатами. Сначала ревью текущих 83 и W4, проверка численных golden vectors, параметров, диапазонов, учётной/регуляторной применимости, SHA/versions и отрицательных сценариев; только затем заморозка точных Python/Java API контрактов и поэтапное программирование.
 
 **Deferred independent packages:** LCR/NSFR (пруденциальные нормы), IFRS17 страхование, оптимизация инвестиционного портфеля, недвижимость NOI/cap rate, энергетика LCOE, специализированная юрисдикционная ALM-квалификация. Эти темы не получают W4 коды и не входят в 95 без отдельного решения.
+
+
+---
+
+## 23. FIN-R95-AUD-R0.2 — 95 моделей: полный pre-freeze review и воспроизводимый тестовый банк
+
+**Дата:** 2026-11-20; **статус:** METHODOLOGY_REVIEW_DRAFT / CONTRACT_FREEZE_BLOCKED / FINANCIAL_S2_HOLD.
+Область: 83 оригинальных W1–W3 и 12 W4, итого **95 спецификаций**, 93 proposed dataset DTO. Подробный документ: `docs/FENGINE-R95-METHODOLOGICAL-AND-FUNCTIONAL-AUDIT-2026-11-20.md`; матрица 95 кодов, параметров и негативных случаев: `docs/FENGINE-R95-PREFREEZE-AUDIT-MATRIX-2026-11-20.tsv`; общий контракт параметров до freeze: `docs/FENGINE-R95-PARAMETER-CONTRACT-V2-DESIGN.md`.
+
+**Результат ревью (не ошибка runtime):** 28 CRITICAL, 42 HIGH, 25 MEDIUM методических риска. Основные P0: ECL default-vs-recovery horizon/SICR/PD hazard; LOAN nominal/EIR/ГЭСВ с датами и комиссиями; DCF кратные IRR, FCFF/WACC и FCFE/Ke; RISK VaR/ES probability mass и Monte Carlo calibration; PLAN/PRICE integrality, solver gap; COST.03 true PVM MIX. 12 новых W4 покрывают стоимость капитала, кредитное ценообразование, экономику клиента, проектное финансирование, ALM, FTP и цену, но **не реализованы**.
+
+**Контрактный банк:** `tests/test_fengine_model_contract_bank.py`, workflow `.github/workflows/fengine-r95-model-bank.yml`. GitHub PR reference: https://github.com/alimbetov/FEngine/actions/runs/44703835282 — Python 3.11 **34/34 PASS**, Python 3.13 **34/34 PASS**. В 34 тестовых методах: structural `subTest` проверки **всех 95** отдельных спецификаций и независимые синтетические Decimal-инварианты. Это **не** интеграционный запуск 95 HC алгоритмов.
+
+**Функциональная граница:** финансовая Python реализация HC **0/95 подтверждено**, независимый финансовый S2 **0/95**, FIN source bindings не проверены, production admission запрещён. GEO-OPT имеет отдельную работающую Python reference-вертикаль; она не заменяет HC Financial Hub.
+
+**Решение:** ДО фиксации неизменяемых Method/Input/Parameter/Output контрактов утвердить типы, допустимые диапазоны, параметры, effective date, политики округления и интерпретации, независимые financial golden и минимум family-specific negatives; затем фиксировать только квалифицированные ревизии по каждой модели. `CONTRACT_FREEZE_BLOCKED` для всех 95 до независимого финансового review.
