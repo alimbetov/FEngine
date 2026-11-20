@@ -36,6 +36,12 @@ jobs:
         run: python -m unittest discover -s tests -p 'test_fengine_qual_r13_irr_eir_risk_properties.py' -v
       - name: Mandatory QUAL-R1.3 seeded daily monthly quarterly yearly temporal properties
         run: python -m unittest discover -s tests -p 'test_fengine_qual_r13_temporal_properties.py' -v
+      - name: Mandatory QUAL-R1.4 independent PVM and FIFO-WAC source pool invariant properties
+        run: python -m unittest discover -s tests -p 'test_fengine_qual_r14_pvm_stock_properties.py' -v
+      - name: Mandatory QUAL-R1.4 independent asset and WACC invariants
+        run: python -m unittest discover -s tests -p 'test_fengine_qual_r14_asset_wacc_properties.py' -v
+      - name: Mandatory QUAL-R1.4 direct and indirect CFO FCFF FCFE conservation
+        run: python -m unittest discover -s tests -p 'test_fengine_qual_r14_cashflow_properties.py' -v
       - name: Verify independent high-precision HC goldens without shared test import order
         run: |
           python -m unittest discover -s tests -p 'test_fengine_hc_reference.py' -v
