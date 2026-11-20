@@ -12,11 +12,10 @@ from __future__ import annotations
 
 import copy
 import csv
-import importlib
 import re
 import unittest
-from dataclasses import replace
 from decimal import Decimal
+from collections.abc import Mapping
 from pathlib import Path
 from unittest.mock import patch
 
@@ -33,6 +32,18 @@ TEST_MODULES = (
     "test_fengine_hc_r07_pvm",
 )
 DECIMAL_LITERAL = re.compile(r"[-+]?(?:\d+(?:\.\d*)?|\.\d+)(?:[eE][-+]?\d+)?\Z")
+
+
+def clone_reference_input(value):
+    """Clone accepted nested MappingProxyType without mutating model fixtures."""
+    if isinstance(value, Mapping):
+        return {clone_reference_input(key): clone_reference_input(part)
+                for key, part in value.items()}
+    if isinstance(value, list):
+        return [clone_reference_input(part) for part in value]
+    if isinstance(value, tuple):
+        return tuple(clone_reference_input(part) for part in value)
+    return copy.deepcopy(value)
 
 
 def mutate_one_known_numeric(value):
@@ -81,7 +92,7 @@ def successful_variant_fixtures(inventory):
                            reference_mode=reference_mode)
         key = (model, variant)
         if reference_mode and key not in collected:
-            collected[key] = (copy.deepcopy(inputs), copy.deepcopy(config))
+            collected[key] = (clone_reference_input(inputs), clone_reference_input(config))
         return outcome
 
     loader = unittest.TestLoader()
@@ -93,7 +104,7 @@ def successful_variant_fixtures(inventory):
         suite.run(nested)
     if not nested.wasSuccessful():
         messages = [
-            (case.id(), type(error).__name__)
+            (case.id(), error[-500:])
             for case, error in nested.errors + nested.failures
         ]
         raise AssertionError(f"INDEPENDENT_MODEL_SUITE_FAILED: {messages[:8]}")
