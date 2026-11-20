@@ -198,6 +198,26 @@ class TemporalModelCapabilityTests(unittest.TestCase):
         self.assertEqual(out.result.rows[0].value,"300")
         self.assertEqual(out.result.total_rows[0].value,"300")
 
+    def test_daily_cfo_runs_grouped_as_months_plus_full_interval_total(self):
+        date_cursor = JAN
+        daily_runs = []
+        while date_cursor < MAR:
+            following = date_cursor + timedelta(days=1)
+            daily_runs.append(indirect_run(date_cursor, following, "1"))
+            date_cursor = following
+        r = request(
+            source_grain="DAY", output_grain="MONTH", end=MAR,
+            coverage_attested=True, watermark=MAR
+        )
+        out = self.calculate(r, daily_runs)
+        self.assertEqual([Decimal(x.value) for x in out.result.rows],
+                         [Decimal(31), Decimal(28)])
+        self.assertEqual(Decimal(out.result.total_rows[0].value), Decimal(59))
+        self.assertEqual(out.result.total_rows[0].observation_count, 59)
+        # A falsely labelled monthly source must not be spread into daily facts.
+        self.err("SOURCE_GRAIN_MISMATCH", lambda:
+                 self.calculate(r,[indirect_run(JAN,FEB,"31")]))
+
     def test_actual_fcff_model_results_are_summed_without_special_calendar_code(self):
         runs=[fcff_run(start,end) for start,end in WINDOWS]
         out=self.calculate(request("HC.DCF.05","FCFF_UNLEVERED",
