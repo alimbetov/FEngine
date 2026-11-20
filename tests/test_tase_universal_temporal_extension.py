@@ -179,7 +179,7 @@ class UniversalTemporalExtensionTests(unittest.TestCase):
 
     def test_missing_month_and_overlapping_windows_still_block_total(self):
         inp=source(*monthly("REVENUE",("100","120","80"))[::2])
-        self.reject("PARTIAL_COVERAGE",lambda:calculate(self.cat,request(),inp))
+        self.reject("MISSING_PERIOD_SOURCE",lambda:calculate(self.cat,request(),inp))
         duplicated=[
             row("REVENUE",JAN,MAR,"100"),
             row("REVENUE",FEB,APR,"200")
