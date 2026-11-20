@@ -193,6 +193,20 @@ class TemporalV12Tests(unittest.TestCase):
         self.rejects("COVERAGE_UNKNOWN",lambda:self.calc(
             replace(req,coverage_attested=False),[dated(JAN,"100")]))
 
+    def test_source_batch_hash_changes_when_coverage_watermark_changes(self):
+        # A stronger or newer completeness claim is a distinct input snapshot,
+        # even if its currently observed financial values remain identical.
+        rows=[dated(JAN,"-100")]
+        base=request("HC.DCF.02","EXACT_DATE_XNPV","xnpv",
+                     end=FEB,watermark=FEB)
+        current=self.calc(base,rows)
+        amended=self.calc(replace(base,watermark=MAR),rows)
+        self.assertEqual(current.result.total_rows[0].value,
+                         amended.result.total_rows[0].value)
+        self.assertNotEqual(current.source_batch_sha256,
+                            amended.source_batch_sha256)
+        self.assertNotEqual(current.result_sha256,amended.result_sha256)
+
     def test_xnpv_multiple_events_same_date_need_distinct_ids(self):
         a=dated(JAN,"-100",identifier="A")
         b=dated(JAN,"50",identifier="B")
