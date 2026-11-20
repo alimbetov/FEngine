@@ -942,7 +942,7 @@ IFRS Foundation standards pages:
 | FEngine code | Все объявленные параметры, типы и единицы |
 |---|---|
 | HC.SET.04 | weightBasis:CODE; cutoff:CODE; denominatorPolicy:CODE; calendarPolicyRef:REFERENCE |
-| HC.SET.05 | nettingRule:CODE; legalApprovalRev:REFERENCE; sameCurrencyPolicy:ISO4217; intendedSettlementBasis:CODE; asOf:LOCAL_DATE |
+| HC.SET.05 | nettingRule:CODE; legalApprovalRev:REFERENCE; sameCurrencyPolicy:CODE; intendedSettlementBasis:CODE; asOf:LOCAL_DATE |
 | HC.SET.07 | averageStockPolicy:CODE; denominatorSalesPolicy:CODE; dayCount:CODE; currency/basis:STRUCT{currencyCode:ISO4217,accountingBasis:CODE} |
 | HC.ECL.01 | approach:CODE; cohortPolicyRef:REFERENCE; scenarioWeightRev:REFERENCE; forwardOverlayPolicyRef:REFERENCE; discountEligibility:CODE |
 | HC.ECL.02 | defaultWindow:CODE; discountBasis:CODE; PDType:CODE; recoveryTimingRef:REFERENCE |
@@ -964,7 +964,7 @@ IFRS Foundation standards pages:
 | HC.DCF.08 | valuationMethod:CODE; netDebtPolicyRef:REFERENCE; bridgeAdjustmentsRef:REFERENCE; Ke:RATE; currency:ISO4217 |
 | HC.DCF.09 | axesCodes:LIST<CODE>; cellBudget:INTEGER[CELL_COUNT]; monotonicityNotAssumed:BOOLEAN; scenarioAxisPolicy:CODE; modelHash:HASH |
 | HC.ACC.01 | cashflowClassificationPolicy:CODE; assetLiabilityEquitySigns:CODE; retainedEarningsPolicy:CODE; openingBalanceRef:REFERENCE; taxPolicyRef:REFERENCE |
-| HC.ACC.02 | consolidationPerimeterRef:REFERENCE; matchTolerance:CODE; intercompanyUnrealizedProfitRef:REFERENCE; groupCurrencyPolicy:ISO4217 |
+| HC.ACC.02 | consolidationPerimeterRef:REFERENCE; matchTolerance:CODE; intercompanyUnrealizedProfitRef:REFERENCE; groupCurrencyPolicy:CODE |
 | HC.ACC.04 | matchingKeys:LIST<CODE>; asOf:LOCAL_DATE; dateTolerance:INTEGER[DAYS]; currencyConversionPolicyRef:REFERENCE; residualMateriality:MONEY |
 | HC.ACC.06 | lesseeEligibility:CODE; discountRateRev:REFERENCE; paymentTiming:CODE; extensionOptionEvidence:REFERENCE; reassessmentPolicy:CODE; leaseTerm:INTEGER[PERIODS] |
 | HC.STOCK.03 | valuationMethod:CODE; itemEligibilityPolicyRef:REFERENCE; costCurrency:ISO4217; transferReturnPolicy:CODE |
@@ -972,7 +972,7 @@ IFRS Foundation standards pages:
 | HC.STOCK.06 | stockInterval:PERIOD; unitConversionPolicy:CODE; transferNettingPolicy:CODE; cutOffPolicy:CODE |
 | HC.ASSET.01 | method:CODE; lifeRevisionPolicy:CODE; convention:CODE; suspended/disposal rule:CODE |
 | HC.ASSET.02 | revaluationModelRef:REFERENCE; fairValueEvidenceRef:REFERENCE; ociBalanceRef:REFERENCE; reversalLimit:MONEY; impairmentClassificationRef:REFERENCE |
-| HC.ASSET.04 | asOf:LOCAL_DATE; componentAggregationPolicy:CODE; duplicateEventGuard:CODE; currencyValuationPolicy:ISO4217 |
+| HC.ASSET.04 | asOf:LOCAL_DATE; componentAggregationPolicy:CODE; duplicateEventGuard:CODE; currencyValuationPolicy:CODE |
 | HC.ASSET.07 | capitalizationPolicyRef:REFERENCE; cashVsAccrualMode:CODE; delayHandling:CODE; periodCalendarRef:REFERENCE; committedBudgetScope:CODE |
 | HC.COST.01 | allocationStages:LIST<CODE>; driverZeroPolicy:CODE; unallocatedResidualPolicy:CODE; entityScope:CODE; roundingStage:CODE |
 | HC.COST.02 | wasteRatePolicy:CODE; conversionPolicy:CODE; effectivePriceDate:LOCAL_DATE; laborOverheadVariant:CODE; resourceInclusionRule:CODE |
