@@ -5,6 +5,7 @@ All data synthetic; no FIN adapter, source truth, Redis, production S2 or Rust.
 from __future__ import annotations
 
 import unittest
+from dataclasses import replace
 from datetime import date
 from decimal import Decimal, localcontext
 from pathlib import Path
@@ -100,9 +101,11 @@ class QualifiedTemporalRatioInvariants(unittest.TestCase):
             fact("GROSS_PROFIT", "20", JAN, FEB, "A"),
             fact("REVENUE", "100", FEB, MAR, "A"),
         ]
+        # Compare both partial component sets within the SAME quarter window.
+        # Monthly buckets would correctly stop earlier at COMPONENT_SOURCE_MISSING.
+        req = replace(period(require_full_coverage=False), grain="QUARTER")
         self.reject("COMPONENT_ALIGNMENT", lambda:
-                    calculate(self.cat, period(require_full_coverage=False),
-                              data(*values, attested=False)))
+                    calculate(self.cat, req, data(*values, attested=False)))
 
     def test_full_coverage_remains_source_attested_not_inferred(self):
         values = [
