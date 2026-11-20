@@ -118,6 +118,9 @@ dimensionKeys[]; effectiveDatedHierarchyRef?; sourceRevisionRef.
 9. **Provenance:** exact operatorId+revision, semanticRevision, source/content SHA, calendar/date policy and numeric policy pinned to every output.
 10. **Immutable revision:** product-config update generates new pack and Plan SHA, never mutates published result.
 
+
+**Physical ratios:** ENERGY_INTENSITY and similar quantity/quantity measures are typed DECIMAL with derived physical unit such as kWh/unit, not a dimensionless percentage. Their numerator/denominator must both be registered metric semantics in the same product pack.
+
 ### 2.3. Operator registry
 
 The initial **53 candidate reusable operators** are documented in catalog/tase_operator_candidates_r0.tsv. Families BASIC, AVERAGE, DISTRIBUTION, DISPERSION, FORECAST_ERROR, STRUCTURE, TEMPORAL, DEPENDENCE; each operator has supported semantic class, algebra/partial merge strategy, mandatory policy fields, output type and reason when blocking. Product packs select only compatible allowlisted operator IDs.
@@ -188,7 +191,7 @@ ComparisonDefinitionV1 includes comparisonCode, baseline=PREVIOUS|SAME_PERIOD_LA
 
 - ABS_DELTA = current - baseline with same unit; PCT_CHANGE requires explicit denominator convention and never returns zero for baseline=0.
 - RATE_PP_CHANGE = 100*(rate_current-rate_baseline) in percentage-points when rates stored as fractions; this differs from relative percentage change.
-- RATIO_OF_SUMS = sum(numerator)/sum(denominator), same scope/time/grain/currency; no ordinary mean of independently computed margins.
+- RATIO_OF_SUMS = sum(numerator)/sum(denominator), same scope/time/grain; dimensional algebra determines output: money/money of same currency -> dimensionless RATIO, kWh/units -> DECIMAL with kWh/unit, incompatible currency or unit policy -> BLOCKED. No ordinary mean of independently computed margins.
 - SHARE = qualified group value / fully reconstructed parent value; disjoint groups, documented sign and nonzero denominator policy.
 - CUMULATIVE_SHARE/PARETO require stable descending sort, deterministic ties, meaningful positive base; HHI requires all mutually exclusive groups and explicit output scale.
 - TTM_12M for FLOW uses 12 complete aligned months; for STOCK returns end snapshot, not SUM. MoM/QoQ/YoY distinguish comparable complete interval from partial-to-partial.
