@@ -14,7 +14,7 @@ import copy
 import csv
 import re
 import unittest
-from decimal import Decimal
+from decimal import Decimal, localcontext
 from collections.abc import Mapping
 from pathlib import Path
 from unittest.mock import patch
@@ -99,7 +99,13 @@ def successful_variant_fixtures(inventory):
     suite = unittest.TestSuite()
     for module in TEST_MODULES:
         suite.addTests(loader.loadTestsFromName(module))
-    with patch.object(ReferenceEngine, "calculate", record):
+    with localcontext() as decimal_ctx, patch.object(
+        ReferenceEngine, "calculate", record
+    ):
+        # The seven independent golden suites expect >32 significant digits.
+        # They must not depend on an unrelated test setting global Decimal
+        # precision during the surrounding unittest discovery process.
+        decimal_ctx.prec = 60
         nested = unittest.TestResult()
         suite.run(nested)
     if not nested.wasSuccessful():
