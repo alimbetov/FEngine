@@ -135,7 +135,19 @@ RULES: dict[tuple[str, str], VariantRule] = {
         VariantRule(("inflationIndexRev", "compoundingBasis", "contingencyOverlap"), (),
                     (("compoundingBasis", ("DISCRETE_ANNUAL_END",)),
                      ("contingencyOverlap", ("NO_CONTINGENCY_DOUBLE_COUNT",)),),
-                    ("inflationIndexRev",)),
+                    ("inflationIndexRev",)),,
+    ("HC.CASH.04", "DIRECT_POSTED_CFO"):
+        VariantRule(("cashClassification", "reconciliationRule", "periodCutoff",
+                     "transferExclusionRule", "valueDateVsPostingDate"), (),
+                    (("transferExclusionRule", ("BALANCED_INTERNAL_TRANSFER_PAIRS",)),
+                     ("valueDateVsPostingDate", ("POSTING_DATE_ONLY",)),),
+                    ("cashClassification", "reconciliationRule")),
+    ("HC.CASH.04", "DIRECT_RECLASSIFIED_CFO"):
+        VariantRule(("cashClassification", "reconciliationRule", "periodCutoff",
+                     "transferExclusionRule", "valueDateVsPostingDate"), (),
+                    (("transferExclusionRule", ("BALANCED_INTERNAL_TRANSFER_PAIRS",)),
+                     ("valueDateVsPostingDate", ("POSTING_DATE_ONLY",)),),
+                    ("cashClassification", "reconciliationRule")),
 }
 
 
@@ -294,7 +306,7 @@ class ParameterSemantics:
             cleaned[name] = value
         sha = fingerprint({
             "modelCode": model_code, "variantCode": variant_code,
-            "candidateConfig": cleaned, "referenceContract": "HC_R04_REFERENCE_RULES_V1"
+            "candidateConfig": cleaned, "referenceContract": "HC_R05_REFERENCE_RULES_V1"
         })
         return ResolvedVariant(
             model_code, variant_code, _freeze(cleaned), sha
