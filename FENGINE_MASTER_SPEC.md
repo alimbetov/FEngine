@@ -1,6 +1,6 @@
 # FEngine — единая спецификация финансово-экономического аналитического ядра
 
-Версия документа: 0.10 (95 candidate models; METHOD-HARDENING-R1 P0 corrections and 310 parameter proposals; no finance S2)
+Версия документа: 0.11 (116 candidate models; Wave 5 risk/hedge/insurance formula contracts; previous R95 methodology gates remain closed)
 Дата: 2026-11-20
 Репозиторий: https://github.com/alimbetov/FEngine
 Статус: DRAFT / синхронизация знаний с FIN на 2026-11-20; архитектурное задание; не является свидетельством реализованных расчётов.
@@ -2028,3 +2028,23 @@ Open ADR: GEO-ADR-01 hierarchy tree versus DAG contract; -02 coordinate/altitude
 - `tests/test_fengine_method_hardening_r1.py`: отдельный банк независимых Decimal-контролей и параметрического lint; workflow `fengine-r95-model-bank.yml` запускает R95 и R1 тесты на Python 3.11/3.13. Только прошедший по конкретному commit CI является доказательством PASS, не факт существования файла.
 
 **Remaining blockers:** SOURCE_FIN_BINDINGS_UNVERIFIED; INDEPENDENT_FINANCIAL_GOLDENS_NOT_APPROVED; 95 method revisions NOT_FROZEN; financial S2 HOLD; PYTHON_FINANCE_HC_RUNTIME_NOT_IMPLEMENTED. Отдельно требуется квалификация статистических backtests, root completeness в живом solver, регуляторных правил и ограничений решателей на настоящих данных. Методические поправки в тексте и smoke-тесты не разрешают production.
+
+---
+
+## 25. FENGINE-W5-RISK-HEDGE-INS — риски, хеджирование и актуарные формулы
+
+**Дата:** 2026-11-20; **статус:** FORMULA_CANDIDATE / REQUIREMENTS_DRAFT / NOT_IMPLEMENTED / FINANCIAL_S2_HOLD.
+
+- Канонический базовый реестр **95** моделей W1–W4 не изменён. Wave-5 расширяет его на **21 кандидата**: HC.HEDGE.01–07 (7) и HC.INS.01–14 (14); итоговая кандидатная модельная область — **116** кодов, но не 116 исполняемых финансовых методов.
+- Существующие HC.RISK.01–07 не повторяются: для них загружены формулы и уточняющие параметры в общей матрице из **28** задач RISK/HEDGE/INS.
+- Типизированные Dataset DTO **D94–D114 (21)** дополняют D01–D93; общий проектный каталог насчитывает **114** DTO-семейства. Источники FIN, актуарная квалификация и реальный DDL ещё не подтверждены.
+- catalog/risk_hedge_insurance_formula_candidates_r2.tsv — 28 методов с TaskCode, выражением, параметрами, арифметическим golden, fail-closed и DAG. Эти выражения **не являются произвольными исполняемыми скриптами**.
+- catalog/model_extensions_r2.tsv — 21 новый методический кандидат. Старый catalog/model_extensions_r1.tsv (12 моделей) сохраняется без изменений.
+- catalog/risk_hedge_insurance_golden_candidates_r2.tsv — 28 independently checked synthetic arithmetic candidates; математический контроль подтверждён вне HC-движка, финансовая точность / IFRS / лицензионные модели и runtime E2E не доказаны.
+- docs/FENGINE-RISK-HEDGE-INSURANCE-W5-28-FORMULAS-TZ.md — полное ТЗ с новыми DTO, требованиями IFRS 17, IFRS 9 hedge accounting, актуарного резервирования, перестрахования, PML и правовой квалификации платёжеспособности страховщиков Казахстана.
+
+**Не путать:** страховые актуарные резервы (Chain Ladder/BF), управленческие insurance loss/combined ratios, IFRS 17 FCF/RA/CSM/PAA, IFRS 9 hedge accounting и пруденциальные нормативы Казахстана требуют различных policy versions, input data and reviewer qualifications.
+
+**Дальнейшая работа:** дополнить страховую вертикаль отдельными life insurance моделями (mortality q_x, lapse, life benefit PV and annuities) только после определения страхового продукта и источников; W5 фокусируется на non-life + IFRS 17 essentials + hedging. No current regulatory compliance can be claimed.
+
+**Freeze:** NEW W5 METHOD/INPUT/PARAM/OUTPUT SHA UNAPPROVED. Существующий глобальный freeze остаётся заблокирован, до independent finance/actuary S2 and actual FIN source binding.
