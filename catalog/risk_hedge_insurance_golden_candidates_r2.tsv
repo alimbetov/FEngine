@@ -1,0 +1,29 @@
+modelCode	goldenCaseId	outputMetricCode	logicalType	unitCode	expectedDecimal	checkMethod	reviewStatus	syntheticScenario
+HC.RISK.01	RISK.01-SYN01	MEAN_NPV	MONEY	KZT	5	Independent standalone JS arithmetic identity, not HC engine runtime	DRAFT_NOT_FINANCE_S2	4 equiprobable scenario draws; population moments not convergence
+HC.RISK.02	RISK.02-SYN01	VAR_LOSS	MONEY	KZT	20	Independent standalone JS arithmetic identity, not HC engine runtime	DRAFT_NOT_FINANCE_S2	Losses ascending, empirical nearest-rank alpha .75
+HC.RISK.03	RISK.03-SYN01	EXPECTED_SHORTFALL	MONEY	KZT	84	Independent standalone JS arithmetic identity, not HC engine runtime	DRAFT_NOT_FINANCE_S2	L=[0,10,20,20,100]; quantile integral upper 25%
+HC.RISK.04	RISK.04-SYN01	GAP	MONEY	KZT	20	Independent standalone JS arithmetic identity, not HC engine runtime	DRAFT_NOT_FINANCE_S2	Cash opening 100 inflow 10 outflow 130 floor 0
+HC.RISK.05	RISK.05-SYN01	DELTA_ECL	MONEY	KZT	0.4	Independent standalone JS arithmetic identity, not HC engine runtime	DRAFT_NOT_FINANCE_S2	Simplified single-time undiscounted scenario PD change
+HC.RISK.06	RISK.06-SYN01	BREACH_PROBABILITY	RATE	fraction	0.5	Independent standalone JS arithmetic identity, not HC engine runtime	DRAFT_NOT_FINANCE_S2	2 of 4 equiprobable paths breach
+HC.RISK.07	RISK.07-SYN01	FX_COST_DELTA	MONEY	KZT	500	Independent standalone JS arithmetic identity, not HC engine runtime	DRAFT_NOT_FINANCE_S2	Foreign USD10 payable; domestic quote KZT/USD
+HC.HEDGE.01	HEDGE.01-SYN01	FORWARD_PAYOFF	MONEY	KZT	4000	Independent standalone JS arithmetic identity, not HC engine runtime	DRAFT_NOT_FINANCE_S2	Long USD100 forward; quote KZT/USD
+HC.HEDGE.02	HEDGE.02-SYN01	SWAP_PV	MONEY	KZT	19	Independent standalone JS arithmetic identity, not HC engine runtime	DRAFT_NOT_FINANCE_S2	One period receive floating pay fixed
+HC.HEDGE.03	HEDGE.03-SYN01	FUTURES_SHORT_PNL	MONEY	KZT	500	Independent standalone JS arithmetic identity, not HC engine runtime	DRAFT_NOT_FINANCE_S2	Short 5 contracts 10 units each
+HC.HEDGE.04	HEDGE.04-SYN01	PROTECTIVE_PUT_NET_PAYOFF	MONEY	KZT	150	Independent standalone JS arithmetic identity, not HC engine runtime	DRAFT_NOT_FINANCE_S2	Option premium paid upfront nominal, no discount
+HC.HEDGE.05	HEDGE.05-SYN01	MIN_VARIANCE_HEDGE_RATIO	RATIO	dimensionless	0.75	Independent standalone JS arithmetic identity, not HC engine runtime	DRAFT_NOT_FINANCE_S2	Cov spot and future 12 / variance futures 16
+HC.HEDGE.06	HEDGE.06-SYN01	ECONOMIC_VARIANCE_REDUCTION	RATIO	dimensionless	0.75	Independent standalone JS arithmetic identity, not HC engine runtime	DRAFT_NOT_FINANCE_S2	Not IFRS9 hedge accounting qualification
+HC.HEDGE.07	HEDGE.07-SYN01	BEST_CANDIDATE_OBJECTIVE	MONEY	KZT	40	Independent standalone JS arithmetic identity, not HC engine runtime	DRAFT_NOT_FINANCE_S2	Two enumerated hedge candidates, no global solver
+HC.INS.01	INS.01-SYN01	ANALYTICAL_EARNED_PREMIUM	MONEY	KZT	300	Independent standalone JS arithmetic identity, not HC engine runtime	DRAFT_NOT_FINANCE_S2	Uniform coverage 90 of 360; NOT IFRS17 insurance revenue
+HC.INS.02	INS.02-SYN01	COMBINED_RATIO	RATIO	dimensionless	0.85	Independent standalone JS arithmetic identity, not HC engine runtime	DRAFT_NOT_FINANCE_S2	Claims and underwriting expenses / matched earned premiums
+HC.INS.03	INS.03-SYN01	PURE_PREMIUM	MONEY_PER_UNIT	KZT/exposure-year	10	Independent standalone JS arithmetic identity, not HC engine runtime	DRAFT_NOT_FINANCE_S2	Claim frequency 20/1000 severity 500
+HC.INS.04	INS.04-SYN01	IBNR_CANDIDATE	MONEY	KZT	20	Independent standalone JS arithmetic identity, not HC engine runtime	DRAFT_NOT_FINANCE_S2	Paid ultimate 150 less reported incurred 130, coherent reported data
+HC.INS.05	INS.05-SYN01	BF_IBNR_CANDIDATE	MONEY	KZT	60	Independent standalone JS arithmetic identity, not HC engine runtime	DRAFT_NOT_FINANCE_S2	Reported incurred 80, expected ultimate 120, development fraction 0.5
+HC.INS.06	INS.06-SYN01	RESERVE_MEAN	MONEY	KZT	25	Independent standalone JS arithmetic identity, not HC engine runtime	DRAFT_NOT_FINANCE_S2	Four simulation scenarios only; not statistical validation
+HC.INS.07	INS.07-SYN01	QUOTA_CEDED_CLAIM	MONEY	KZT	300	Independent standalone JS arithmetic identity, not HC engine runtime	DRAFT_NOT_FINANCE_S2	Single quota-share treaty, not layered with XoL
+HC.INS.08	INS.08-SYN01	AAL	MONEY	KZT	10	Independent standalone JS arithmetic identity, not HC engine runtime	DRAFT_NOT_FINANCE_S2	Single Bernoulli event annual probability .01
+HC.INS.09	INS.09-SYN01	FCF_LIABILITY_SIGNED	MONEY	KZT	-5	Independent standalone JS arithmetic identity, not HC engine runtime	DRAFT_NOT_FINANCE_S2	PV claim/outflows100, PV inflows120, non-financial RA15; NOT full IFRS17 liability
+HC.INS.10	INS.10-SYN01	RA_COST_OF_CAPITAL	MONEY	KZT	5.7	Independent standalone JS arithmetic identity, not HC engine runtime	DRAFT_NOT_FINANCE_S2	Optional cost-of-capital candidate, not IFRS17 mandated method
+HC.INS.11	INS.11-SYN01	CLOSING_CSM	MONEY	KZT	10	Independent standalone JS arithmetic identity, not HC engine runtime	DRAFT_NOT_FINANCE_S2	No other movements; IFRS17 classification gated
+HC.INS.12	INS.12-SYN01	PAA_CLOSING_LRC	MONEY	KZT	90	Independent standalone JS arithmetic identity, not HC engine runtime	DRAFT_NOT_FINANCE_S2	Simplified eligible PAA, no other adjustments
+HC.INS.13	INS.13-SYN01	PRUDENTIAL_ADEQUACY_PROXY	RATIO	dimensionless	1.5	Independent standalone JS arithmetic identity, not HC engine runtime	DRAFT_NOT_FINANCE_S2	Illustrative only; not legally approved Kazakhstan regulatory ratio
+HC.INS.14	INS.14-SYN01	GROSS_RISK_PREMIUM	MONEY	KZT	100	Independent standalone JS arithmetic identity, not HC engine runtime	DRAFT_NOT_FINANCE_S2	Pure cost and fixed expense plus variable-load assumption; not statutory tariff
