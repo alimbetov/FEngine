@@ -1,5 +1,6 @@
 """Reference DAG/strategy tests; candidate links are never admitted bindings."""
 from pathlib import Path
+from decimal import Decimal
 import unittest
 
 from fengine_hc import CalculationError, ContractRegistry, ReferenceEngine
@@ -42,7 +43,7 @@ class ReferenceGraphTests(unittest.TestCase):
         plan = InMemoryCalculationPlan(self.engine, list(reversed(jobs)))
         self.assertEqual(plan.order, ("capm", "wacc"))
         out = plan.execute(reference_mode=True)
-        self.assertEqual(out["wacc"].output["wacc"], "0.0912")
+        self.assertEqual(Decimal(out["wacc"].output["wacc"]), Decimal("0.0912"))
 
     def test_cyclic_bindings_fail(self):
         a = CalculationJob("a", "HC.CAP.01", "CAPM_BASE", {}, {},
