@@ -256,7 +256,7 @@ Every row must carry scoped rowKey, field valueState, sourceRevisionRef/SHA, asO
 **Результат:** версионируемый CalculationResponseDTO.results[].rows[].values[] с точным method revision, currency/period/units, source/result SHA, typed INVALID/BLOCKED/UNDEFINED state and reason. No FIN/IFRS approval is implied.
 
 ### 15. HC.INS.01 — W5.INS.01.V1
-**Задача:** W5.INS.01.FORMULA.V1. **Вход:** D101. **DAG:** HC.CASH.04.
+**Задача:** W5.INS.01.FORMULA.V1. **Вход:** D101. **DAG:** D101; independent coverage earning policy (not cash CFO).
 
 **Математика (формула-кандидат):** `EarnedPremium=WrittenPremium*EarnedCoverageUnits/TotalCoverageUnits; Unearned=WrittenPremium-Earned`.
 
@@ -386,7 +386,7 @@ Every row must carry scoped rowKey, field valueState, sourceRevisionRef/SHA, asO
 **Результат:** версионируемый CalculationResponseDTO.results[].rows[].values[] с точным method revision, currency/period/units, source/result SHA, typed INVALID/BLOCKED/UNDEFINED state and reason. No FIN/IFRS approval is implied.
 
 ### 25. HC.INS.11 — W5.INS.11.V1
-**Задача:** W5.INS.11.FORMULA.V1. **Вход:** D111. **DAG:** HC.INS.09.
+**Задача:** W5.INS.11.FORMULA.V1. **Вход:** D111. **DAG:** D113; eligible capital evidence per regulatory rule, not IFRS17 FCF.
 
 **Математика (формула-кандидат):** `ClosingCSM=OpeningCSM+eligibleAccretion+futureServiceChanges-CurrentServiceRelease+otherApprovedMovements`.
 
