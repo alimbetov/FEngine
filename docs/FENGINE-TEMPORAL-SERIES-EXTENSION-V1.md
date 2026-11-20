@@ -1,5 +1,8 @@
 # FEngine Temporal Series Extension V1 — universal opt-in contract
 
+> **Implementation update (2026-11-20):** ModelTemporalCapabilityV1 is now implemented as a **reference-only** declarative registry for nine explicitly admitted outputs across five HC models, with a real HC ReferenceEngine → TASE adapter. See [the implemented admission/acceptance specification](FENGINE-MODEL-TEMPORAL-CAPABILITY-V1-ACCEPTANCE.md). The wider 116-model admission and non-additive reducers remain open; the following original future steps describe that ongoing expansion, not an unimplemented core class.
+
+
 **2026-11-20** • **main** • One temporal extension for all interval-compatible models; bounded Python/TASE reference, **not financial S2**.
 
 ## Architectural rule
