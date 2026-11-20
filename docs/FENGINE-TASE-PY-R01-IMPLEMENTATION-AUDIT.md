@@ -44,10 +44,10 @@ Exact repositories:
 ## 3. CI evidence and how to interpret it
 
 On main commit 1946c09cdba292d036d358deb9488f627c90e90e:
-- GitHub Actions reference suite: 129/129 unittest methods PASS on Python 3.11 and 129/129 PASS on Python 3.13 (GEO-OPT + TASE + existing tests).
+- GitHub Actions reference suite: 131/131 unittest methods PASS on Python 3.11 and 131/131 PASS on Python 3.13 (GEO-OPT + TASE + existing tests).
 - GitHub Actions separate contract bank: success on Python 3.11 and 3.13.
-- Reference CI run: https://github.com/alimbetov/FEngine/actions/runs/44720599167
-- Contract bank run: https://github.com/alimbetov/FEngine/actions/runs/44720599121
+- Reference CI run: https://github.com/alimbetov/FEngine/actions/runs/44721269472
+- Contract bank run: https://github.com/alimbetov/FEngine/actions/runs/44721269521
 
 Do not infer 116 financial implementations, 53 real TASE operators, 250 R0.6 cases, production-readiness or financial S2 from the CI runs above. Tests check a specifically implemented, bounded in-process mathematical reference.
 
