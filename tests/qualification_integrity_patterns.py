@@ -32,7 +32,8 @@ PATTERN_IDS = frozenset({
 # These patterns may be combined. Not every method is temporally aggregatable.
 CORE_PATTERNS = frozenset({
     "INDEPENDENT_NUMERIC_ORACLE", "SOURCE_REVISION_DRIFT",
-    "IMMUTABLE_RESULT_RECEIPT", "S2_FAIL_CLOSED",
+    "SOURCE_SCOPE_ISOLATION", "IMMUTABLE_RESULT_RECEIPT",
+    "S2_FAIL_CLOSED",
 })
 FAMILY_PATTERNS = {
     "ASSET": frozenset({"FINANCIAL_BALANCE_CONSERVATION", "METAMORPHIC_ORDER"}),
