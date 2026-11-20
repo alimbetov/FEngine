@@ -148,6 +148,36 @@ RULES: dict[tuple[str, str], VariantRule] = {
                     (("transferExclusionRule", ("BALANCED_INTERNAL_TRANSFER_PAIRS",)),
                      ("valueDateVsPostingDate", ("POSTING_DATE_ONLY",)),),
                     ("cashClassification", "reconciliationRule")),
+    ("HC.DCF.06", "FCFE_LEVERED"):
+        VariantRule(("debtFlowPolicy", "equityCashflowBasis", "costOfEquityRef",
+                     "cashflowToEquityPolicy", "netBorrowingMethod", "taxShieldEligibility"), (),
+                    (("debtFlowPolicy", ("GROSS_DRAWDOWN_LESS_PRINCIPAL",)),
+                     ("equityCashflowBasis", ("POST_INTEREST_OPERATING_CFO",)),
+                     ("cashflowToEquityPolicy", ("NO_INTEREST_READD",)),
+                     ("netBorrowingMethod", ("DRAWDOWNS_MINUS_PRINCIPAL_REPAYMENTS",)),
+                     ("taxShieldEligibility", ("NO_EXTRA_TAX_SHIELD",)),),
+                    ("costOfEquityRef",)),
+    ("HC.DCF.06", "FCFE_NORMALIZED"):
+        VariantRule(("debtFlowPolicy", "equityCashflowBasis", "costOfEquityRef",
+                     "cashflowToEquityPolicy", "netBorrowingMethod", "taxShieldEligibility"), (),
+                    (("debtFlowPolicy", ("GROSS_DRAWDOWN_LESS_PRINCIPAL",)),
+                     ("equityCashflowBasis", ("POST_INTEREST_NET_INCOME_BRIDGE",)),
+                     ("cashflowToEquityPolicy", ("NO_INTEREST_READD",)),
+                     ("netBorrowingMethod", ("DRAWDOWNS_MINUS_PRINCIPAL_REPAYMENTS",)),
+                     ("taxShieldEligibility", ("NO_EXTRA_TAX_SHIELD",)),),
+                    ("costOfEquityRef",)),
+    ("HC.COST.08", "PRICE_VARIANCE"):
+        VariantRule(("standardCostVintage", "volumeBaseline", "interactionAllocation"), (),
+                    (("interactionAllocation", ("SEQUENTIAL_BASELINE_MIX_ACTUAL_QUANTITY_PRICE",)),),
+                    ("standardCostVintage", "volumeBaseline")),
+    ("HC.COST.08", "QUANTITY_VARIANCE"):
+        VariantRule(("standardCostVintage", "volumeBaseline", "interactionAllocation"), (),
+                    (("interactionAllocation", ("SEQUENTIAL_BASELINE_MIX_ACTUAL_QUANTITY_PRICE",)),),
+                    ("standardCostVintage", "volumeBaseline")),
+    ("HC.COST.08", "MIX_VARIANCE"):
+        VariantRule(("standardCostVintage", "volumeBaseline", "interactionAllocation"), (),
+                    (("interactionAllocation", ("SEQUENTIAL_BASELINE_MIX_ACTUAL_QUANTITY_PRICE",)),),
+                    ("standardCostVintage", "volumeBaseline")),
 }
 
 
@@ -306,7 +336,7 @@ class ParameterSemantics:
             cleaned[name] = value
         sha = fingerprint({
             "modelCode": model_code, "variantCode": variant_code,
-            "candidateConfig": cleaned, "referenceContract": "HC_R05_REFERENCE_RULES_V1"
+            "candidateConfig": cleaned, "referenceContract": "HC_R07_REFERENCE_RULES_V1"
         })
         return ResolvedVariant(
             model_code, variant_code, _freeze(cleaned), sha
