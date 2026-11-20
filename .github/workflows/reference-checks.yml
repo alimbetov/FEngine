@@ -26,6 +26,10 @@ jobs:
         run: python -m unittest discover -s tests -p 'test_fengine_integrity_pattern_gate.py' -v
       - name: Mandatory QUAL-R1.1 independent per-variant execution and adversarial replay (48 variants)
         run: python -m unittest discover -s tests -p 'test_fengine_qual_r11_per_variant_adversarial.py' -v
+      - name: Mandatory QUAL-R1.2 independent mathematical oracles for all 48 HC variants
+        run: python -m unittest discover -s tests -p 'test_fengine_qual_r12_independent_math.py' -v
+      - name: Mandatory QUAL-R1.2 domain-specific negative scenario for all 48 HC variants
+        run: python -m unittest discover -s tests -p 'test_fengine_qual_r12_domain_denials.py' -v
       - name: Verify independent high-precision HC goldens without shared test import order
         run: |
           python -m unittest discover -s tests -p 'test_fengine_hc_reference.py' -v
