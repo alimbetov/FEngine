@@ -2048,3 +2048,26 @@ Open ADR: GEO-ADR-01 hierarchy tree versus DAG contract; -02 coordinate/altitude
 **Дальнейшая работа:** дополнить страховую вертикаль отдельными life insurance моделями (mortality q_x, lapse, life benefit PV and annuities) только после определения страхового продукта и источников; W5 фокусируется на non-life + IFRS 17 essentials + hedging. No current regulatory compliance can be claimed.
 
 **Freeze:** NEW W5 METHOD/INPUT/PARAM/OUTPUT SHA UNAPPROVED. Существующий глобальный freeze остаётся заблокирован, до independent finance/actuary S2 and actual FIN source binding.
+
+
+---
+
+## 26. FENGINE-TASE-R0 — Product-Extensible Temporal Aggregation & Statistical Scope
+
+**Дата:** 2026-11-20 · **Статус:** REQUIREMENTS_DRAFT / NOT_IMPLEMENTED / CONTRACT_FREEZE_HOLD.
+
+**Решение:** создать платформенную функцию TASE (Temporal Aggregation & Statistical Scope Engine) в составе единого Python Calculation Hub. TASE принимает N версионированных MetricSeries за disjoint temporal intervals, компилирует типизированный DAG, порождает агрегаты и статистики по Scope/ProductPack/Calendar/Dimension и отдаёт CalculationResponseDTO.results[] с completeness/quality/source lineage. **TASE не регистрирует новые бизнес-модели в существующем реестре 116 HC-кандидатов.**
+
+**Подробное ТЗ:** docs/FENGINE-TASE-R0-UNIVERSAL-TEMPORAL-STATISTICS-TZ.md — подэтапы R0.1–R0.6, ProductPackManifest, MetricSemanticDescriptor, календарь и полнота, статистика и численная точность, доли/динамика/план-факт, immutable Session/DAG/Outbox, негативные/нагрузочные тесты.
+
+**Каталоги кандидатов (не реализованные и не подписанные):**
+- catalog/tase_operator_candidates_r0.tsv — 53 общих строготипизированных математических оператора с разрешёнными семантиками, merge strategy, reasonCode и status DRAFT_NOT_IMPLEMENTED;
+- catalog/tase_product_pack_candidates_r0.tsv — 6 конфигураций FIN, BANK, INSURANCE, LOGISTICS, INDUSTRY, CUSTOM, статус DRAFT_NO_SIGNATURE_NO_ADMISSION;
+- catalog/tase_metric_semantics_candidates_r0.tsv — 26 исходных описаний типизированных продуктовых метрик, в том числе derived physical units, статус DRAFT_SEMANTIC_CANDIDATE.
+
+**Обязательные правила:** FLOW SUM лишь по подтверждённым неперекрывающимся интервалам; STOCK LAST_AS_OF, а не SUM; RATIO_OF_SUMS пересчитывается из numerator/denominator с типизированной алгеброй единиц, не средним процентов; weighted mean требует подходящий weight metric; интервалы [start,end), 4-4-5 fiscal and leap calendar; missing и zero различаются; partial coverage документируется; double-count в иерархиях и many-to-many join блокируется.
+
+**Подэтапы:** R0.1 semantic+pack registry → R0.2 calendar+coverage+group → R0.3 stats/numeric stability → R0.4 compare/share/plan-fact → R0.5 Hub immutable execution → R0.6 planned 250-case QA bank and full-path load. **Все 250 тестов только план; TASE Python runtime, FIN E2E и S2 НЕ реализованы.**
+
+**Freeze:** только после independent math goldens, financial applicability, signed product pack contract, source binding, authorization and negative test qualification. Existing 116 method revisions and W1–W5 names unchanged; TASE has own independent versioned operator and ProductPack contracts.
+
