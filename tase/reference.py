@@ -588,6 +588,18 @@ def calculate(catalog: Catalog, req: PeriodRequest, dataset: Dataset) -> TaseRes
             _check_rows(denominator, den, begin, end, dataset, req.require_full_coverage)
             if not numerator or not denominator:
                 raise TaseError("COMPONENT_SOURCE_MISSING")
+            # A ratio is only meaningful when each component measures the
+            # same atomic business universe and temporal intervals. Checking
+            # each component's coverage independently does not prevent
+            # numerator from branch A and denominator from branch B.
+            identity = lambda r: (r.dimensions, r.start, r.end)
+            numerator_keys = [identity(row) for row in numerator]
+            denominator_keys = [identity(row) for row in denominator]
+            if (len(set(numerator_keys)) != len(numerator_keys)
+                    or len(set(denominator_keys)) != len(denominator_keys)):
+                raise TaseError("DUPLICATE_COMPONENT_IDENTITY")
+            if set(numerator_keys) != set(denominator_keys):
+                raise TaseError("COMPONENT_ALIGNMENT")
             units = {num.unit, den.unit}
             if num.logical_type == "MONEY" and den.logical_type == "MONEY" and len(units) != 1:
                 raise TaseError("CURRENCY_MISMATCH")
