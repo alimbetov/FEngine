@@ -30,6 +30,12 @@ jobs:
         run: python -m unittest discover -s tests -p 'test_fengine_qual_r12_independent_math.py' -v
       - name: Mandatory QUAL-R1.2 domain-specific negative scenario for all 48 HC variants
         run: python -m unittest discover -s tests -p 'test_fengine_qual_r12_domain_denials.py' -v
+      - name: Mandatory QUAL-R1.3 seeded nonzero-rate loan and ECL mathematical properties
+        run: python -m unittest discover -s tests -p 'test_fengine_qual_r13_loan_ecl_properties.py' -v
+      - name: Mandatory QUAL-R1.3 seeded IRR EIR VaR and expected-shortfall properties
+        run: python -m unittest discover -s tests -p 'test_fengine_qual_r13_irr_eir_risk_properties.py' -v
+      - name: Mandatory QUAL-R1.3 seeded daily monthly quarterly yearly temporal properties
+        run: python -m unittest discover -s tests -p 'test_fengine_qual_r13_temporal_properties.py' -v
       - name: Verify independent high-precision HC goldens without shared test import order
         run: |
           python -m unittest discover -s tests -p 'test_fengine_hc_reference.py' -v
