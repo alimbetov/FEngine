@@ -1,6 +1,6 @@
 # FEngine — единая спецификация финансово-экономического аналитического ядра
 
-Версия документа: 0.3 (концепция + FIN snapshot + Python→Rust HPC architecture)
+Версия документа: 0.4 (концепция + FIN snapshot + Python→Rust HPC + deep-indicator requirements catalogue)
 Дата: 2026-11-20
 Репозиторий: https://github.com/alimbetov/FEngine
 Статус: DRAFT / синхронизация знаний с FIN на 2026-11-20; архитектурное задание; не является свидетельством реализованных расчётов.
@@ -1260,3 +1260,287 @@ reviewed remaining source and calculated outputs по coverage matrix.
 исходного FactSet получить одинаковые допустимые результаты и состояния
 на Python reference / Rust / Java-SQL где применимо,
 доказать lineage и измерить full microservice roundtrip.
+
+---
+
+## 18. FEngine HC-CATALOG-R0 — реестр показателей, требующих глубоких вычислений (требования, без реализации)
+
+**Дата:** 2026-11-20. **Статус:** REQUIREMENTS_COLLECTION / CANDIDATE_UNQUALIFIED.
+**Область:** FEngine как универсальное финансово-экономическое ядро; связь с FIN Analyzer по точным form/model codes, только как кандидатные upstream references.
+**FIN source snapshot:** alimbetov/fin-analyzer, ветка feat/fin-form-library-standalone, HEAD 5d3be2d6b9856be1571ed6aa99d516e3c8b2af3b. Ссылки на изначальные 166 форм, 42 описательные модели, 46 кодов analytic outputs и 23 operator families — справочные, не свидетельствуют об их фактическом исполнении или финансовом S2.
+**Область запрета:** НЕ создавать Python/Rust файлы, микросервисы, таблицы и миграции. Это только формализация будущих расчетов в ранее согласованном едином файле.
+
+### 18.1. Что означает «глубокое вычисление»
+
+Глубоким считать **не любое арифметическое отношение**, а показатель, для которого есть как минимум один:
+- E: последовательная реконструкция на основе финансовых событий, частичных оплат, поправок, исторических версий и удержаний, где порядок событий влияет на результат.
+- T: межформенная/многопериодная сверка, временные интервалы, stocks vs flows, валютная трансляция, средние остатки и дополнительные слои reconciliation.
+- N: нелинейная численная процедура (EIR, IRR, XIRR, DCF roots, value-in-use), требующая устойчивого solver, проверки числа корней и допустимых ошибок.
+- O: оптимизация, ограниченные ресурсы, расписания или поиск допустимого решения.
+- M: многосценарная, стохастическая, когортная, матричная или вероятностная модель с зафиксированными источниками допущений.
+
+**Не путать финансовую/логическую сложность и CPU-нагрузку.** E и T зачастую выгоднее делать в PostgreSQL с version-pinned SQL/JDBC; N, M и O — кандидаты для ускоренного Rust batch ядра, но решение только после бенчмарков. Простые netRevenue-cogs, обычные ratios и GROUP_BY без специальных зависимостей не являются самостоятельным оправданием Rust микросервиса.
+
+**Прочтение реестра:** HC.* — новые **предлагаемые коды FEngine**, НЕ существующие имена метрик FIN; «FIN/источник» — только потенциальный источник/связь, не утвержденный source-to-metric binding. Priority P0/P1/P2 — порядок методологического исследования, не состояние разработки, не обещание S2.
+
+### 18.2. Полный кандидатный реестр
+
+В таблицах: Тип E/T/N/O/M по определениям выше; P0 — первая волна Python-reference требований, P1 — следующая волна, P2 — дальнейшее исследование. Названия и варианты расчетов черновые. Для каждого output обязательна отдельная проверка source, method, period, dimensions, value-state, financial example и golden tests до реализации.
+
+
+#### Обязательства, оплаты и просрочка — 7 кандидатов
+
+| FEngine-код | Показатель-кандидат | Почему сложный / семейство | Связь с FIN (кандидат) | Тип | Очерёдность |
+|---|---|---|---|:---:|:---:|
+| HC.SET.01 | Остаток дебиторского обязательства из событий | event replay; allocation; effective-date | C01;C11;DF-CSH-02/04;A01 | E | P0 |
+| HC.SET.02 | Остаток кредиторского обязательства из событий | event replay; allocation; corrections | C02;C11;DF-CSH-02/05;A01 | E | P0 |
+| HC.SET.03 | Aging bucket и сумма просрочки по обязательству | asOf matching; payment waterfall; buckets | C01;C02;DF-CSH;A01 | E | P0 |
+| HC.SET.04 | Взвешенный срок просрочки портфеля | event-weighted cohort; business key; date | C01;C02;A01 | T | P1 |
+| HC.SET.05 | Сверенная чистая позиция по контрагенту | legal set-off qualification; net/gross bridge | C01;C02;C11 | T | P1 |
+| HC.SET.06 | Остаток после частичных оплат и сторно | replay-safe settlement matching | A01;DF-CSH-02/04/05 | E | P0 |
+| HC.SET.07 | DSO/DPO по верифицированным потокам | cohort joins; avg stock; credit sales/purchases | C01;C02;P06;C07 | T | P1 |
+
+#### Кредитный риск и резервы — 7 кандидатов
+
+| FEngine-код | Показатель-кандидат | Почему сложный / семейство | Связь с FIN (кандидат) | Тип | Очерёдность |
+|---|---|---|---|:---:|:---:|
+| HC.ECL.01 | Резерв ECL по допустимой матрице просрочки | cohort; forward-looking scenarios | C01;A02;DF-CSH-04 | M | P1 |
+| HC.ECL.02 | 12-month ECL портфеля | PD term; EAD; LGD; discounting | C01;C05;A02 | M | P1 |
+| HC.ECL.03 | Lifetime ECL портфеля | multi-period hazard; discounted loss paths | C01;C05;A02 | M | P1 |
+| HC.ECL.04 | Срочная структура PD | survival/hazard curves; calibration | A02;SF-K01 | N | P2 |
+| HC.ECL.05 | LGD по сценариям взыскания | recoveries; costs; discounted paths | A02;C05;SF-K01 | M | P2 |
+| HC.ECL.06 | EAD с будущими выборками и выплатами | contract cash schedule; credit exposure path | A02;C05;A05 | T | P2 |
+| HC.ECL.07 | Миграция стадий риска и резервов | transition matrix; roll-forward; attribution | A02;C01;F01 | M | P2 |
+
+#### Кредиты, EIR и графики — 8 кандидатов
+
+| FEngine-код | Показатель-кандидат | Почему сложный / семейство | Связь с FIN (кандидат) | Тип | Очерёдность |
+|---|---|---|---|:---:|:---:|
+| HC.LOAN.01 | График договорных процентов | day-count; rates history; dated accruals | C05;P04;A05 | E | P0 |
+| HC.LOAN.02 | График погашения основного долга | annuity/equal principal/custom; cash waterfall | C05;P04;A05 | E | P0 |
+| HC.LOAN.03 | Эффективная ставка IFRS EIR | discounted root; fee classification | C05;F01/F02;A05 | N | P0 |
+| HC.LOAN.04 | Амортизированная стоимость долга | EIR interest; dated principal; remeasurement | C05;F01;A05 | E | P1 |
+| HC.LOAN.05 | Результат модификации/пересмотра долга | cashflow revision; discounted modification | C05;F01/F02;A05 | N | P1 |
+| HC.LOAN.06 | Эффект досрочного погашения | rescheduled cashflows; fees; interest difference | C05;P04;A05;A01 | E | P1 |
+| HC.LOAN.07 | Договорный DSCR и covenant assessment | CFADS from contract; schedule; thresholds | P09;P04;C05;A05 | T | P1 |
+| HC.LOAN.08 | ГЭСВ РК по применимой редакции правил | jurisdiction/date-dependent cashflow rate root | C05;A05 | N | P2 |
+
+#### Казначейство и денежные потоки — 8 кандидатов
+
+| FEngine-код | Показатель-кандидат | Почему сложный / семейство | Связь с FIN (кандидат) | Тип | Очерёдность |
+|---|---|---|---|:---:|:---:|
+| HC.CASH.01 | Прогноз ликвидности на 13 недель | time-phased receipts/payments; scenarios | DF-CSH-01/02/03;P03;CFO-02 | T | P0 |
+| HC.CASH.02 | Разрывы ликвидности по временным корзинам | bucketed obligations; matched cash sources | P03;P10;C01/C02 | T | P1 |
+| HC.CASH.03 | Cash runway по динамическим сценариям | cash path; threshold/first-passage | P03;P08 | M | P1 |
+| HC.CASH.04 | CFO прямым методом | cash classification; reconciliation | F03;C06;C07;A01 | T | P0 |
+| HC.CASH.05 | CFO косвенным методом | net profit; noncash and working capital bridges | F02;F03;P06 | T | P0 |
+| HC.CASH.06 | Сверка банковских проводок | event matching; value/posting dates; dedup | C06;F03;ACC-03 | E | P1 |
+| HC.CASH.07 | Курсовой мост денежных средств | multi-currency FX historical vs closing; noncash | F03;C06 | T | P1 |
+| HC.CASH.08 | Потребность во внешнем финансировании | rolling deficits; financing constraints | P10;P03;INV-08 | O | P1 |
+
+#### Инвестиции и оценка — 9 кандидатов
+
+| FEngine-код | Показатель-кандидат | Почему сложный / семейство | Связь с FIN (кандидат) | Тип | Очерёдность |
+|---|---|---|---|:---:|:---:|
+| HC.DCF.01 | NPV регулярных денежных потоков | discounted series; agreed periodic rate | P07;P03;P05;INV-05 | N | P0 |
+| HC.DCF.02 | NPV потоков с фактическими датами | actual-day discount; day-count conventions | P07;A06 | N | P1 |
+| HC.DCF.03 | Все допустимые IRR roots и неоднозначность | multi-root discovery; domain restrictions | P07;INV-05;A06 | N | P0 |
+| HC.DCF.04 | XIRR по календарным датам | numerical roots; irregular periods | P07;A06 | N | P1 |
+| HC.DCF.05 | FCFF по полной экономической схеме | cashflow bridge; CAPEX; working capital | P07;P03;P05;INV-02 | T | P1 |
+| HC.DCF.06 | FCFE по полной схеме долга | equity CF bridge; debt flows | P07;P04;INV-03 | T | P1 |
+| HC.DCF.07 | Стоимость предприятия DCF и terminal value | FCFF/WACC; TV; discount convention | P07;INV-06;A06 | N | P1 |
+| HC.DCF.08 | Стоимость капитала и EV-to-equity bridge | FCFE/Ke; EV-net debt + adjustments | P07;INV-04;A06 | T | P1 |
+| HC.DCF.09 | Матрица чувствительности стоимости проекта | vectorized scenario grid; dependency DAG | P08;P07;INV-07 | M | P1 |
+
+#### Учёт и консолидация — 7 кандидатов
+
+| FEngine-код | Показатель-кандидат | Почему сложный / семейство | Связь с FIN (кандидат) | Тип | Очерёдность |
+|---|---|---|---|:---:|:---:|
+| HC.ACC.01 | Интегрированная модель трёх отчётов | F01/F02/F03; cash/balance reconciliation; graph | F01/F02/F03;P01/P02/P03;CFO-01 | T | P1 |
+| HC.ACC.02 | Элиминация внутригрупповых операций | intercompany matching; consolidation rules | F08;C14;ACC-07 | E | P1 |
+| HC.ACC.03 | Валютная трансляция консолидации | rate types; CTA; position-level translation | F08;F01/F02;C14 | T | P2 |
+| HC.ACC.04 | Межфирменная сверка дебета/кредита | pair matching; entity-level netting; exceptions | F06;C14;C11 | E | P1 |
+| HC.ACC.05 | Отложенные налоги и временные разницы | tax basis; reversals; time profiles | F01;F02;F05 | T | P2 |
+| HC.ACC.06 | PV и roll-forward обязательства по аренде | dated discounted rentals; modification | C13;C05;ACC-06 | N | P1 |
+| HC.ACC.07 | Мост движения капитала и результата | OCI/distributions; roll-forward proof | F04;F01;F02 | T | P2 |
+
+#### Запасы и себестоимость — 7 кандидатов
+
+| FEngine-код | Показатель-кандидат | Почему сложный / семейство | Связь с FIN (кандидат) | Тип | Очерёдность |
+|---|---|---|---|:---:|:---:|
+| HC.STOCK.01 | Себестоимость FIFO по партиям | ordered lot consumption; returns; corrections | C03;DF-STK-02/03;A03 | E | P0 |
+| HC.STOCK.02 | Средневзвешенная стоимость партий | perpetual/periodic moving weighted avg | C03;DF-STK-02/03;A03 | E | P0 |
+| HC.STOCK.03 | Себестоимость по идентифицированным единицам | item trace; quantity lineage | C03;DF-STK-01/02/03;A03 | E | P1 |
+| HC.STOCK.04 | Уценка запасов до NRV | item-level recoverable NRV; provisions | C03;A03 | T | P1 |
+| HC.STOCK.05 | Старение и риск обесценения запасов | stock cohorts; return histories; policy | C03;DF-STK-04;A03 | M | P2 |
+| HC.STOCK.06 | Сверка движения и конечного остатка | receipt/consumption/adjustment roll-forward | C03;DF-STK-01/02/03 | T | P1 |
+| HC.STOCK.07 | Потребность пополнения с ограничениями | safety stock; demand uncertainty; optimization | DF-STK-05;MGT-03 | O | P2 |
+
+#### Основные средства — 7 кандидатов
+
+| FEngine-код | Показатель-кандидат | Почему сложный / семейство | Связь с FIN (кандидат) | Тип | Очерёдность |
+|---|---|---|---|:---:|:---:|
+| HC.ASSET.01 | Покомпонентная амортизация | partial periods; changing useful life; policy | C04;DF-AST-01;A04 | E | P1 |
+| HC.ASSET.02 | Изменение стоимости и переоценка ОС | events; impairment; reversal; OCI rules | C04;F01;A04 | E | P1 |
+| HC.ASSET.03 | Value-in-use и impairment по CGU | discounted forecast; recoverable value | C04;F05;A04 | N | P2 |
+| HC.ASSET.04 | Балансовая стоимость на дату среза | component cost-depreciation-impairment roll | C04;A04 | T | P1 |
+| HC.ASSET.05 | Результат выбытия ОС | proceeds; disposal costs; carrying amount | C04;DF-AST-03;A04 | T | P2 |
+| HC.ASSET.06 | Прогноз ремонтов и жизненного цикла ОС | component wear; time/usage scheduling | C04;P05;DF-AST-01 | M | P2 |
+| HC.ASSET.07 | График CAPEX и вводов в эксплуатацию | time-phased commitments; capitalization events | P05;C04;INV-01 | T | P1 |
+
+#### Затраты и строительство — 8 кандидатов
+
+| FEngine-код | Показатель-кандидат | Почему сложный / семейство | Связь с FIN (кандидат) | Тип | Очерёдность |
+|---|---|---|---|:---:|:---:|
+| HC.COST.01 | ABC распределение косвенных расходов | drivers; multi-stage allocation; residuals | C08;F07;DF-CST-03;CFO-07 | E | P1 |
+| HC.COST.02 | Себестоимость единицы по ресурсам | BOM/resources; conversion units; work item | SF-F02;DF-OPS-02;CST-04 | E | P1 |
+| HC.COST.03 | Price-volume-mix bridge прибыли | factor decomposition; reconciliation | C07;C08;C09;CFO-04 | T | P1 |
+| HC.COST.04 | Точка безубыточности для продуктового микса | contribution margins; optimization constraints | C07;C08;P02 | O | P2 |
+| HC.COST.05 | Эскалация стоимости проекта и contingency | time index; risk scenarios | SF-F02;P08;CST-10 | M | P2 |
+| HC.COST.06 | BoQ и стоимость строительных работ | quantity takeoff; rate mapping; material-labor | SF-F01/SF-F02;CST-01/04 | E | P1 |
+| HC.COST.07 | Освоенный объём EVM (CPI/SPI/EAC) | earned value; time-phased progress forecast | SF-F01/SF-F02;CST-09 | T | P1 |
+| HC.COST.08 | План-факт затрат по драйверам | flex budgets; drivers; multi-period bridge | C08;P02;CFO-03 | T | P1 |
+
+#### Планирование и оптимизация — 8 кандидатов
+
+| FEngine-код | Показатель-кандидат | Почему сложный / семейство | Связь с FIN (кандидат) | Тип | Очерёдность |
+|---|---|---|---|:---:|:---:|
+| HC.PLAN.01 | Скользящий финансовый прогноз | rolling multi-statement scenario DAG | P01/P02/P03;MGT-05 | M | P1 |
+| HC.PLAN.02 | Прогноз спроса с сезонностью | time-series; hierarchical cohorts; error intervals | DF-SAL-01;C07;P02 | M | P2 |
+| HC.PLAN.03 | Оптимальные страховые запасы | service levels; probabilistic demand/lead time | DF-STK-05;MGT-03 | O | P2 |
+| HC.PLAN.04 | Планирование мощностей и загрузки | resource calendars; capacity constraints | DF-OPS-01/02;MGT-02 | O | P2 |
+| HC.PLAN.05 | Критический путь проекта и задержки | precedence DAG; scheduling/critical path | DF-PRJ-06;MGT-08 | O | P2 |
+| HC.PLAN.06 | План ФОТ и численности | headcount events; temporal payroll policies | DF-HR-01/03;MGT-04 | T | P2 |
+| HC.PLAN.07 | Согласованный P&L/BS/CF для сценариев | cross-statement financial propagation | P01/P02/P03;CFO-01 | M | P1 |
+| HC.PLAN.08 | Оптимальное распределение CAPEX | portfolio budget constraints; NPV optimization | P05/P07/P08;INV-09 | O | P2 |
+
+#### Риск и стресс-моделирование — 7 кандидатов
+
+| FEngine-код | Показатель-кандидат | Почему сложный / семейство | Связь с FIN (кандидат) | Тип | Очерёдность |
+|---|---|---|---|:---:|:---:|
+| HC.RISK.01 | Monte Carlo распределение NPV | stochastic inputs; correlated draws; distribution | P07/P08;A06 | M | P2 |
+| HC.RISK.02 | Value at Risk денежного результата | loss distribution; quantile estimation | P08;MGT-07 | M | P2 |
+| HC.RISK.03 | Conditional Value at Risk (Expected Shortfall) | tail conditional loss; backtesting | P08;MGT-07 | M | P2 |
+| HC.RISK.04 | Многопериодный стресс ликвидности | scenario cashflow shock and constraints | P03;P08;CFO-02 | M | P1 |
+| HC.RISK.05 | Чувствительность ECL к макрофакторам | forward macro paths; credit loss recalibration | A02;C01;P08 | M | P2 |
+| HC.RISK.06 | Вероятность кассового разрыва | stochastic first-passage on cash paths | P03;P08;CFO-02 | M | P2 |
+| HC.RISK.07 | Совместный сценарий ставок, FX и CAPEX | correlated shocks; cross-form propagation | P07/P08;C05;A06 | M | P2 |
+
+
+### 18.3. Сводка и качество покрытия
+
+Реестр кандидатов НЕ равен числу существующих или финансово квалифицированных показателей в FIN. Он нужен для фильтрации и декомпозиции на независимые вычислительные output contracts, а не для создания фиктивного покрытия форм.
+
+Обязательные поля для каждого HC.*:
+code; title; analysisGoal; sourceSystem; formVersion(s);
+metric/inputRevision(s); input-grain; stableBusinessKey; value-state;
+stock/flow/event/valuation-date semantics; expected result-shape;
+output unit; currency & FX version; contract/parameter/method revision SHA;
+math expression/iterative method; convergence criteria when applicable;
+edge cases; independent examples with source evidence;
+Python oracle revision; Rust capability candidate; SQL fallback;
+privacy/security; numerical policy; publication and approval gate;
+performance workload shape; idempotent async taskCode;
+staged input SHA; result SHA; archive receipt and 3h temporary retention policy.
+
+Пример ResultShape:
+- ROW_ALIGNED: график событий по каждой строке/договору/парте;
+- GROUPED: aging/cohorts/group-by;
+- TIME_SERIES: 13-week cashflow, debt schedules, rolling forecasts;
+- AGGREGATE: DSO/NPV/DSCR с единой единицей и scope;
+- ROOT_SET: IRR/XIRR — возможны 0, 1, несколько корней;
+- SCENARIO_MATRIX: stress, Monte Carlo, NPV sensitivity;
+- OPTIMIZATION_PLAN: альтернативы, ограничения, objective + diagnostics.
+
+Пример BATCH-выполнения: одна taskCode может возвращать несколько зависимых
+outputs, но каждая output metric revision и ее typed status должна иметь собственную
+semantic ID, lineage и методологический gate. Input data, taskCode, exact method,
+numeric policy, resultShape фиксируются в **immutable execution binding**;
+одноименный ключ идемпотентности с другой задачей или исходным массивом — conflict,
+а не автоматическая повторная калькуляция.
+
+### 18.4. Первые шесть эталонных пакетов Python (только будущие требования)
+
+1. HC.SET.01/02/03/06: invoice+settlement events, due date amendment, reversal,
+   duplicate business keys; stateful replay and aging; C01/C02/A01. В FIN
+   пока нет универсального полного allocation ledger E2E для этих задач.
+2. HC.LOAN.01/02/03: cash schedule, nominal rate, contract dates,
+   fees, EIR root; C05/P04/A05. Не смешивать EIR с договорной ставкой и ГЭСВ.
+3. HC.CASH.01/04/05: cash roll-forward, direct vs indirect CFO, 13-week
+   liquidity, stock/flow reconciliation.
+4. HC.STOCK.01/02: transaction-ordered FIFO vs weighted average and returns;
+   C03/A03; invariant quantity and cost.
+5. HC.DCF.01/03/09: periodic NPV, all IRR roots and sensitivity grid;
+   P07/P08/A06, signed dated cashflows and FCFF/WACC vs FCFE/Ke gate.
+6. HC.ECL.01/02/03: forward-looking ECL with segment definitions
+   and eligibility; independent loss assumptions and financial policy.
+   Не выдавать synthetic loss model за IFRS certification.
+
+Для каждого пакета сначала: финансовое определение; независимые числовые
+worked examples; Python Decimal (или при статистическом моделировании
+явная точность/seed/tolerance); property/negative tests; immutable golden vectors;
+лишь затем Rust parity, если модель и задача научно/методологически доказаны.
+
+### 18.5. Как решать, переносить ли показатель в Rust
+
+| Семейство вычислений | Предварительный исполнитель | Условие для Rust |
+|---|---|---|
+| Многомерные joins, WHERE/GROUP BY, простые SUM/ROLL_FORWARD | PostgreSQL SQL/JDBC | Только при подтверждённой экономии full-path latency |
+| Платежные и товарные event waterfalls | SQL temporal + Python reference, затем Rust | Большой поток упорядоченных событий, устойчивый replay, batch throughput |
+| EIR/IRR/XIRR/NPV solver, множество датированных графиков | Python Decimal reference, затем Rust compute | Numerical parity, root policy, batches и CPU bottleneck |
+| Сценарии, Monte Carlo, чувствительность | Python model, затем Rust | Доказанный workload, reproducible seeds, statistical acceptance |
+| Resource/capital optimization | Python OR reference, затем Rust или dedicated solver | Точный objective/constraints и качество результата |
+| Простая маржа, процент, изменение за период | Java/SQL | Не выделять Rust лишь из-за названия показателя |
+
+Требование FEngine ASYNC: сначала INPUT(contract + idempotency key + arrays),
+затем EXECUTE(taskCode + same scoped key), затем GET status/result by key;
+durable Inbox/Outbox, immutable result, acknowledgment при записи в основную
+БД, purge временных payload **не ранее 3 часов после завершения и подтвержденной
+архивации**. 3h payload TTL не равно периоду сохранения ключа или финансовых
+audit receipts. До спецификации архивного подтверждения опасно считать очистку
+безусловной.
+
+### 18.6. Методологические блокеры для каталога
+
+- Финансовые ставки: EIR / договорная номинальная / применимая ГЭСВ РК
+  разные оси, не interchangeable versions.
+- A02/ECL: PD, LGD, EAD и staging/forecast policy не заполняются автоматически.
+  Случай allowance > gross в positive-stock pilot требует review, а не writeoff.
+- Stock AS_OF: брать ровно одно надлежащее состояние на дату;
+  суммирование состояний за несколько дат — ошибка.
+- Valuation: FCFF дисконтируется WACC, FCFE — cost of equity при корректной
+  методике; не смешивать денежные потоки и ставки.
+- IRR: multiple/no root; XIRR and day-count/valuation date pinned.
+- Ценообразование и risk: causal interpretation отдельна от correlation;
+  forecast/error bounds and baseline must be explainable.
+- Unit/currency/period mismatch, missing/zero/null/NA, negative balances,
+  precision and rounding always explicit; no silent zero substitution.
+- Monte Carlo/ML statistical floats may be appropriate within clearly
+  versioned probabilistic kernels; денежные обязательства и бухгалтерские
+  суммы — controlled Decimal with exact final money policy.
+- 166 forms (154 data + 12 evidence) remain the FIN source catalogue.
+  No invented 167th form, no equation for every numeric input,
+  no automatic qualification of 42 models, 46 output codes or 10
+  candidate formula revisions.
+- Financial S2/production admission stays independent from Python/Rust
+  code parity and algorithm verification.
+
+### 18.7. Источники и актуальность
+
+FIN Analyzer input sources (исходный snapshot):
+https://github.com/alimbetov/fin-analyzer/blob/5d3be2d6b9856be1571ed6aa99d516e3c8b2af3b/form-library/src/main/resources/catalog/analytics-model-catalog.tsv
+https://github.com/alimbetov/fin-analyzer/blob/5d3be2d6b9856be1571ed6aa99d516e3c8b2af3b/docs/FIN-CALC154-ALL166-FORMS-NAMES-METHODOLOGY-RESEARCH.tsv
+https://github.com/alimbetov/fin-analyzer/blob/5d3be2d6b9856be1571ed6aa99d516e3c8b2af3b/docs/FIN-CALC154-METHODOLOGY-OPERATION-GAPS.tsv
+https://github.com/alimbetov/fin-analyzer/blob/5d3be2d6b9856be1571ed6aa99d516e3c8b2af3b/docs/FIN-DATA-CALC-R2-CROSS-FORM-OUTPUT-MATRIX.tsv
+https://github.com/alimbetov/fin-analyzer/blob/5d3be2d6b9856be1571ed6aa99d516e3c8b2af3b/docs/FIN-CALC-APPS-R0-SIX-APPLICATION-CONTRACTS-AND-ROADMAP.md
+https://github.com/alimbetov/fin-analyzer/blob/5d3be2d6b9856be1571ed6aa99d516e3c8b2af3b/docs/FIN-DATA-CALC-R2-CROSS-FORM-CALCULATION-ROADMAP.md
+
+В новейшей ветке FIN MG-R0.1 read-only Metric Graph Resolver получил ограниченный
+PG16 gate 5/5 PASS на тестируемом SHA d39af2e4...; это доказательство
+чтения exact formula/physical field dependencies, НЕ 83 исполнимых
+высокопроизводительных моделей.
+
+**Итог требований:** сначала изучить типизированные outputs и exact source
+evidence для P0, затем P1/P2 по бизнес-приоритету. До отдельного разрешения
+разработка, нагрузочные тесты, новые SQL/Python/Rust файлы — STOP.
+
