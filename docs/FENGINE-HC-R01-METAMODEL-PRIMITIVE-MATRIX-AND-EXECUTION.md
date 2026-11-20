@@ -1,5 +1,7 @@
 # FEngine HC-R0.1 — мета-модель, повторное использование примитивов и квалификация расчётов
 
+> **Architecture override (2026-11-20):** Any historical proposal in this document to persist calculation facts, plans, results or receipts to PostgreSQL has been superseded. Current FEngine runtime policy is **Redis-only, absolute TTL ≤10,800 seconds, immediate delete on authenticated consumer ACK, no durable user-data copies**. See [HC-R0.3 ephemeral policy](FENGINE-HC-R03-DECIMAL-CALCULATIONS-AND-EPHEMERAL-POLICY.md). This policy is documented; the Redis runtime itself is not implemented yet.
+
 **Дата:** 2026-11-20. **Ветка:** main. **Статус:** PYTHON_REFERENCE_PARTIAL / FINANCIAL_S2_HOLD.
 **Основание:** каталоги R3 (116 / 732 / 222). **Коррекция:** семейства — 20, а не 19.
 Существующий каталог не означает 116 реализованных финансовых исполнителей.
