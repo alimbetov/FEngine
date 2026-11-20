@@ -6,7 +6,7 @@ from __future__ import annotations
 
 import unittest
 from datetime import date
-from decimal import Decimal
+from decimal import Decimal, localcontext
 from pathlib import Path
 
 from fengine_hc.reference import CalculationError, ReferenceEngine
@@ -221,8 +221,10 @@ class NewModelReferenceTests(unittest.TestCase):
                       {"terminalMethod": "GORDON_FCFF", "terminalGrowth": "0.02"})
         self.assertEqual(Decimal(r.output["nextPeriodFCFF"]), Decimal(102))
         self.assertEqual(Decimal(r.output["terminalAtForecastHorizon"]), Decimal(1275))
-        self.assertLess(abs(Decimal(r.output["presentValueOfTerminal"]) -
-                            Decimal(12750)/Decimal(11)), Decimal("1e-32"))
+        with localcontext() as ctx:
+            ctx.prec = 50
+            self.assertLess(abs(Decimal(r.output["presentValueOfTerminal"]) -
+                                Decimal(12750)/Decimal(11)), Decimal("1e-32"))
         self.assertEqual(r.output["classification"], "GORDON_FCFF_REFERENCE_NOT_FINANCIAL_S2")
 
     def test_gordon_rejects_wacc_below_growth_and_negative_fcff(self):
