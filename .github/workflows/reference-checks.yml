@@ -44,6 +44,8 @@ jobs:
         run: python -m unittest discover -s tests -p 'test_fengine_qual_r14_cashflow_properties.py' -v
       - name: Mandatory QUAL-R1.5 synthetic source-context compatibility gate
         run: python -m unittest discover -s tests -p 'test_fengine_qual_r15_source_context.py' -v
+      - name: Mandatory QUAL-R1.6 context admission and two-period PVM adversarial gate
+        run: python -m unittest discover -s tests -p 'test_fengine_qual_r16_mandatory_admission.py' -v
       - name: Verify independent high-precision HC goldens without shared test import order
         run: |
           python -m unittest discover -s tests -p 'test_fengine_hc_reference.py' -v
