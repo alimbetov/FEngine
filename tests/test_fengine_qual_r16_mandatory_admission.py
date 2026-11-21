@@ -156,9 +156,11 @@ class QualR16MandatoryAdmission(unittest.TestCase):
         ss, pp, _, _ = fixture()
         self.refuse("SOURCE_ROLE_MISMATCH",
                     sources=(ss[0], replace(ss[1], role="BASELINE")))
+        invalid = {**pp, "ACTUAL": {"rows": [
+            {"sku": "A", "quantity": "1"}]}}
         self.refuse("PVM_SOURCE_ROW_SCHEMA",
-                    payloads={**pp, "ACTUAL": {"rows": [
-                        {"sku": "A", "quantity": "1"}]}})
+                    sources=(ss[0], replace(ss[1], payload_sha256=fingerprint(invalid["ACTUAL"]))),
+                    payloads=invalid)
         with self.assertRaises(CalculationError) as ex:
             self.engine.calculate("HC.UNLISTED.01", "UNKNOWN", {}, {},
                                   sources=[], payloads_by_role={}, reference_mode=True)
