@@ -3,6 +3,7 @@ from __future__ import annotations
 
 import random
 import unittest
+from decimal import Decimal
 from dataclasses import replace
 from pathlib import Path
 
@@ -109,7 +110,7 @@ class QualR16MandatoryAdmission(unittest.TestCase):
             "HC.CAP.02", "MARKET_VALUE_WACC", inputs, {},
             sources=[s], payloads_by_role={"INPUT": inputs}, reference_mode=True,
         )
-        self.assertEqual(result.result.output["wacc"], "0.102")
+        self.assertEqual(Decimal(result.result.output["wacc"]), Decimal("0.102"))
         with self.assertRaises(CalculationError) as ex:
             self.engine.calculate(
                 "HC.CAP.02", "MARKET_VALUE_WACC", {**inputs, "debtValue": "900"}, {},
